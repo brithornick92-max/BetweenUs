@@ -57,6 +57,7 @@ import {
 import { resolveWeeklyContentAnchorDate } from '../utils/contentSchedule';
 import { getRestoredDeckItemIds } from '../utils/contentDeckRestores';
 import { buildStableWeeklySet } from '../utils/stableWeeklyContent';
+import { resolveWeeklyDeckItems } from '../utils/weeklyDeckVisibility';
 
 const { width, height } = Dimensions.get('window');
 const CARD_W = width - 40;
@@ -459,6 +460,9 @@ export default function DateNightScreen({ navigation }) {
   const stackRef = useRef(null);
   const shortlistBusyRef = useRef(new Set());
   const [shuffledDeck, setShuffledDeck] = useState(null);
+  const [shuffleBusy, setShuffleBusy] = useState(false);
+  const shuffleBusyRef = useRef(false);
+  const shuffleTimeoutRef = useRef(null);
   const emptyShuffleAnim = useSharedValue(0);
   const contentAnchorDate = useMemo(() => resolveWeeklyContentAnchorDate({
     isPremium,
@@ -556,9 +560,8 @@ export default function DateNightScreen({ navigation }) {
   );
 
   const visibleDateDeck = useMemo(() => {
-    const weeklyItems = weeklyDateSet?.items || [];
-    if (!weeklyItems.length) return null;
-  
+    const weeklyItems = resolveWeeklyDeckItems(weeklyDateSet);
+
     return weeklyItems.map((item) => ({
       ...item,
       title: item.title || item.previewText || 'Premium date idea',
@@ -574,12 +577,11 @@ export default function DateNightScreen({ navigation }) {
 
   const baseDeck = useMemo(() => {
     let finalDeck = [];
+    const baseDates = visibleDateDeck;
     
-    if (!isPremium && visibleDateDeck?.length) {
-      finalDeck = [...visibleDateDeck];
+    if (!isPremium) {
+      finalDeck = [...baseDates];
     } else if (isPremium) {
-      const baseDates = visibleDateDeck?.length ? visibleDateDeck : allDates;
-
       if (!contentProfile) {
         finalDeck = [...baseDates];
       } else {
@@ -593,14 +595,28 @@ export default function DateNightScreen({ navigation }) {
     }
 
     return finalDeck;
-  }, [allDates, contentProfile, isPremium, visibleDateDeck]);
+  }, [contentProfile, isPremium, visibleDateDeck]);
+
+  const clearPendingShuffle = useCallback(() => {
+    if (shuffleTimeoutRef.current) {
+      clearTimeout(shuffleTimeoutRef.current);
+      shuffleTimeoutRef.current = null;
+    }
+    shuffleBusyRef.current = false;
+    setShuffleBusy(false);
+  }, []);
 
   useEffect(() => {
+    clearPendingShuffle();
     setShuffledDeck(null);
     setDeckIndex(0);
     setDateDeckRevealsCards(false);
     setTopDateRevealed(false);
-  }, [baseDeck]);
+  }, [baseDeck, clearPendingShuffle]);
+
+  useEffect(() => () => {
+    if (shuffleTimeoutRef.current) clearTimeout(shuffleTimeoutRef.current);
+  }, []);
 
   const deck = shuffledDeck || baseDeck;
   const freeDeckDateIds = useMemo(
@@ -714,9 +730,11 @@ export default function DateNightScreen({ navigation }) {
   }, [freeDeckDateIds, isPremium, navigation, showPaywall, user, userId, userProfile]);
 
   const handleReset = useCallback(() => {
-    if (freeDeckDone) return;
+    if (freeDeckDone || shuffleBusyRef.current) return;
 
     const shouldRevealCards = topDateRevealed;
+    shuffleBusyRef.current = true;
+    setShuffleBusy(true);
     setDateDeckRevealsCards(shouldRevealCards);
 
     // 1. Trigger the visual shuffle animation
@@ -738,10 +756,13 @@ export default function DateNightScreen({ navigation }) {
     setTimeout(() => impact(ImpactFeedbackStyle.Medium), 150);
 
     // 3. Swap the cards as the visible stack settles
-    setTimeout(() => {
+    shuffleTimeoutRef.current = setTimeout(() => {
       setShuffledDeck(shuffleArray(baseDeck, deck[deckIndex]));
       setDeckIndex(0);
       setTopDateRevealed(shouldRevealCards);
+      shuffleBusyRef.current = false;
+      shuffleTimeoutRef.current = null;
+      setShuffleBusy(false);
     }, 420);
   }, [baseDeck, deck, deckIndex, emptyShuffleAnim, freeDeckDone, topDateRevealed]);
 
@@ -860,10 +881,10 @@ export default function DateNightScreen({ navigation }) {
               style={[styles.shuffleButton, { 
                 backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
                 borderColor: t.border,
-                opacity: freeDeckDone ? 0.45 : 1,
+                opacity: freeDeckDone || shuffleBusy ? 0.45 : 1,
               }]}
               onPress={handleReset}
-              disabled={freeDeckDone}
+              disabled={freeDeckDone || shuffleBusy}
               activeOpacity={0.7}
             >
               <Icon name="shuffle-outline" size={16} color={t.primary} />
@@ -924,8 +945,9 @@ export default function DateNightScreen({ navigation }) {
                   </Text>
                   {isPremium ? (
                     <TouchableOpacity
-                      style={[styles.resetBtn, { backgroundColor: colors.text }]}
+                      style={[styles.resetBtn, { backgroundColor: colors.text, opacity: shuffleBusy ? 0.45 : 1 }]}
                       onPress={handleReset}
+                      disabled={shuffleBusy}
                       activeOpacity={0.85}
                     >
                       <Icon name="shuffle-outline" size={18} color={colors.background} />

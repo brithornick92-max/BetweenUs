@@ -48,6 +48,16 @@ describe('core screen flow helpers', () => {
     })).toBe(1);
   });
 
+  it('does not replace an empty weekly position set with the full catalog', () => {
+    const { resolveAvailablePositions } = require('../../screens/IntimacyPositionsScreen.jsx');
+
+    expect(resolveAvailablePositions(null)).toEqual([]);
+    expect(resolveAvailablePositions({ items: [] })).toEqual([]);
+    expect(resolveAvailablePositions({
+      items: [{ id: 'ip001', title: 'Only weekly position' }],
+    })).toEqual([{ id: 'ip001', title: 'Only weekly position' }]);
+  });
+
   it('uses quiz-prefixed prompt ids for Daily Quiz answers', () => {
     const { getQuizPromptId } = require('../../screens/CouplesQuizScreen');
 

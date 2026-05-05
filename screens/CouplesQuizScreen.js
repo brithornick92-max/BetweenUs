@@ -25,7 +25,6 @@ import {
   Keyboard,
 } from 'react-native';
 import Animated, {
-  FadeIn,
   FadeInDown,
   useSharedValue,
   useAnimatedStyle,
@@ -42,7 +41,10 @@ import { DataLayer } from '../services/localfirst';
 import { SPACING } from '../utils/theme';
 import { getMyDisplayName, getPartnerDisplayName } from '../utils/profileNames';
 import { storage } from '../utils/storage';
-import { getDailyContentDateKey } from '../utils/dailyContentDate';
+import {
+  getDailyContentDateKey,
+  getMsUntilNextDailyContentRollover,
+} from '../utils/dailyContentDate';
 
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
 
@@ -94,7 +96,7 @@ function getTodayKey() {
   return getDailyContentDateKey();
 }
 
-function getDailyQuestion(dateKey) {
+export function getDailyQuestion(dateKey) {
   // Deterministic question selection based on date so both partners see same question
   let hash = 0;
   for (let i = 0; i < dateKey.length; i++) {
@@ -105,6 +107,42 @@ function getDailyQuestion(dateKey) {
 
 function substitutePartnerName(text, partnerName) {
   return text.replace(/\{partner\}/g, partnerName || 'your partner');
+}
+
+function shouldScheduleDailyQuizRollover() {
+  return !(typeof process !== 'undefined' && process.env?.NODE_ENV === 'test');
+}
+
+function useDailyQuizDateKey() {
+  const [dateKey, setDateKey] = useState(() => getTodayKey());
+
+  useEffect(() => {
+    if (!shouldScheduleDailyQuizRollover()) return undefined;
+
+    let active = true;
+    let timeoutId = null;
+
+    const scheduleNextRollover = () => {
+      if (!active) return;
+
+      timeoutId = setTimeout(() => {
+        if (!active) return;
+        setDateKey(getTodayKey());
+        scheduleNextRollover();
+      }, getMsUntilNextDailyContentRollover() + 1000);
+
+      timeoutId?.unref?.();
+    };
+
+    scheduleNextRollover();
+
+    return () => {
+      active = false;
+      if (timeoutId) clearTimeout(timeoutId);
+    };
+  }, []);
+
+  return dateKey;
 }
 
 // ─── Screen ────────────────────────────────────────────────────────────────
@@ -136,11 +174,10 @@ export default function CouplesQuizScreen({ navigation }) {
   }, [state?.coupleId, state?.userId, user?.email, user?.id, user?.uid, userProfile?.coupleId]);
   const quizCacheKeys = useMemo(() => getQuizCacheKeys(quizCacheScope), [quizCacheScope]);
 
-  const todayKey = useMemo(() => getTodayKey(), []);
+  const todayKey = useDailyQuizDateKey();
   const question = useMemo(() => getDailyQuestion(todayKey), [todayKey]);
   const quizPromptId = useMemo(() => getQuizPromptId(question.id), [question.id]);
   const questionText = substitutePartnerName(question.text, partnerName);
-  // All category pills use primary red for consistency
   const accentColor = t.primary;
 
   const [myAnswer, setMyAnswer] = useState('');
@@ -159,10 +196,26 @@ export default function CouplesQuizScreen({ navigation }) {
   }));
 
   const inputRef = useRef(null);
+  const revealScaleRef = useRef(revealScale);
+
+  useEffect(() => {
+    revealScaleRef.current = revealScale;
+  }, [revealScale]);
 
   // ── Load today's state ─────────────────────────────────────────────
   useEffect(() => {
+    let active = true;
+
     async function load() {
+      setIsLoading(true);
+      setMyAnswer('');
+      setPartnerAnswer('');
+      setHasSubmitted(false);
+      setPartnerHasSubmitted(false);
+      setIsRevealed(false);
+      setAnswerId(null);
+      revealScaleRef.current.value = 0;
+
       try {
         let hasSyncedAnswer = false;
 
@@ -180,6 +233,8 @@ export default function CouplesQuizScreen({ navigation }) {
             isMatchingPromptAnswer(row, quizPromptId, todayKey)
           );
           const mine = matchingSharedRows[0] || matchingPersonalRows[0] || null;
+
+          if (!active) return;
 
           if (mine) {
             setAnswerId(mine.id || null);
@@ -204,6 +259,8 @@ export default function CouplesQuizScreen({ navigation }) {
           const savedAnswer = await storage.get(quizCacheKeys.answer);
           const savedQId = await storage.get(quizCacheKeys.question);
 
+          if (!active) return;
+
           if (savedKey === todayKey && savedQId === question.id && savedAnswer) {
             setMyAnswer(savedAnswer);
             setHasSubmitted(true);
@@ -212,10 +269,14 @@ export default function CouplesQuizScreen({ navigation }) {
       } catch {
         // no-op
       } finally {
-        setIsLoading(false);
+        if (active) setIsLoading(false);
       }
     }
     load();
+
+    return () => {
+      active = false;
+    };
   }, [todayKey, question.id, quizPromptId, quizCacheKeys]);
 
   const handleSubmit = useCallback(async () => {
@@ -383,17 +444,7 @@ export default function CouplesQuizScreen({ navigation }) {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-            {/* Category badge */}
-            <Animated.View entering={FadeIn.duration(800).delay(400)} style={styles.badgeRow}>
-              <View style={styles.categoryBadge}>
-                <Icon name={question.icon || 'sparkles-outline'} size={12} color={accentColor} />
-                <Text style={[styles.categoryLabel, { color: accentColor }]}>
-                  {(question.category || 'about them').toUpperCase()}
-                </Text>
-              </View>
-            </Animated.View>
-
-            <Animated.View entering={FadeInDown.duration(800).delay(600)} style={[styles.mainContainer, { backgroundColor: t.surface, borderColor: t.border }]}>
+            <Animated.View entering={FadeInDown.duration(800).delay(400)} style={[styles.mainContainer, { backgroundColor: t.surface, borderColor: t.border }]}>
               
               {/* Question text */}
               <View style={styles.questionCard}>
@@ -552,27 +603,6 @@ export default function CouplesQuizScreen({ navigation }) {
 const createStyles = (t, isDark) => StyleSheet.create({
   scroll: { flex: 1 },
   scrollContent: { paddingBottom: 120 },
-
-  // ── Category Badge ──
-  badgeRow: {
-    paddingHorizontal: SPACING.md, // Align with mainContainer margin
-    marginBottom: SPACING.md,      // Tighter margin
-  },
-  categoryBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    paddingHorizontal: 0,
-    paddingVertical: 8,
-    borderRadius: 100,
-    gap: 6,
-  },
-  categoryLabel: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 11,
-    fontWeight: '900',
-    letterSpacing: 1.5,
-  },
 
   // ── Main Container ──
   mainContainer: {

@@ -15,7 +15,6 @@ import {
   ActivityIndicator,
   Keyboard,
 } from "react-native";
-import Icon from '../components/Icon';
 import { LinearGradient } from "expo-linear-gradient";
 import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
 import {
@@ -65,22 +64,6 @@ const loadAllBundledPrompts = () => {
   return [];
 };
 
-// ─── Editorial Heat Mapping (Integrated Velvet Glass) ─────────────────────
-const HEAT_ICONS = {
-  1: "leaf-outline",
-  2: "sparkles-outline",
-  3: "heart-outline",
-  4: "flame-outline",
-  5: "infinite-outline",
-};
-const HEAT_LABELS = {
-  1: "Emotional",
-  2: "Warmth",
-  3: "Romance",
-  4: "Steamy",
-  5: "Explicit",
-};
-
 export default function PromptAnswerScreen({ route, navigation }) {
   const { prompt: routePrompt, promptId, mode } = route.params || {};
   const { colors, isDark } = useTheme();
@@ -124,8 +107,6 @@ export default function PromptAnswerScreen({ route, navigation }) {
 
   const heat = prompt?.heat || 1;
   const catGradient = HEAT_LEVEL_GRADIENTS[heat] || HEAT_LEVEL_GRADIENTS[1];
-  const catIcon = HEAT_ICONS[heat] || "heart-outline";
-  const catLabel = HEAT_LABELS[heat] || "Emotional";
   const isEditingAnswer = mode === 'edit' || !!existingAnswer;
   const headerTitle = isEditingAnswer ? "Edit" : "Answer";
   const canSave = answer.trim().length > 0 && !isSaving;
@@ -364,13 +345,6 @@ export default function PromptAnswerScreen({ route, navigation }) {
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
           >
-            <View style={styles.promptMetaRow}>
-              <View style={[styles.promptIconWrap, { backgroundColor: withAlpha(t.primary, 0.12) }]}>
-                <Icon name={catIcon} size={18} color={t.primary} />
-              </View>
-              <Text style={[styles.promptEyebrow, { color: t.primary }]}>{catLabel}</Text>
-            </View>
-
             <Text style={[styles.promptText, { color: t.text }]}>{prompt?.text}</Text>
           </LinearGradient>
         </Animated.View>
@@ -451,26 +425,6 @@ const createStyles = (t, isDark) =>
       padding: SPACING.lg,
       overflow: 'hidden',
       minHeight: 156,
-    },
-    promptMetaRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 12,
-      marginBottom: SPACING.md,
-    },
-    promptIconWrap: {
-      width: 40,
-      height: 40,
-      borderRadius: 12,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    promptEyebrow: {
-      fontFamily: SYSTEM_FONT,
-      fontWeight: "900",
-      fontSize: 11,
-      letterSpacing: 1.5,
-      textTransform: "uppercase",
     },
     promptText: {
       fontFamily: SYSTEM_FONT,

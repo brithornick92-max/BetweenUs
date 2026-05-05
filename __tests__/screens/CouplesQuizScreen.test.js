@@ -18,16 +18,24 @@ const {
 
 const CouplesQuizModule = require('../../screens/CouplesQuizScreen');
 const CouplesQuizScreen = CouplesQuizModule.default;
-const { getQuizCacheKeys } = CouplesQuizModule;
+const { getDailyQuestion, getQuizCacheKeys } = CouplesQuizModule;
+const { getDailyContentDateKey } = require('../../utils/dailyContentDate');
 
 describe('CouplesQuizScreen', () => {
+  let tree;
+
   beforeEach(() => {
     resetScreenHarnessMocks();
   });
 
+  afterEach(() => {
+    tree?.unmount();
+    tree = null;
+  });
+
   it('saves Daily Quiz answers through the prompt-answer path', async () => {
     const navigation = createNavigation();
-    const tree = await renderScreen(CouplesQuizScreen, { navigation });
+    tree = await renderScreen(CouplesQuizScreen, { navigation });
     await flushEffects();
 
     const input = tree.root.findByType(TextInput);
@@ -59,6 +67,34 @@ describe('CouplesQuizScreen', () => {
     );
   });
 
+  it('does not render the Daily Quiz category label', async () => {
+    const navigation = createNavigation();
+    tree = await renderScreen(CouplesQuizScreen, { navigation });
+    await flushEffects();
+
+    const categoryLabels = new Set(
+      require('../../content/quizQuestions.json').questions.map((question) =>
+        String(question.category || '').toUpperCase()
+      )
+    );
+    const renderedCategoryLabels = tree.root.findAll((node) =>
+      typeof node.props?.children === 'string' && categoryLabels.has(node.props.children)
+    );
+
+    expect(renderedCategoryLabels).toHaveLength(0);
+  });
+
+  it('keeps one Daily Quiz question until the 4am content rollover', () => {
+    const beforeRolloverKey = getDailyContentDateKey(new Date(2026, 4, 5, 3, 59, 59));
+    const previousEveningKey = getDailyContentDateKey(new Date(2026, 4, 4, 23, 0, 0));
+    const afterRolloverKey = getDailyContentDateKey(new Date(2026, 4, 5, 4, 0, 0));
+
+    expect(beforeRolloverKey).toBe(previousEveningKey);
+    expect(afterRolloverKey).toBe('2026-05-05');
+    expect(getDailyQuestion(beforeRolloverKey).id).toBe(getDailyQuestion(previousEveningKey).id);
+    expect(getDailyQuestion(afterRolloverKey).id).not.toBe(getDailyQuestion(beforeRolloverKey).id);
+  });
+
   it('ignores legacy unscoped local answers from another signed-in account', async () => {
     const legacyKeys = new Set([
       '@betweenus:cache:quizDateKey',
@@ -70,7 +106,7 @@ describe('CouplesQuizScreen', () => {
     ));
 
     const navigation = createNavigation();
-    const tree = await renderScreen(CouplesQuizScreen, { navigation });
+    tree = await renderScreen(CouplesQuizScreen, { navigation });
     await flushEffects();
 
     expect(mockStorageGet).not.toHaveBeenCalledWith('@betweenus:cache:quizDateKey');
@@ -91,7 +127,7 @@ describe('CouplesQuizScreen', () => {
     ]);
 
     const navigation = createNavigation();
-    const tree = await renderScreen(CouplesQuizScreen, { navigation });
+    tree = await renderScreen(CouplesQuizScreen, { navigation });
     await flushEffects();
 
     const input = tree.root.findByType(TextInput);
@@ -105,7 +141,7 @@ describe('CouplesQuizScreen', () => {
     ]));
 
     const navigation = createNavigation();
-    const tree = await renderScreen(CouplesQuizScreen, { navigation });
+    tree = await renderScreen(CouplesQuizScreen, { navigation });
     await flushEffects();
 
     const [editButton] = findTouchablesByText(tree.root, 'Edit');
@@ -126,7 +162,7 @@ describe('CouplesQuizScreen', () => {
     ]));
 
     const navigation = createNavigation();
-    const tree = await renderScreen(CouplesQuizScreen, { navigation });
+    tree = await renderScreen(CouplesQuizScreen, { navigation });
     await flushEffects();
 
     const [deleteButton] = findTouchablesByText(tree.root, 'Delete');

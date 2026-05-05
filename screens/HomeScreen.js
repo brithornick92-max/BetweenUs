@@ -578,7 +578,7 @@ export default function HomeScreen({ navigation }) {
       title: promptReady ? prompt.text : 'A small moment for today',
       body: null,
       primaryLabel: "Answer today's question",
-      secondaryLabel: `Invite ${partnerLabel}`,
+      secondaryLabel: 'Invite your partner',
     },
     linked_unanswered: {
       eyebrow: 'TODAY BETWEEN US',
@@ -1035,7 +1035,6 @@ export default function HomeScreen({ navigation }) {
                 accessibilityLabel={primaryCTALabel}
               >
                 <Text style={styles.ctaLabel}>{primaryCTALabel}</Text>
-                <Icon name="arrow-forward-outline" size={20} color={isDark ? '#000000' : '#FFFFFF'} />
               </TouchableOpacity>
 
               {ritualCopy?.secondaryLabel ? (

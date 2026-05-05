@@ -43,6 +43,7 @@ import { resolveWeeklyContentAnchorDate } from '../utils/contentSchedule';
 import { getIntimacyMatchState } from '../utils/coupleMatches';
 import { getRestoredDeckItemIds } from '../utils/contentDeckRestores';
 import { buildStableWeeklySet } from '../utils/stableWeeklyContent';
+import { resolveWeeklyDeckItems } from '../utils/weeklyDeckVisibility';
 
 const systemFont = Platform.select({ ios: "System", android: "Roboto" });
 let lastSelectedPositionId = null;
@@ -61,6 +62,10 @@ export function resolveSelectedPositionIndex(availablePositions, {
   return selectedIndex < availablePositions.length ? selectedIndex : 0;
 }
 
+export function resolveAvailablePositions(weeklyPositionSet) {
+  return resolveWeeklyDeckItems(weeklyPositionSet);
+}
+
 export default function IntimacyPositionsScreen() {
   const { colors, isDark } = useTheme();
   const { isPremiumEffective, premiumStartedAt, showPaywall } = useEntitlements();
@@ -74,7 +79,6 @@ export default function IntimacyPositionsScreen() {
   const [favorites, setFavorites] = useState({});
   const [positionMatches, setPositionMatches] = useState({});
   const [triedPositions, setTriedPositions] = useState({});
-  const [positionAccess, setPositionAccess] = useState(null);
   const [weeklyPositionSet, setWeeklyPositionSet] = useState(null);
   const [favoriteBusy, setFavoriteBusy] = useState(false);
   const [triedBusy, setTriedBusy] = useState(false);
@@ -116,13 +120,10 @@ export default function IntimacyPositionsScreen() {
     ),
     []
   );
-  const availablePositions = useMemo(() => {
-    if (weeklyPositionSet?.items?.length) {
-      return weeklyPositionSet.items;
-    }
-
-    return positionAccess?.positions || [];
-  }, [positionAccess, weeklyPositionSet]);
+  const availablePositions = useMemo(
+    () => resolveAvailablePositions(weeklyPositionSet),
+    [weeklyPositionSet]
+  );
 
   const contentAnchorDate = useMemo(() => resolveWeeklyContentAnchorDate({
     isPremium: isPremiumEffective,
@@ -172,8 +173,6 @@ export default function IntimacyPositionsScreen() {
       includeAll: true,
     });
 
-    setPositionAccess(result);
-
     const accessiblePositions = (result.positions || []).filter((position) => {
       const positionId = String(position?.id || '');
       return restoredPositionIds.has(positionId) || !tried?.[positionId];
@@ -198,12 +197,6 @@ export default function IntimacyPositionsScreen() {
         await loadPositionAccess();
       } catch {
         if (active) {
-          setPositionAccess({
-            positions: [],
-            totalAvailable: 0,
-            access: { isPremium: isPremiumEffective, isPreviewLimited: false, lockedCount: 0 },
-            newThisWeek: [],
-          });
           setWeeklyPositionSet(null);
         }
       }
@@ -212,7 +205,7 @@ export default function IntimacyPositionsScreen() {
     return () => {
       active = false;
     };
-  }, [isPremiumEffective, loadPositionAccess]);
+  }, [loadPositionAccess]);
 
   useFocusEffect(
     useCallback(() => {
@@ -220,19 +213,13 @@ export default function IntimacyPositionsScreen() {
 
       loadPositionAccess().catch(() => {
         if (!active) return;
-        setPositionAccess({
-          positions: [],
-          totalAvailable: 0,
-          access: { isPremium: isPremiumEffective, isPreviewLimited: false, lockedCount: 0 },
-          newThisWeek: [],
-        });
         setWeeklyPositionSet(null);
       });
 
       return () => {
         active = false;
       };
-    }, [isPremiumEffective, loadPositionAccess])
+    }, [loadPositionAccess])
   );
 
   useEffect(() => {

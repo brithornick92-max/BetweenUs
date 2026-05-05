@@ -6,7 +6,7 @@ import { SPACING, withAlpha } from "../utils/theme";
  * UPDATED: Premium Editorial Boundary Hint Pill.
  */
 
-import React, { useMemo, useState, useEffect, useCallback } from "react";
+import React, { useMemo, useState, useEffect, useCallback, useRef } from "react";
 import {
   View,
   Text,
@@ -43,6 +43,7 @@ import { resolveWeeklyContentAnchorDate } from "../utils/contentSchedule";
 import { buildStableWeeklySet } from "../utils/stableWeeklyContent";
 import { getRecentlyCompletedPromptIds } from "../utils/promptHistory";
 import { promptStorage, savedPromptStorage } from "../utils/storage";
+import { resolveWeeklyDeckItems } from "../utils/weeklyDeckVisibility";
 import { LinearGradient } from 'expo-linear-gradient';
 import GlowOrb from '../components/GlowOrb';
 import FilmGrain from '../components/FilmGrain';
@@ -238,7 +239,10 @@ export default function PromptsScreen({ navigation }) {
   const [promptDeckRevealsCards, setPromptDeckRevealsCards] = useState(false);
   const [topPromptRevealed, setTopPromptRevealed] = useState(false);
   const [shuffledDeckPrompts, setShuffledDeckPrompts] = useState(null);
+  const [shuffleBusy, setShuffleBusy] = useState(false);
   const [savedLaterPrompts, setSavedLaterPrompts] = useState([]);
+  const shuffleBusyRef = useRef(false);
+  const shuffleTimeoutRef = useRef(null);
   const shuffleAnim = useSharedValue(0);
 
   const t = useMemo(() => isDark ? {
@@ -338,12 +342,7 @@ export default function PromptsScreen({ navigation }) {
       });
 
       setWeeklyPromptSet(weeklySet);
-
-      const promptPool = isPremium
-        ? weeklySet.items || []
-        : activeBoundaryEligible;
-
-      setPrompts(promptPool);
+      setPrompts(resolveWeeklyDeckItems(weeklySet));
     } catch {
       setPrompts([]);
       setWeeklyPromptSet(null);
@@ -363,8 +362,8 @@ export default function PromptsScreen({ navigation }) {
   );
 
   const freeWeeklyPromptDeck = useMemo(() => {
-    const weeklyItems = weeklyPromptSet?.items || [];
-    if (isPremium || !weeklyItems.length) return null;
+    const weeklyItems = resolveWeeklyDeckItems(weeklyPromptSet);
+    if (isPremium) return [];
 
     // Free users see their cumulative prompt library from the weekly builder.
     return weeklyItems.map((item) => normalizePrompt({
@@ -382,7 +381,7 @@ export default function PromptsScreen({ navigation }) {
   const baseDeckPrompts = useMemo(() => {
     let finalDeck = [];
     
-    if (!isPremium && freeWeeklyPromptDeck?.length) {
+    if (!isPremium) {
       // Free users: Use the visible free library only.
       finalDeck = [...freeWeeklyPromptDeck];
     } else if (isPremium) {
@@ -409,12 +408,26 @@ export default function PromptsScreen({ navigation }) {
     return finalDeck;
   }, [prompts, contentProfile, rawBoundaries, isPremium, freeWeeklyPromptDeck]);
 
+  const clearPendingShuffle = useCallback(() => {
+    if (shuffleTimeoutRef.current) {
+      clearTimeout(shuffleTimeoutRef.current);
+      shuffleTimeoutRef.current = null;
+    }
+    shuffleBusyRef.current = false;
+    setShuffleBusy(false);
+  }, []);
+
   useEffect(() => {
+    clearPendingShuffle();
     setShuffledDeckPrompts(null);
     setPromptDeckIndex(0);
     setPromptDeckRevealsCards(false);
     setTopPromptRevealed(false);
-  }, [baseDeckPrompts]);
+  }, [baseDeckPrompts, clearPendingShuffle]);
+
+  useEffect(() => () => {
+    if (shuffleTimeoutRef.current) clearTimeout(shuffleTimeoutRef.current);
+  }, []);
 
   const deckPrompts = shuffledDeckPrompts || baseDeckPrompts;
   const freeDeckPromptIds = useMemo(
@@ -536,9 +549,11 @@ export default function PromptsScreen({ navigation }) {
   }, [refreshBoundaryProfile]);
 
   const handleShuffle = useCallback(() => {
-    if (freeDeckDone) return;
+    if (freeDeckDone || shuffleBusyRef.current) return;
 
     const shouldRevealCards = topPromptRevealed;
+    shuffleBusyRef.current = true;
+    setShuffleBusy(true);
     setPromptDeckRevealsCards(shouldRevealCards);
     setShuffleNonce((value) => value + 1);
 
@@ -557,10 +572,13 @@ export default function PromptsScreen({ navigation }) {
     setTimeout(() => impact(ImpactFeedbackStyle.Medium), 150);
 
     // 3. Swap the deck as the card stack settles
-    setTimeout(() => {
+    shuffleTimeoutRef.current = setTimeout(() => {
       setShuffledDeckPrompts(shuffleArray(baseDeckPrompts, deckPrompts[promptDeckIndex]));
       setPromptDeckIndex(0);
       setTopPromptRevealed(shouldRevealCards);
+      shuffleBusyRef.current = false;
+      shuffleTimeoutRef.current = null;
+      setShuffleBusy(false);
     }, 420);
   }, [baseDeckPrompts, deckPrompts, freeDeckDone, promptDeckIndex, shuffleAnim, topPromptRevealed]);
 
@@ -599,10 +617,10 @@ export default function PromptsScreen({ navigation }) {
               style={[styles.shuffleButton, { 
                 backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
                 borderColor: t.border,
-                opacity: freeDeckDone ? 0.45 : 1,
+                opacity: freeDeckDone || shuffleBusy ? 0.45 : 1,
               }]}
               onPress={handleShuffle}
-              disabled={freeDeckDone}
+              disabled={freeDeckDone || shuffleBusy}
               activeOpacity={0.7}
             >
               <Icon name="shuffle-outline" size={16} color={t.primary} />
