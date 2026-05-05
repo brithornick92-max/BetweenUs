@@ -1097,7 +1097,7 @@ export default function HomeScreen({ navigation }) {
                   styles.memoryLaneLabel,
                   !throwback.isOnThisDay && styles.memoryLaneLabelName,
                 ]}>
-                  {throwback.isOnThisDay ? 'ON THIS DAY' : (partnerLabel === 'your partner' ? 'Your partner' : partnerLabel)}
+                  {throwback.isOnThisDay ? 'ON THIS DAY' : (partnerLabel === 'your partner' ? 'What your partner said' : `What ${partnerLabel} said`)}
                 </Text>
               </View>
 
