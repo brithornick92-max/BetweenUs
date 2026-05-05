@@ -39,14 +39,10 @@ function pickRandom(items, random = Math.random) {
   return items[index];
 }
 
-export function choosePartnerPromptQuote(rows = [], {
-  now = new Date(),
-  relationshipStartDate = null,
-  random = Math.random,
-} = {}) {
+function normalizePartnerQuoteRows(rows = [], now = new Date()) {
   const todayKey = localDateKey(now);
 
-  const candidates = (Array.isArray(rows) ? rows : [])
+  return (Array.isArray(rows) ? rows : [])
     .map((row) => {
       const date = parseDateKey(row?.date_key);
       const answer = typeof row?.partnerAnswer === 'string' ? row.partnerAnswer.trim() : '';
@@ -57,6 +53,18 @@ export function choosePartnerPromptQuote(rows = [], {
       return { ...row, partnerAnswer: answer, date };
     })
     .filter(Boolean);
+}
+
+export function getPartnerPromptQuoteCandidateCount(rows = [], { now = new Date() } = {}) {
+  return normalizePartnerQuoteRows(rows, now).length;
+}
+
+export function choosePartnerPromptQuote(rows = [], {
+  now = new Date(),
+  relationshipStartDate = null,
+  random = Math.random,
+} = {}) {
+  const candidates = normalizePartnerQuoteRows(rows, now);
 
   if (!candidates.length) return null;
 
@@ -82,9 +90,12 @@ export function canShowPartnerPromptQuote({
   answeredCount = 0,
   firstOpenDate = null,
   now = new Date(),
-  minDays = 5,
+  minDays = 0,
   minAnswers = 5,
 } = {}) {
+  if (Number(answeredCount || 0) < minAnswers) return false;
+  if (!minDays) return true;
+
   const openedAt = parseDateKey(firstOpenDate) || (firstOpenDate ? new Date(firstOpenDate) : null);
   const openedAtMs = openedAt instanceof Date ? openedAt.getTime() : NaN;
   const nowMs = now instanceof Date ? now.getTime() : new Date(now).getTime();
@@ -93,5 +104,5 @@ export function canShowPartnerPromptQuote({
 
   const daysSinceFirstOpen = Math.floor((nowMs - openedAtMs) / (1000 * 60 * 60 * 24));
 
-  return daysSinceFirstOpen >= minDays && Number(answeredCount || 0) >= minAnswers;
+  return daysSinceFirstOpen >= minDays;
 }

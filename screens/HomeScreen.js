@@ -46,7 +46,11 @@ import {
 } from '../services/AnniversaryMomentService';
 import { getMyDisplayName, getPartnerDisplayName } from '../utils/profileNames';
 import { FALLBACK_PROMPT, getPromptById } from '../utils/contentLoader';
-import { canShowPartnerPromptQuote, choosePartnerPromptQuote } from '../utils/partnerPromptQuote';
+import {
+  canShowPartnerPromptQuote,
+  choosePartnerPromptQuote,
+  getPartnerPromptQuoteCandidateCount,
+} from '../utils/partnerPromptQuote';
 
 import { PromptCardSkeleton } from '../components/SkeletonLoader';
 import ConnectionMemory from '../utils/connectionMemory';
@@ -382,10 +386,9 @@ export default function HomeScreen({ navigation }) {
         );
         setAnsweredCount(answered.length);
 
-        const stats = await RelationshipMilestones._getStats().catch(() => null);
+        const partnerQuoteCount = getPartnerPromptQuoteCandidateCount(shared || []);
         const canShowQuote = canShowPartnerPromptQuote({
-          answeredCount: answered.length,
-          firstOpenDate: stats?.firstOpenDate || null,
+          answeredCount: partnerQuoteCount,
         });
 
         if (!canShowQuote) {

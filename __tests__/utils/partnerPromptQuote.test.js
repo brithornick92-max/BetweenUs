@@ -1,6 +1,7 @@
 const {
   canShowPartnerPromptQuote,
   choosePartnerPromptQuote,
+  getPartnerPromptQuoteCandidateCount,
 } = require('../../utils/partnerPromptQuote');
 
 describe('choosePartnerPromptQuote', () => {
@@ -87,31 +88,42 @@ describe('choosePartnerPromptQuote', () => {
 describe('canShowPartnerPromptQuote', () => {
   const now = new Date(2026, 3, 30);
 
-  it('requires at least 5 days and 5 answered prompts', () => {
+  it('unlocks after enough eligible partner answers', () => {
+    expect(canShowPartnerPromptQuote({
+      now,
+      answeredCount: 5,
+    })).toBe(true);
+
+    expect(canShowPartnerPromptQuote({
+      now,
+      answeredCount: 4,
+    })).toBe(false);
+  });
+
+  it('can still apply an optional first-open day gate', () => {
     expect(canShowPartnerPromptQuote({
       now,
       firstOpenDate: '2026-04-25',
       answeredCount: 5,
+      minDays: 5,
     })).toBe(true);
 
     expect(canShowPartnerPromptQuote({
       now,
       firstOpenDate: '2026-04-26',
       answeredCount: 5,
-    })).toBe(false);
-
-    expect(canShowPartnerPromptQuote({
-      now,
-      firstOpenDate: '2026-04-25',
-      answeredCount: 4,
+      minDays: 5,
     })).toBe(false);
   });
+});
 
-  it('stays hidden when first open date is missing', () => {
-    expect(canShowPartnerPromptQuote({
-      now,
-      firstOpenDate: null,
-      answeredCount: 20,
-    })).toBe(false);
+describe('getPartnerPromptQuoteCandidateCount', () => {
+  it('counts only past non-quiz rows with partner answers', () => {
+    expect(getPartnerPromptQuoteCandidateCount([
+      { prompt_id: 'p1', date_key: '2026-04-29', partnerAnswer: 'A real answer.' },
+      { prompt_id: 'p2', date_key: '2026-04-30', partnerAnswer: 'Today is excluded.' },
+      { prompt_id: 'quiz:p3', date_key: '2026-04-28', partnerAnswer: 'Quiz is excluded.' },
+      { prompt_id: 'p4', date_key: '2026-04-27', partnerAnswer: '   ' },
+    ], { now: new Date(2026, 3, 30) })).toBe(1);
   });
 });
