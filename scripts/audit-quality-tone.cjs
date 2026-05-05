@@ -78,7 +78,7 @@ function auditPrompts() {
   pushHits(report.prompts, 'issues', 'cheesy or lightweight prompt wording', items, ['text'], /\b(melts?|adorable|cute|cringe|soulmate|destiny|magical|fairy tale|happily ever after|swoon|butterflies|sparkle|dreamy)\b/i);
   pushHits(report.prompts, 'issues', 'repetitive tell-me-more suffix', items, ['text'], /\??\s*Tell me more\.?$/i);
   pushHits(report.prompts, 'issues', 'closed ranking prompts', items, ['text'], /\b(rank our|which one was the best|best physical feature|three best qualities)\b/i);
-  pushHits(report.prompts, 'issues', 'sexual euphemisms that should be direct', items, ['text'], /\b(make intimacy|physical intimacy|sexual intimacy|intimacy session|intimacy act|being intimate|intimate moments?|intimacy positions?)\b/i);
+  pushHits(report.prompts, 'issues', 'sexual euphemisms that should be direct', items, ['text'], /\b(make intimacy|physical intimacy|sexual intimacy|intimacy session|intimacy act|being intimate|intimate moments?|intimacy positions?|oral intimacy|intimate accessory|intimate accessories|intimate position|intensely passionate intimacy|morning with intimacy|being physical)\b/i);
   pushHits(report.prompts, 'review', 'stiff or clinical wording', items, ['text'], /\b(crucial|component|fulfilling|palpable|authentic self|unconsciously|absorbed|penetrative|initiate|passionately)\b/i);
   pushHits(report.prompts, 'review', 'yes/no openings', items, ['text'], /^(do|does|did|is|are|was|were|can|could|would|will|should|have|has|had)\b/i);
   pushHits(report.prompts, 'review', 'trivia-like relationship drift', items, ['text'], /\b(favorite president|actor and actress|public figure|basically good or basically bad|favorite teacher|favorite TV show|favorite toy growing up|imaginary friend)\b/i);

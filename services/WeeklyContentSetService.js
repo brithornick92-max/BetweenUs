@@ -12,7 +12,7 @@
  * - Week 0 (premium start): 100 prompts balanced across heat levels, 100 date ideas, 10 sex positions
  * - Week 1: 115 prompts, 115 date ideas, 13 sex positions
  * - Week 10: 250 prompts, 250 date ideas, 40 sex positions
- * - Eventually: 1053 prompts, 675 date ideas, 200 sex positions (full library)
+ * - Eventually: 749 prompts, 675 date ideas, 200 sex positions (full library)
  * - Library GROWS each week - they get cumulative access
  * 
  * NOTE: buildWeeklySet returns the current visible library for the user's tier.
@@ -53,7 +53,7 @@ const PREMIUM_PROMPT_START_PER_HEAT = 20;
 const PREMIUM_PROMPT_WEEKLY_PER_HEAT = 3;
 
 const PREMIUM_LIBRARY_TOTALS = {
-  [CONTENT_TYPES.PROMPTS]: 1053,
+  [CONTENT_TYPES.PROMPTS]: 749,
   [CONTENT_TYPES.DATES]: 675,
   [CONTENT_TYPES.POSITIONS]: 200,
 };
