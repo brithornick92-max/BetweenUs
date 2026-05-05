@@ -68,7 +68,7 @@ const APP_PREVIEW_POINTS = [
   {
     icon: "flame-outline",
     title: "Sex positions",
-    body: "Explore intimacy positions by heat level and save the ones you both want to revisit.",
+    body: "Explore sex positions by heat level and save the ones you both want to revisit.",
   },
   {
     icon: "images-outline",
