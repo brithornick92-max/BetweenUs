@@ -503,19 +503,23 @@ export const AuthProvider = ({ children }) => {
 
       if (!signedInUser) throw new Error('Sign-in failed');
 
+      if (signedInUser?.user?.uid) {
+        setUser(signedInUser.user);
+      }
+
       console.log('[AuthContext] Setting onboarding flags...');
       await storage.set(STORAGE_KEYS.PENDING_ONBOARDING, false);
       setRequiresOnboarding(false);
 
       console.log('[AuthContext] Sign in complete!');
 
-      // Initialize push notifications after login
-      try {
-        if (supabase) {
-          await PushNotificationService.initialize(supabase);
-        }
-      } catch (pushErr) {
-        if (__DEV__) console.warn('[AuthContext] Push init failed:', pushErr?.message);
+      // Push registration can happen after the auth handoff; it should not hold the sign-in UI open.
+      if (supabase) {
+        Promise.resolve()
+          .then(() => PushNotificationService.initialize(supabase))
+          .catch((pushErr) => {
+            if (__DEV__) console.warn('[AuthContext] Push init failed:', pushErr?.message);
+          });
       }
       return signedInUser;
     } catch (error) {

@@ -296,6 +296,11 @@ class StorageRouter {
             return;
           }
 
+          // Ignore stale bootstrap results if a newer auth event already resolved state.
+          if (this.currentUser !== undefined) {
+            return;
+          }
+
           this.sessionPresent = !!session;
           this.currentUser = this._userFromSession(session);
           callback(this.currentUser);
