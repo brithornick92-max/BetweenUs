@@ -245,6 +245,39 @@ describe('WeeklyContentSetService', () => {
     expect(result.unlocked).toHaveLength(9);
   });
 
+  it('puts the newest free weekly position unlock first', () => {
+    const positionCatalog = Array.from({ length: 12 }, (_, index) =>
+      makePosition(
+        `free-ip${index + 1}`,
+        (index % 3) + 1,
+        ['deep-connection', 'playful-energy', 'exploratory', 'trust-vulnerability', 'sensual-rhythm'][index % 5],
+        ['low-mobility', 'standard', 'active'][index % 3],
+        `Free position ${index + 1}`
+      )
+    );
+    const commonOptions = {
+      contentType: CONTENT_TYPES.POSITIONS,
+      userId: 'free-user',
+      isPremium: false,
+      userSettings: { maxHeat: 5 },
+      userCreatedAt: '2026-04-01T12:00:00.000Z',
+    };
+
+    const previous = buildWeeklySet(positionCatalog, {
+      ...commonOptions,
+      date: new Date('2026-04-23T12:00:00.000Z'),
+    });
+    const current = buildWeeklySet(positionCatalog, {
+      ...commonOptions,
+      date: new Date('2026-04-30T12:00:00.000Z'),
+    });
+    const previousIds = new Set(previous.items.map((item) => item.id));
+    const newest = current.items.filter((item) => !previousIds.has(item.id));
+
+    expect(newest).toHaveLength(1);
+    expect(current.items[0].id).toBe(newest[0].id);
+  });
+
   it('builds premium date libraries that start large and keep growing weekly', () => {
     const result = buildWeeklySet(makeDateCatalog(260), {
       contentType: CONTENT_TYPES.DATES,
@@ -283,6 +316,41 @@ describe('WeeklyContentSetService', () => {
     expect(result.unlocked).toHaveLength(13);
     expect(result.lockedPreviews).toHaveLength(0);
     expect(result.items).toHaveLength(13);
+  });
+
+  it('puts the newest 3 premium weekly position unlocks first', () => {
+    const positionCatalog = Array.from({ length: 20 }, (_, index) =>
+      makePosition(
+        `premium-ip${index + 1}`,
+        (index % 3) + 1,
+        ['deep-connection', 'playful-energy', 'exploratory', 'trust-vulnerability', 'sensual-rhythm'][index % 5],
+        ['low-mobility', 'standard', 'active'][index % 3],
+        `Premium position ${index + 1}`
+      )
+    );
+    const commonOptions = {
+      contentType: CONTENT_TYPES.POSITIONS,
+      userId: 'premium-positions',
+      isPremium: true,
+      userSettings: { maxHeat: 5 },
+      userCreatedAt: TEST_DATE,
+    };
+
+    const previous = buildWeeklySet(positionCatalog, {
+      ...commonOptions,
+      date: new Date('2026-05-03T12:00:00.000Z'),
+    });
+    const current = buildWeeklySet(positionCatalog, {
+      ...commonOptions,
+      date: new Date('2026-05-04T12:00:00.000Z'),
+    });
+    const previousIds = new Set(previous.items.map((item) => item.id));
+    const newest = current.items.filter((item) => !previousIds.has(item.id));
+
+    expect(newest).toHaveLength(3);
+    expect(current.items.slice(0, 3).map((item) => item.id).sort()).toEqual(
+      newest.map((item) => item.id).sort()
+    );
   });
 
   it('keeps upgrade copy aligned with the new growth model', () => {

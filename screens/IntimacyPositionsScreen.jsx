@@ -41,7 +41,6 @@ import {
 } from '../utils/intimacyFavorites';
 import { resolveWeeklyContentAnchorDate } from '../utils/contentSchedule';
 import { getIntimacyMatchState } from '../utils/coupleMatches';
-import { getRestoredDeckItemIds } from '../utils/contentDeckRestores';
 import { buildStableWeeklySet } from '../utils/stableWeeklyContent';
 import { resolveWeeklyDeckItems } from '../utils/weeklyDeckVisibility';
 
@@ -162,22 +161,14 @@ export default function IntimacyPositionsScreen() {
   }, [headerAnim, pickerAnim, cardAnim]);
 
   const loadPositionAccess = useCallback(async () => {
-    const [profile, tried, restoredPositionIds] = await Promise.all([
-      PreferenceEngine.getContentProfile(userProfile || {}),
-      getIntimacyTried(),
-      getRestoredDeckItemIds(CONTENT_TYPES.POSITIONS),
-    ]);
+    const profile = await PreferenceEngine.getContentProfile(userProfile || {});
     const result = await contentAccessService.getAccessiblePositions(positionCatalog, {
       isPremium: isPremiumEffective,
       userSettings: profile || userProfile || {},
       includeAll: true,
     });
 
-    const accessiblePositions = (result.positions || []).filter((position) => {
-      const positionId = String(position?.id || '');
-      return restoredPositionIds.has(positionId) || !tried?.[positionId];
-    });
-    const weeklySet = await buildStableWeeklySet(accessiblePositions, {
+    const weeklySet = await buildStableWeeklySet(result.positions || [], {
       contentType: CONTENT_TYPES.POSITIONS,
       userId: userProfile?.id || userProfile?.user_id || userProfile?.uid || userProfile?.sub || 'anonymous',
       isPremium: isPremiumEffective,

@@ -86,6 +86,8 @@ const getDateLoad = (item) => Number(item?.load ?? item?.energy ?? item?.effort 
 
 const getTitle = (item) => item?.title ?? item?.text ?? item?.prompt ?? 'Untitled';
 
+const getItemIdentity = (item) => item?.id ?? item?.title ?? item?.text ?? item?.prompt ?? null;
+
 const DATE_CATEGORY_TARGETS = [
   'romantic',
   'adventure',
@@ -358,6 +360,52 @@ const pickBalancedPositions = (items, limit, seed) => {
   return selected;
 };
 
+const getPreviousUnlockedLimit = ({ limits, isPremium, weekNumber }) => {
+  if (!Number.isFinite(weekNumber) || weekNumber <= 0) return 0;
+
+  if (isPremium) {
+    return (limits.premiumStart ?? limits.premium) + ((weekNumber - 1) * limits.premium);
+  }
+
+  return limits.freeWelcomePack + ((weekNumber - 1) * limits.freeOngoing);
+};
+
+const prioritizeNewestPositionUnlocks = (orderedItems, selectedItems, {
+  type,
+  limits,
+  isPremium,
+  weekNumber,
+}) => {
+  if (type !== CONTENT_TYPES.POSITIONS || weekNumber <= 0) return orderedItems;
+
+  const previousLimit = Math.max(0, getPreviousUnlockedLimit({ limits, isPremium, weekNumber }));
+  if (previousLimit <= 0) return orderedItems;
+
+  const previousIds = new Set(
+    selectedItems
+      .slice(0, previousLimit)
+      .map((item) => getItemIdentity(item))
+      .filter((id) => id != null)
+      .map(String)
+  );
+
+  if (!previousIds.size) return orderedItems;
+
+  const newest = [];
+  const existing = [];
+
+  orderedItems.forEach((item) => {
+    const id = getItemIdentity(item);
+    if (id != null && previousIds.has(String(id))) {
+      existing.push(item);
+    } else {
+      newest.push(item);
+    }
+  });
+
+  return newest.length ? [...newest, ...existing] : orderedItems;
+};
+
 const getPreviewText = (item, contentType) => {
   if (contentType === CONTENT_TYPES.PROMPTS) {
     const text = item?.text ?? item?.prompt ?? item?.title ?? '';
@@ -453,7 +501,7 @@ const buildWeeklySet = (
     selected = pickBalancedPrompts(eligible, visibleTargetCount, seed);
   }
 
-  const weeklySelection = isPremium
+  const orderedSelection = isPremium
     ? selected
     : [...selected].sort((a, b) => {
         if (type === CONTENT_TYPES.DATES) {
@@ -488,6 +536,13 @@ const buildWeeklySet = (
 
         return seededScore(a, `${seed}:free-sort`) - seededScore(b, `${seed}:free-sort`);
       });
+
+  const weeklySelection = prioritizeNewestPositionUnlocks(orderedSelection, selected, {
+    type,
+    limits,
+    isPremium,
+    weekNumber,
+  });
 
   const unlockedCount = isPremium
     ? weeklySelection.length

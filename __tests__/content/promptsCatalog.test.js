@@ -155,4 +155,24 @@ describe('prompts catalog integrity', () => {
       expect(count).toBeGreaterThanOrEqual(10);
     });
   });
+
+  it('does not frame fantasy prompts as non-consensual cheating or secrecy from a partner', () => {
+    const bannedPatterns = [
+      /\bcheat(?:ing)?\b/i,
+      /\baffair\b/i,
+      /\badultery\b/i,
+      /\bbehind (?:your|my|their) back\b/i,
+      /\bwithout (?:you|me|them|my partner|your partner) knowing\b/i,
+      /\bdon'?t tell\b/i,
+      /\bkeep it from\b/i,
+      /\bmy partner is waiting\b/i,
+      /\byour partner is waiting\b/i,
+    ];
+
+    const violatingIds = items
+      .filter((prompt) => bannedPatterns.some((pattern) => pattern.test(prompt.text || '')))
+      .map((prompt) => prompt.id);
+
+    expect(violatingIds).toEqual([]);
+  });
 });
