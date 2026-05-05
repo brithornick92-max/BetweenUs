@@ -537,6 +537,15 @@ export default function SettingsScreen({ navigation }) {
           </EditorialSection>
 
           <EditorialSection title="Keepsake" t={t} delay={725}>
+            <View style={styles.keepsakeHelperRow}>
+              <View style={[styles.iconContainer, { backgroundColor: withAlpha(t.primary, 0.12) }]}>
+                <Icon name="options-outline" size={22} color={t.primary} />
+              </View>
+              <Text style={[styles.keepsakeHelperText, { color: t.subtext }]}>
+                Turn off any category you do not want collected in Keepsake.
+              </Text>
+            </View>
+            <View style={[styles.rowDivider, styles.keepsakeHelperDivider, { backgroundColor: t.borderGlass }]} />
             <EditorialToggleRow
               icon="chatbubbles-outline"
               title="Prompt"
@@ -879,6 +888,22 @@ const styles = StyleSheet.create({
     marginRight: 16,
   },
   rowTextContent: { flex: 1 },
+  keepsakeHelperRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.lg,
+  },
+  keepsakeHelperText: {
+    flex: 1,
+    fontFamily: SYSTEM_FONT,
+    fontWeight: '500',
+    fontSize: 13,
+    lineHeight: 18,
+  },
+  keepsakeHelperDivider: {
+    marginLeft: 68,
+  },
   rowTitle: { 
     fontFamily: SYSTEM_FONT, 
     fontWeight: '600', 

@@ -1891,8 +1891,8 @@ export default function OurStoryScreen() {
 
       <Text style={styles.emptyBody}>
         {isPremium
-          ? 'Prompt, memory, date, and sex position keepsakes will collect here.'
-          : 'On the free tier, prompt, memory, date, and sex position keepsakes from the last 30 days will collect here.'}
+          ? 'Prompt, memory, date, and sex position keepsakes will collect here. You can turn off any category you do not want in Settings.'
+          : 'On the free tier, prompt, memory, date, and sex position keepsakes from the last 30 days will collect here. You can turn off any category you do not want in Settings.'}
       </Text>
     </ReAnimated.View>
   );
