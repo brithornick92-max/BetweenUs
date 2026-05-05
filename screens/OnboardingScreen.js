@@ -385,42 +385,38 @@ export default function OnboardingScreen({ navigation }) {
 
   const renderIntro = () => (
     <View style={{ flex: 1 }}>
-      <HeartbeatEntry />
+      <HeartbeatEntry showQuote={false} />
       <ReAnimated.View
         entering={FadeInDown.delay(1800).duration(700).springify()}
-        style={{
-          position: 'absolute',
-          bottom: 80,
-          left: 0,
-          right: 0,
-          paddingHorizontal: SPACING.xl,
-          alignItems: 'center',
-          gap: 14,
-        }}
+        style={styles.introBottomPanel}
       >
-        {[
-          { icon: 'calendar-outline', text: 'Turn ordinary days into date ideas and memories' },
-          { icon: 'heart-outline', text: 'A private space that becomes your story' },
-        ].map((item) => (
-          <View key={item.text} style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-            <Icon name={item.icon} size={18} color={t.primary} />
-            <Text style={{ fontSize: 15, color: t.text, fontWeight: '500', flex: 1 }}>{item.text}</Text>
-          </View>
-        ))}
+        <Text
+          style={styles.introQuote}
+          numberOfLines={2}
+          adjustsFontSizeToFit
+          minimumFontScale={0.82}
+        >
+          "A space for just the two of you."
+        </Text>
+
+        <View style={styles.introFeatureList}>
+          {[
+            { icon: 'calendar-outline', text: 'Turn ordinary days into date ideas and memories' },
+            { icon: 'heart-outline', text: 'A private space that becomes your story' },
+          ].map((item) => (
+            <View key={item.text} style={styles.introFeatureRow}>
+              <Icon name={item.icon} size={18} color={t.primary} />
+              <Text style={styles.introFeatureText}>{item.text}</Text>
+            </View>
+          ))}
+        </View>
+
         <TouchableOpacity
           onPress={() => transitionTo(1)}
           activeOpacity={0.75}
-          style={{
-            marginTop: 10,
-            backgroundColor: t.text,
-            borderRadius: 14,
-            paddingVertical: 14,
-            paddingHorizontal: 40,
-            alignSelf: 'stretch',
-            alignItems: 'center',
-          }}
+          style={styles.introButton}
         >
-          <Text style={{ color: t.surface, fontSize: 16, fontWeight: '700' }}>Make This Ours</Text>
+          <Text style={styles.introButtonText}>Make This Ours</Text>
         </TouchableOpacity>
       </ReAnimated.View>
     </View>
@@ -977,8 +973,8 @@ export default function OnboardingScreen({ navigation }) {
         
         {!inviteCode ? (
           <ReAnimated.View entering={FadeInDown.delay(350).duration(800).springify()} style={{ width: '100%', alignItems: 'center' }}>
-            <TouchableOpacity 
-              style={[styles.primaryButtonTouch, { backgroundColor: t.text }]}
+            <TouchableOpacity
+              style={[styles.primaryButtonTouch, styles.generateInviteButton, { backgroundColor: t.text }]}
               activeOpacity={0.8}
               onPress={handleGenerateInvitation}
               disabled={isGenerating}
@@ -986,7 +982,7 @@ export default function OnboardingScreen({ navigation }) {
               {isGenerating ? (
                 <ActivityIndicator color={t.surface} />
               ) : (
-                <Text style={[styles.primaryButtonText, { color: t.surface }]}>Generate Invite</Text>
+                <Text style={[styles.primaryButtonText, styles.generateInviteButtonText, { color: t.surface }]}>Generate Invite</Text>
               )}
             </TouchableOpacity>
 
@@ -1137,6 +1133,56 @@ const createStyles = (t, isDark) => {
       color: t.text,
       letterSpacing: 0.3,
       marginBottom: SPACING.sm,
+    },
+    introBottomPanel: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      bottom: 56,
+      paddingHorizontal: SPACING.xl,
+      gap: 18,
+    },
+    introQuote: {
+      fontFamily: Platform.select({ ios: 'Georgia', android: 'serif' }),
+      fontSize: 28,
+      fontWeight: '700',
+      textAlign: 'center',
+      color: t.text,
+      fontStyle: 'italic',
+      lineHeight: 34,
+    },
+    introFeatureList: {
+      gap: 14,
+    },
+    introFeatureRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: 12,
+    },
+    introFeatureText: {
+      flex: 1,
+      minWidth: 0,
+      fontSize: 15,
+      lineHeight: 21,
+      color: t.text,
+      fontWeight: '700',
+    },
+    introButton: {
+      marginTop: 8,
+      backgroundColor: t.text,
+      borderRadius: 14,
+      minHeight: 56,
+      paddingVertical: 14,
+      paddingHorizontal: 32,
+      alignSelf: 'stretch',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    introButtonText: {
+      color: t.surface,
+      fontSize: 16,
+      fontWeight: '800',
+      textAlign: 'center',
     },
     storySubtitle: {
       fontSize: 16,
@@ -1308,6 +1354,16 @@ const createStyles = (t, isDark) => {
       fontSize: 17,
       fontWeight: '700',
       letterSpacing: -0.2,
+    },
+    generateInviteButton: {
+      alignSelf: 'stretch',
+      height: 66,
+      borderRadius: 33,
+      marginHorizontal: SPACING.md,
+    },
+    generateInviteButtonText: {
+      fontSize: 20,
+      fontWeight: '800',
     },
 
     // ── Date Picker Modal ──

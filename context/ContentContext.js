@@ -27,12 +27,8 @@ import {
   saveSharedDailyPromptSelection,
 } from '../services/content/ContentCoupleService';
 import { DataLayer } from '../services/localfirst';
-import { CONTENT_TYPES } from '../services/WeeklyContentSetService';
-import { resolveWeeklyContentAnchorDate } from '../utils/contentSchedule';
-import { FALLBACK_PROMPT, getPromptById } from '../utils/contentLoader';
-import { getRestoredDeckItemIds } from '../utils/contentDeckRestores';
+import { FALLBACK_PROMPT, getPromptById, getTodayBetweenUsPrompts } from '../utils/contentLoader';
 import { getRecentlyCompletedPromptIds } from '../utils/promptHistory';
-import { buildStableWeeklySet } from '../utils/stableWeeklyContent';
 import {
   getDailyContentDateKey,
   getMsUntilNextDailyContentRollover,
@@ -72,7 +68,7 @@ export const useContent = () => {
 
 export const ContentProvider = ({ children }) => {
   const { user, userProfile, updateProfile } = useAuth();
-  const { isPremiumEffective: isPremium, premiumStartedAt } = useEntitlements();
+  const { isPremiumEffective: isPremium } = useEntitlements();
   const [prompts] = useState([]);
   const [dates] = useState([]);
   const [todayPrompt, setTodayPrompt] = useState(null);
@@ -200,13 +196,6 @@ export const ContentProvider = ({ children }) => {
     }
   }, [getRelationshipDuration]);
 
-  const contentAnchorDate = useMemo(() => resolveWeeklyContentAnchorDate({
-    isPremium,
-    premiumStartedAt,
-    user,
-    userProfile,
-  }), [isPremium, premiumStartedAt, user, userProfile]);
-
   // Load today's prompt — one fixed prompt per scope/day.
   // Caller-specific heat selection must not regenerate a second "today" prompt.
   // We keep the legacy parameter for compatibility with existing callers, but
@@ -235,57 +224,23 @@ export const ContentProvider = ({ children }) => {
       const effectiveHeat = contentAccessService.getUserMaxHeatLevel(
         profile || options?.profileOverride || userProfile || {}
       );
+      const dailyMaxHeat = Math.min(effectiveHeat, 3);
 
       // Check if user can access this heat level
-      const accessCheck = await PremiumGatekeeper.canAccessPrompt(user.uid, effectiveHeat, isPremium);
+      const accessCheck = await PremiumGatekeeper.canAccessPrompt(user.uid, dailyMaxHeat, isPremium);
       if (!accessCheck.canAccess) {
         throw new Error(accessCheck.message);
       }
 
-      // Get relationship duration for filtering
-      const relationshipDuration = getRelationshipDuration();
-      const durationCategory = getDurationCategory(relationshipDuration);
-
-      const filters = {
-        maxHeatLevel: effectiveHeat,
-        relationshipDuration: durationCategory,
-      };
-
-      let promptsData = await StorageRouter.getPrompts(filters);
-
-      if (promptsData.length === 0) {
-        // Fallback: try without duration filter
-        promptsData = await StorageRouter.getPrompts({ maxHeatLevel: effectiveHeat });
-      }
+      let promptsData = getTodayBetweenUsPrompts({
+        maxHeatLevel: dailyMaxHeat,
+      });
 
       if (promptsData.length === 0) {
         throw new Error('No prompts available for your preferences');
       }
 
-      const [promptAnswers, restoredPromptIds] = await Promise.all([
-        DataLayer.getPromptAnswers?.({ limit: 1000 }).catch(() => []),
-        getRestoredDeckItemIds('prompts'),
-      ]);
-      const recentlyCompletedPromptIds = getRecentlyCompletedPromptIds(promptAnswers);
-      promptsData = promptsData.filter((prompt) => {
-        const promptId = String(prompt?.id || '');
-        return restoredPromptIds.has(promptId) || !recentlyCompletedPromptIds.has(prompt?.id);
-      });
-
       promptsData = await filterVisiblePromptsForProfile(promptsData, profile);
-
-      const weeklySet = await buildStableWeeklySet(promptsData, {
-        contentType: CONTENT_TYPES.PROMPTS,
-        userId: user.uid,
-        isPremium,
-        userSettings: {
-          ...(profile || options?.profileOverride || userProfile || {}),
-          maxHeat: effectiveHeat,
-        },
-        userCreatedAt: contentAnchorDate,
-        date: new Date(),
-      });
-      promptsData = weeklySet.items || [];
 
       if (promptsData.length === 0) {
         throw new Error('No prompts available for your preferences');
@@ -347,8 +302,17 @@ export const ContentProvider = ({ children }) => {
         }
       }
 
+      const promptAnswers = typeof DataLayer.getPromptAnswers === 'function'
+        ? await DataLayer.getPromptAnswers({ limit: 1000 }).catch(() => [])
+        : [];
+      const recentlyCompletedPromptIds = getRecentlyCompletedPromptIds(promptAnswers);
+      const uncompletedPrompts = promptsData.filter(
+        (prompt) => !recentlyCompletedPromptIds.has(prompt?.id)
+      );
+      const selectionPool = uncompletedPrompts.length > 0 ? uncompletedPrompts : promptsData;
+
       let selectedPrompt;
-      const deterministicPool = [...promptsData]
+      const deterministicPool = [...selectionPool]
         .filter((prompt) => prompt?.id && typeof prompt.text === 'string' && prompt.text.trim())
         .sort((a, b) => String(a.id).localeCompare(String(b.id)));
 
@@ -413,11 +377,8 @@ export const ContentProvider = ({ children }) => {
         loadingPromptRef.current = false;
       }
   }, [
-    contentAnchorDate,
     ensureSupabaseSession,
     filterVisiblePromptsForProfile,
-    getDurationCategory,
-    getRelationshipDuration,
     isPremium,
     loadContentProfile,
     personalizePrompt,

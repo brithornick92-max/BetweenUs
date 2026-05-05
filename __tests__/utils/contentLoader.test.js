@@ -47,6 +47,8 @@ const {
   getPromptsByHeatLevel,
   getPromptsByCategory,
   getFilteredPrompts,
+  getPromptById,
+  getTodayBetweenUsPrompts,
   getAllDates,
   filterDates,
   getContentStats,
@@ -128,6 +130,31 @@ describe('getFilteredPrompts', () => {
   });
 });
 
+describe('Today Between Us prompts', () => {
+  it('keeps the daily library separate from browse prompts', () => {
+    const todayPrompts = getTodayBetweenUsPrompts();
+
+    expect(todayPrompts).toHaveLength(150);
+    expect(todayPrompts.every((prompt) => prompt.dailyOnly === true)).toBe(true);
+    expect(todayPrompts.every((prompt) => prompt.sourceLibrary === 'today-between-us')).toBe(true);
+    expect(todayPrompts.every((prompt) => prompt.heat >= 1 && prompt.heat <= 3)).toBe(true);
+
+    const mainPromptIds = new Set(getAllPrompts().map((prompt) => prompt.id));
+    expect(todayPrompts.some((prompt) => mainPromptIds.has(prompt.id))).toBe(false);
+  });
+
+  it('resolves Today Between Us prompt ids without adding them to the main browse list', () => {
+    const prompt = getPromptById('tbu_l1_001');
+
+    expect(prompt).toMatchObject({
+      id: 'tbu_l1_001',
+      dailyOnly: true,
+      sourceLibrary: 'today-between-us',
+    });
+    expect(getAllPrompts().some((item) => item.id === 'tbu_l1_001')).toBe(false);
+  });
+});
+
 // ─── Date Loading ────────────────────────────────────────────────────────────
 
 describe('getAllDates', () => {
@@ -186,8 +213,10 @@ describe('getContentStats', () => {
     const stats = getContentStats();
     expect(stats).toBeDefined();
     expect(typeof stats.totalPrompts).toBe('number');
+    expect(typeof stats.totalTodayBetweenUsPrompts).toBe('number');
     expect(typeof stats.totalDates).toBe('number');
     expect(stats.totalPrompts).toBeGreaterThan(0);
+    expect(stats.totalTodayBetweenUsPrompts).toBe(150);
     expect(stats.totalDates).toBeGreaterThan(0);
   });
 });

@@ -11,6 +11,7 @@ const mockPromptCatalog = {
 };
 
 let mockCurrentProfile = null;
+let mockRecentlyCompletedPromptIds = new Set();
 let capturedContext = null;
 
 const mockStorageGet = jest.fn();
@@ -130,10 +131,11 @@ jest.mock('../../services/localfirst', () => ({
 jest.mock('../../utils/contentLoader', () => ({
   FALLBACK_PROMPT: { id: 'fallback', text: 'Fallback prompt', category: 'romance', heat: 1 },
   getPromptById: jest.fn((id) => mockPromptCatalog[id] || null),
+  getTodayBetweenUsPrompts: jest.fn(() => Object.values(mockPromptCatalog)),
 }));
 
 jest.mock('../../utils/promptHistory', () => ({
-  getRecentlyCompletedPromptIds: jest.fn(() => new Set()),
+  getRecentlyCompletedPromptIds: jest.fn(() => mockRecentlyCompletedPromptIds),
 }));
 
 jest.mock('../../utils/stableWeeklyContent', () => ({
@@ -206,6 +208,7 @@ describe('ContentContext daily prompt boundary refresh', () => {
     mockGetUserUsageStatus.mockResolvedValue(null);
     mockUpdateWidgetPrompt.mockResolvedValue(true);
     mockStorageSet.mockResolvedValue(true);
+    mockRecentlyCompletedPromptIds = new Set();
     mockStorageGet.mockImplementation(async (key) => {
       if (key === DAILY_PROMPT_CACHE_KEY) {
         return {
@@ -249,6 +252,7 @@ describe('ContentContext daily prompt boundary refresh', () => {
     });
 
     expect(refreshedPrompt.id).toBe('allowed');
+    expect(mockGetPrompts).not.toHaveBeenCalled();
     expect(mockStorageSet).toHaveBeenLastCalledWith(
       DAILY_PROMPT_CACHE_KEY,
       expect.objectContaining({
@@ -259,5 +263,30 @@ describe('ContentContext daily prompt boundary refresh', () => {
     );
 
     tree.unmount();
+  });
+
+  it('keeps a cached prompt fixed for the day after it has been answered', async () => {
+    const tree = await mountProvider();
+
+    let firstPrompt;
+    await renderer.act(async () => {
+      firstPrompt = await capturedContext.loadTodayPrompt();
+    });
+
+    expect(firstPrompt.id).toBe('blocked');
+    tree.unmount();
+
+    mockRecentlyCompletedPromptIds = new Set(['blocked']);
+    const remountedTree = await mountProvider();
+
+    let cachedPrompt;
+    await renderer.act(async () => {
+      cachedPrompt = await capturedContext.loadTodayPrompt();
+    });
+
+    expect(cachedPrompt.id).toBe('blocked');
+    expect(mockStorageSet).not.toHaveBeenCalled();
+
+    remountedTree.unmount();
   });
 });

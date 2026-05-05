@@ -1,0 +1,1225 @@
+{
+  "meta": {
+    "type": "today-between-us-prompts",
+    "app": "Between Us",
+    "version": "1.2.0",
+    "description": "Daily Today Between Us prompt library, separate from the draw and browse prompt catalog.",
+    "totalPrompts": 150,
+    "heatLevels": {
+      "1": {
+        "name": "Surface & Spark",
+        "description": "Lighthearted exploration, breaking the ice, and engaging the imagination without heavy emotional lifting."
+      },
+      "2": {
+        "name": "Connection & Current Tides",
+        "description": "Exploring current emotional states, relational dynamics, and short-term growth."
+      },
+      "3": {
+        "name": "Deep Meaning & Foundation",
+        "description": "Uncovering core values, life philosophy, vulnerabilities, and long-term vision."
+      }
+    }
+  },
+  "items": [
+    {
+      "id": "tbu_l1_001",
+      "text": "What is a deeply held opinion you have on a completely trivial topic?",
+      "category": "playful",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_002",
+      "text": "If you could instantly master one obscure skill, what would it be?",
+      "category": "playful",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_003",
+      "text": "What is a piece of media - a movie, song, or book - that completely shifts your mood the moment you consume it?",
+      "category": "sensory",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_004",
+      "text": "If our life together was a television series, what would the current season be called?",
+      "category": "playful",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_005",
+      "text": "What is the most chaotic but brilliant idea you have had recently?",
+      "category": "playful",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_006",
+      "text": "Which of my daily habits makes you secretly smile?",
+      "category": "romance",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_007",
+      "text": "If you had to give a 10-minute TED Talk right now with zero preparation, what is the topic?",
+      "category": "playful",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_008",
+      "text": "What is a specific scent that instantly transports you to a childhood memory?",
+      "category": "memory",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_009",
+      "text": "If we could swap lives with another couple for just 48 hours, who would it be and why?",
+      "category": "playful",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_010",
+      "text": "What is a trend you secretly hope makes a massive comeback?",
+      "category": "playful",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_011",
+      "text": "How do you define a perfect lazy day versus a perfect productive day?",
+      "category": "playful",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_012",
+      "text": "What is a seemingly minor compliment you received years ago that you still think about?",
+      "category": "emotional",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_013",
+      "text": "If you were a highly specialized expert in a completely useless field, what would your title be?",
+      "category": "playful",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_014",
+      "text": "What is a food combination you love that most people would find completely bizarre?",
+      "category": "playful",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_015",
+      "text": "When you daydream about our next big vacation, what specific sensory detail do you focus on first?",
+      "category": "future",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_016",
+      "text": "What is a hill you are absolutely willing to die on when it comes to interior design or home aesthetics?",
+      "category": "playful",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_001",
+      "text": "What is a specific boundary you are currently trying to get better at enforcing in your daily life?",
+      "category": "emotional",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_002",
+      "text": "In what specific moments do you feel we operate most flawlessly as a team?",
+      "category": "romance",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_003",
+      "text": "Describe a time recently when you felt profoundly misunderstood by the world, and how I can help buffer that.",
+      "category": "emotional",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_004",
+      "text": "What is a quiet, subtle way you show love that you think might sometimes go unnoticed?",
+      "category": "romance",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_005",
+      "text": "How do you want to be comforted when you are frustrated rather than sad?",
+      "category": "emotional",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_006",
+      "text": "What is a personal goal of yours that you feel you have not given enough attention to lately?",
+      "category": "future",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_007",
+      "text": "Describe a recent situation where you had to completely change your mind about something important.",
+      "category": "emotional",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_008",
+      "text": "How do our different approaches to problem-solving complement each other during high-stress situations?",
+      "category": "emotional",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_009",
+      "text": "What is a specific piece of feedback you have received at work or in life that fundamentally changed your perspective?",
+      "category": "emotional",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_010",
+      "text": "In what ways do you feel you are currently transforming or shedding an old version of yourself?",
+      "category": "emotional",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_011",
+      "text": "What does your ideal balance between our shared couple time and your own solitary time look like right now?",
+      "category": "emotional",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_012",
+      "text": "Describe a moment this past month where you felt intensely proud of us.",
+      "category": "romance",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_013",
+      "text": "What is an assumption people often make about you that is entirely incorrect?",
+      "category": "emotional",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_014",
+      "text": "How do you physically process stress, and what can I do to help alleviate that tension when I notice it?",
+      "category": "physical",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_015",
+      "text": "What is a deeply ingrained habit you have that you are actively trying to unlearn?",
+      "category": "emotional",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_016",
+      "text": "In what specific environment do you feel the most intellectually stimulated?",
+      "category": "emotional",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_017",
+      "text": "What is a conversation we have been putting off that you feel ready to have?",
+      "category": "emotional",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_018",
+      "text": "How has your definition of success shifted over the last two years?",
+      "category": "future",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_001",
+      "text": "What is a core value you hold that you will absolutely never compromise on, regardless of the circumstances?",
+      "category": "emotional",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_002",
+      "text": "How do you want our relationship to serve as a model or inspiration for the people around us?",
+      "category": "future",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_003",
+      "text": "Describe a deeply rooted fear you have that you feel is actively holding you back from your full potential.",
+      "category": "emotional",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_004",
+      "text": "What is the most difficult truth you have ever had to accept about yourself?",
+      "category": "emotional",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_005",
+      "text": "How do you define the difference between existing in a relationship and truly thriving in one?",
+      "category": "emotional",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_006",
+      "text": "What is a profound lesson you learned from a past failure that directly benefits our partnership today?",
+      "category": "memory",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_007",
+      "text": "Describe the legacy you want us to build together, beyond just our immediate family or financial stability.",
+      "category": "future",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_008",
+      "text": "In what ways do you feel my presence in your life has fundamentally altered your trajectory?",
+      "category": "romance",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_009",
+      "text": "What is a deeply vulnerable part of your inner world that you are still learning how to articulate?",
+      "category": "emotional",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_010",
+      "text": "How do we ensure we continue to choose each other actively on the days when loving each other feels difficult?",
+      "category": "romance",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_011",
+      "text": "Describe a moment of profound clarity you have had recently regarding your overall purpose in life.",
+      "category": "future",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_012",
+      "text": "What is the most beautiful thing about the way your mind works?",
+      "category": "emotional",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_013",
+      "text": "How do we best protect our emotional sanctuary from the inevitable chaos of the outside world?",
+      "category": "emotional",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_014",
+      "text": "What does absolute, unconditional emotional safety look like to you?",
+      "category": "emotional",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_015",
+      "text": "Describe the specific ways you see us evolving together over the next decade.",
+      "category": "future",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_016",
+      "text": "What is the most profound realization you have had about love solely through experiencing our relationship?",
+      "category": "romance",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_017",
+      "text": "Which specific era of your life do you feel the most nostalgic for right now, and what exactly do you miss about it?",
+      "category": "memory",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_018",
+      "text": "If you were forced to permanently give up one modern convenience, what would you choose and how would you adapt?",
+      "category": "playful",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_019",
+      "text": "What is a completely irrational pet peeve you have about how other people execute everyday tasks?",
+      "category": "playful",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_020",
+      "text": "Describe a minor, everyday victory that instantly makes you feel like you have your entire life completely under control.",
+      "category": "playful",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_021",
+      "text": "What is a highly specific aesthetic or design style that instantly grounds you and makes you feel calm?",
+      "category": "sensory",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_022",
+      "text": "If you could have a private, hour-long conversation with any historical figure, what is the very first question you would ask them?",
+      "category": "playful",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_023",
+      "text": "What is a documentary, podcast, or niche topic you recently went down a rabbit hole for that completely fascinated you?",
+      "category": "playful",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_024",
+      "text": "Describe the most surprisingly brilliant purchase you have made recently that cost less than fifty dollars.",
+      "category": "playful",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_025",
+      "text": "What is a completely mundane household task that you secretly find incredibly meditative to complete?",
+      "category": "sensory",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_026",
+      "text": "If you had to accurately describe my personality using only three distinct environments or landscapes, what would they be?",
+      "category": "romance",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_027",
+      "text": "What is a bizarre or incredibly specific talent you have that has absolutely zero practical application in the real world?",
+      "category": "playful",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_028",
+      "text": "Which of my random quirks did you initially find confusing when we met, but now completely accept and expect?",
+      "category": "romance",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_029",
+      "text": "If we were to suddenly drop everything and start a YouTube channel together, what exactly would our niche be?",
+      "category": "playful",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_030",
+      "text": "What is a specific physical trait or distinct mannerism you inherited from your family that you actually deeply appreciate?",
+      "category": "memory",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_031",
+      "text": "If we had to host a dinner party for three fictional characters, who makes the guest list and what is the dynamic around the table?",
+      "category": "playful",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_032",
+      "text": "What is a piece of advice you were given years ago that you completely ignored, but it turned out the advice was terrible anyway?",
+      "category": "memory",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_019",
+      "text": "What is a specific situation where you feel your intuition is consistently sharper or more reliable than mine?",
+      "category": "emotional",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_020",
+      "text": "Describe a time recently when you felt completely overwhelmed by your responsibilities but managed to hide it from everyone else.",
+      "category": "emotional",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_021",
+      "text": "How do you feel our different ways of managing time and resources ultimately create a stronger overall strategy for us?",
+      "category": "future",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_022",
+      "text": "What is a specific area of our shared domestic life where you feel we need to establish more ruthless systems or boundaries?",
+      "category": "emotional",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_023",
+      "text": "In what specific moments do you feel the most intellectually challenged by me in a highly positive, motivating way?",
+      "category": "romance",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_024",
+      "text": "What is a healthy habit or shared routine we have fallen out of that you deeply want to re-integrate into our week?",
+      "category": "future",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_025",
+      "text": "Describe exactly how you mentally transition from high-stress work mode to present partner mode at the end of a chaotic day.",
+      "category": "emotional",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_026",
+      "text": "What is a piece of constructive feedback you have wanted to give me recently but have not found the right moment to articulate?",
+      "category": "emotional",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_027",
+      "text": "How do you personally define the delicate line between being fiercely independent and being a highly supportive, present partner?",
+      "category": "emotional",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_028",
+      "text": "What is a specific way I can step in and help you protect your energy when we are dealing with draining social obligations?",
+      "category": "emotional",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_029",
+      "text": "Describe a recent moment when you realized we were operating on the exact same wavelength without having to say a single word.",
+      "category": "romance",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_030",
+      "text": "How do you feel our communication style has matured when we are navigating a fundamental disagreement today versus three years ago?",
+      "category": "emotional",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_031",
+      "text": "What is a highly specific goal you have for your mental or physical health this year, and how can I actively support your consistency?",
+      "category": "future",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_032",
+      "text": "Describe a quiet moment recently where you felt a sudden, intense wave of gratitude for the stability of our life together.",
+      "category": "romance",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_033",
+      "text": "What is an assumption I made about you early on in our relationship that you have since proven completely wrong?",
+      "category": "memory",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_034",
+      "text": "How do you want us to handle situations where our individual, short-term ambitions temporarily conflict with our shared goals?",
+      "category": "future",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_035",
+      "text": "What is a specific way you want me to actively advocate for you in public or around our extended social circles?",
+      "category": "romance",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_036",
+      "text": "Describe a recent conversation where you felt entirely, profoundly understood by me regarding a highly nuanced subject.",
+      "category": "emotional",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_017",
+      "text": "What is a deeply held belief you carry about the nature of love and commitment that most people would strongly disagree with?",
+      "category": "romance",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_018",
+      "text": "Describe the exact internal process you go through when you have to process profound disappointment or betrayal from a friend.",
+      "category": "emotional",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_019",
+      "text": "What is a specific aspect of your early life or upbringing that you are actively, intentionally trying not to repeat in your own adulthood?",
+      "category": "memory",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_020",
+      "text": "How do you define a meaningful life, and how close do you honestly feel you are to currently living it?",
+      "category": "future",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_021",
+      "text": "What is a fundamental, uncompromising truth about human nature that you have learned primarily through painful experience?",
+      "category": "emotional",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_022",
+      "text": "Describe how your relationship with the concept of your own mortality has shifted as you have gotten older and our life has become more settled.",
+      "category": "emotional",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_023",
+      "text": "What is a specific area of your psyche or emotional intelligence where you feel you still have the most growing up to do?",
+      "category": "emotional",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_024",
+      "text": "How do you want us to navigate the inevitable seasons of heavy grief or profound loss when they eventually reach us?",
+      "category": "emotional",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_025",
+      "text": "Describe the most profound personal sacrifice you feel you have made in your life, and whether your perspective on it has changed over time.",
+      "category": "emotional",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_026",
+      "text": "What does the concept of unconditional love actually mean to you when applied to the messy, demanding reality of a long-term partnership?",
+      "category": "romance",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_027",
+      "text": "In what specific ways do you rely on me to act as your ethical or moral compass when you are feeling lost or conflicted?",
+      "category": "romance",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_028",
+      "text": "Describe a moment of intense spiritual, existential, or philosophical clarity you have experienced recently.",
+      "category": "emotional",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_029",
+      "text": "What is a deeply ingrained defense mechanism you use when you feel threatened that you want me to gently call out when I see it happening?",
+      "category": "emotional",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_030",
+      "text": "How do we intentionally ensure that we never lose our sharp individual identities, even as our daily lives become entirely merged?",
+      "category": "future",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_031",
+      "text": "Describe the absolute highest, most self-actualized version of yourself - what does that person look like, and how do we get you there?",
+      "category": "future",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_032",
+      "text": "What is the single most defining promise you make to me internally every single day, even if you never say it out loud?",
+      "category": "romance",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_033",
+      "text": "What is a highly specific subject you could confidently teach a masterclass on right now with zero preparation?",
+      "category": "playful",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_034",
+      "text": "If you were handed a limitless budget to completely redesign one room in our home, which room is it and what is the exact aesthetic?",
+      "category": "future",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_035",
+      "text": "What is a piece of pop culture or a trend you initially judged but eventually completely embraced?",
+      "category": "playful",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_036",
+      "text": "Describe a specific moment when you realized you had officially transitioned from a young adult to a full adult.",
+      "category": "memory",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_037",
+      "text": "What is the most chaotic, unhinged text message you have ever drafted but ultimately decided to delete instead of sending?",
+      "category": "playful",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_038",
+      "text": "If we were forced to participate in a high-stakes reality competition show, which one would give us the best chance of actually winning?",
+      "category": "playful",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_039",
+      "text": "What is a minor, everyday inconvenience that absolutely derails your momentum for at least an hour?",
+      "category": "playful",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_040",
+      "text": "Describe the exact anatomy and environment of your perfect, uninterrupted hour of solitude.",
+      "category": "sensory",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_041",
+      "text": "What is a highly specific, random compliment you would give my driving, cooking, or organizational skills?",
+      "category": "romance",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_042",
+      "text": "If we had to adopt a completely new, wildly out-of-character shared hobby together, what would be the most entertaining option?",
+      "category": "playful",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_043",
+      "text": "What is a deeply obscure piece of trivia that you think about way more often than you probably should?",
+      "category": "playful",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_044",
+      "text": "If you could permanently ban one universally loved food from existence, what would you eliminate without hesitation?",
+      "category": "playful",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_045",
+      "text": "Describe the precise feeling of relief you get when a social plan you were silently dreading gets canceled at the last minute.",
+      "category": "emotional",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_046",
+      "text": "What is a fictional universe you would genuinely love to live in, provided we get to be the main characters?",
+      "category": "playful",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_047",
+      "text": "If your inner monologue had a distinct narrator's voice, whose voice is it and what is their general tone?",
+      "category": "playful",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_048",
+      "text": "What is a seemingly useless, mundane item you own that holds an absurd amount of sentimental value?",
+      "category": "memory",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_037",
+      "text": "What is a specific expectation you entered our relationship with that you are actually incredibly glad I failed to meet?",
+      "category": "romance",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_038",
+      "text": "Describe a recent scenario where my unique perspective helped you entirely reframe a stressful situation you were stuck on.",
+      "category": "romance",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_039",
+      "text": "How do you want us to intentionally handle the inevitable friction when our individual routines clash during a particularly busy week?",
+      "category": "emotional",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_040",
+      "text": "What is a specific domestic or administrative task I handle that genuinely relieves a massive burden from your mental load?",
+      "category": "romance",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_041",
+      "text": "Describe a recent conversation where you realized we have fundamentally different ways of processing a specific type of information.",
+      "category": "emotional",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_042",
+      "text": "In what specific environment or situation do you feel you require the most external validation and grounding from me?",
+      "category": "emotional",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_043",
+      "text": "What is a new boundary you have successfully set at work or within your social circle that you feel incredibly proud of?",
+      "category": "emotional",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_044",
+      "text": "How do you feel our physical affection naturally ebbs, flows, or changes depending on our current external stress levels?",
+      "category": "physical",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_045",
+      "text": "Describe a time recently when you felt a sudden, fierce surge of protectiveness over our relationship when dealing with outside forces.",
+      "category": "romance",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_046",
+      "text": "What is a specific way you want us to be more intentional about celebrating our completely average, non-milestone days?",
+      "category": "romance",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_047",
+      "text": "How do you mentally process the feeling of being temporarily out of sync with me, and how do you prefer we recalibrate?",
+      "category": "emotional",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_048",
+      "text": "What is a quiet, subtle shift you have noticed in my demeanor or habits lately that you have not brought up yet?",
+      "category": "romance",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_049",
+      "text": "Describe the exact type of encouragement you need from me when you are actively doubting your own capabilities.",
+      "category": "emotional",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_050",
+      "text": "How do you feel our shared financial or lifestyle goals have evolved over the last year, and are we currently aligned on the next steps?",
+      "category": "future",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_051",
+      "text": "What is a piece of relationship advice we received from others that we completely disregarded because it did not fit our unique dynamic?",
+      "category": "romance",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_052",
+      "text": "In what specific ways do you feel we successfully insulate our partnership from the heavy stress of our external careers?",
+      "category": "romance",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_053",
+      "text": "What is a conversation topic you feel we occasionally dance around, and how can we approach it more directly and safely?",
+      "category": "emotional",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_054",
+      "text": "Describe a moment this week when I did something incredibly small that made you feel completely prioritized and seen.",
+      "category": "romance",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_033",
+      "text": "What is a deeply ingrained personal fear you have regarding the aging process, and how can we face it as a united front?",
+      "category": "emotional",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_034",
+      "text": "Describe the specific elements of your character that you feel were completely forged by hardship rather than by success.",
+      "category": "emotional",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_035",
+      "text": "How do you actively reconcile the difference between the person you are right now and the person you thought you would be at this age?",
+      "category": "emotional",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_036",
+      "text": "What is a fundamental truth about forgiveness you have learned that most people only discover when it is too late?",
+      "category": "emotional",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_037",
+      "text": "Describe a time you had to completely dismantle a core belief about yourself in order to become a better, more present partner.",
+      "category": "emotional",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_038",
+      "text": "How do you define the concept of a soulmate, and do you believe we had to actively build that connection rather than simply find it?",
+      "category": "romance",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_039",
+      "text": "What is a specific legacy of emotional health, boundaries, or resilience that you want us to intentionally model for those we influence?",
+      "category": "future",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_040",
+      "text": "Describe a moment of profound, quiet awe you have experienced recently regarding the sheer improbability of our life together.",
+      "category": "romance",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_041",
+      "text": "In what specific ways do you feel our partnership acts as a catalyst for your own personal, spiritual, or intellectual awakening?",
+      "category": "romance",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_042",
+      "text": "What is a deeply vulnerable realization about your past that you feel completely safe holding strictly within the confines of our relationship?",
+      "category": "emotional",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_043",
+      "text": "How do you navigate the existential weight of loving someone so deeply while knowing we ultimately have no control over the distant future?",
+      "category": "romance",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_044",
+      "text": "Describe the exact psychological safety net our relationship provides you when you decide to take massive, terrifying risks in your individual life.",
+      "category": "emotional",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_045",
+      "text": "What is a core element of your identity that you feel is entirely independent of me, and how do you continuously nurture it?",
+      "category": "emotional",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_046",
+      "text": "How do you want us to approach the concept of reinvention when we inevitably enter an entirely new, unrecognizable season of our lives?",
+      "category": "future",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_047",
+      "text": "Describe the specific way my unrelenting belief in you has permanently altered your own internal baseline of confidence.",
+      "category": "romance",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_048",
+      "text": "What is the most profound, unspoken vow you hold in your heart regarding how you will protect and honor our connection until the very end?",
+      "category": "romance",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    }
+  ]
+}

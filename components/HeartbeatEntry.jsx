@@ -20,7 +20,7 @@ const { width } = Dimensions.get('window');
  * Sexy Red Intimacy & Apple Editorial Intro Animation.
  * Establishes the high-end "Velvet Glass" atmosphere upon app entry.
  */
-const HeartbeatEntry = () => {
+const HeartbeatEntry = ({ showQuote = true }) => {
   const { colors, isDark } = useTheme();
   
   // ─── SEXY RED x APPLE EDITORIAL THEME MAP ───
@@ -103,13 +103,14 @@ const HeartbeatEntry = () => {
         <Animated.View style={[styles.core, coreStyle]} />
       </View>
 
-      {/* Narrative Entry Text */}
-      <Animated.View style={[styles.quoteContainer, animatedTextStyle]}>
-        <Text style={styles.quote}>
-          "A space for just the two of you."
-        </Text>
-        <View style={[styles.indicator, { backgroundColor: t.primary }]} />
-      </Animated.View>
+      {showQuote && (
+        <Animated.View style={[styles.quoteContainer, animatedTextStyle]}>
+          <Text style={styles.quote}>
+            "A space for just the two of you."
+          </Text>
+          <View style={[styles.indicator, { backgroundColor: t.primary }]} />
+        </Animated.View>
+      )}
     </View>
   );
 };

@@ -14,6 +14,7 @@ const eligibleCatalog = (items) =>
 
 // Initialize with empty safe defaults
 let promptsData = { items: [], meta: {} };
+let todayBetweenUsPromptsData = { items: [], meta: {} };
 let datesData = { items: [], meta: {} };
 
 // Try to load data, but never crash
@@ -27,6 +28,18 @@ try {
   }
 } catch (e) {
   console.error("Error: ContentLoader: Failed to load prompts", e?.message || e);
+}
+
+try {
+  const loadedTodayPrompts = require("../content/today-between-us-prompts.json");
+  if (loadedTodayPrompts && Array.isArray(loadedTodayPrompts.items)) {
+    todayBetweenUsPromptsData = loadedTodayPrompts;
+    if (isDevRuntime) console.log("OK: ContentLoader: Loaded", todayBetweenUsPromptsData.items.length, "Today Between Us prompts");
+  } else {
+    console.warn("Warning: ContentLoader: today-between-us-prompts.json loaded but missing items[]");
+  }
+} catch (e) {
+  console.error("Error: ContentLoader: Failed to load Today Between Us prompts", e?.message || e);
 }
 
 try {
@@ -57,6 +70,7 @@ if (isDevRuntime) {
     }
   };
   validateIds(promptsData.items, 'prompts');
+  validateIds(todayBetweenUsPromptsData.items, 'today-between-us prompts');
   validateIds(datesData.items, 'dates');
 }
 
@@ -242,10 +256,46 @@ export function getAllPrompts() {
   return eligibleCatalog(safeArray(promptsData?.items).filter(Boolean));
 }
 
+export function getTodayBetweenUsPrompts(filters = {}) {
+  const items = eligibleCatalog(safeArray(todayBetweenUsPromptsData?.items));
+  const {
+    maxHeatLevel = 3,
+    minHeatLevel = 1,
+    categories = [],
+    excludeCategories = [],
+  } = filters || {};
+
+  const cats = safeArray(categories);
+  const excludeCats = safeArray(excludeCategories);
+
+  return items
+    .map((prompt) => normalizePrompt(prompt, { dailyOnly: true, sourceLibrary: 'today-between-us' }))
+    .filter((prompt) => {
+      if (!prompt || typeof prompt.text !== "string" || !prompt.text.trim()) return false;
+
+      const heat = typeof prompt.heat === "number" ? prompt.heat : 1;
+      if (heat < minHeatLevel || heat > maxHeatLevel) return false;
+
+      const category = typeof prompt.category === "string" ? prompt.category : "";
+      if (cats.length > 0 && !cats.includes(category)) return false;
+      if (excludeCats.length > 0 && excludeCats.includes(category)) return false;
+
+      return true;
+    });
+}
+
+export function getTodayBetweenUsPromptById(id) {
+  const items = eligibleCatalog(safeArray(todayBetweenUsPromptsData?.items));
+  const match = items.find((prompt) => prompt && prompt.id === id);
+  return match ? normalizePrompt(match, { dailyOnly: true, sourceLibrary: 'today-between-us' }) : null;
+}
+
 export function getPromptById(id) {
   const items = eligibleCatalog(safeArray(promptsData?.items));
   const match = items.find((prompt) => prompt && prompt.id === id);
-  return match ? normalizePrompt(match) : null;
+  if (match) return normalizePrompt(match);
+
+  return getTodayBetweenUsPromptById(id);
 }
 
 export function getPromptsByHeatLevel(heatLevel) {
@@ -548,6 +598,7 @@ export function getContentStats() {
   return {
     totalPrompts: items.length,
     promptsByHeat,
+    totalTodayBetweenUsPrompts: eligibleCatalog(safeArray(todayBetweenUsPromptsData?.items)).length,
     totalDates: eligibleCatalog(safeArray(datesData?.items)).length,
     lastUpdated: new Date().toLocaleDateString(),
   };
