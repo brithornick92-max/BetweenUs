@@ -1093,8 +1093,11 @@ export default function HomeScreen({ navigation }) {
             <View style={styles.memoryLaneCard}>
               <View style={styles.memoryLaneHeader}>
                 <Icon name="time-outline" size={16} color={t.primary} />
-                <Text style={styles.memoryLaneLabel}>
-                  {throwback.isOnThisDay ? 'ON THIS DAY' : 'FROM YOUR PARTNER'}
+                <Text style={[
+                  styles.memoryLaneLabel,
+                  !throwback.isOnThisDay && styles.memoryLaneLabelName,
+                ]}>
+                  {throwback.isOnThisDay ? 'ON THIS DAY' : (partnerLabel === 'your partner' ? 'Your partner' : partnerLabel)}
                 </Text>
               </View>
 
@@ -1520,6 +1523,10 @@ const createStyles = (t, isDark) => StyleSheet.create({
     letterSpacing: 1.5,
     textTransform: 'uppercase',
     color: t.primary,
+  },
+  memoryLaneLabelName: {
+    letterSpacing: 0,
+    textTransform: 'none',
   },
   memoryLaneAnswer: {
     fontFamily: systemFont,
