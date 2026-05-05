@@ -4,9 +4,9 @@
  * MODEL: Each user gets their own content schedule starting from signup date
  * 
  * FREE USERS (ROTATING):
- * - Week 0 (signup): 5 prompts, 5 dates, 5 positions (welcome pack)
- * - Week 1+: 3 prompts, 3 dates, 1 position (ROTATING - old ones don't accumulate)
- * - Prompts and dates show up to 5 cards in week 0, then up to 3 cards/week
+ * - Every week: 20 prompts, 20 dates, 5 positions
+ * - The free tier gets the full core experience; premium sells depth, not access
+ * - Free decks rotate weekly instead of accumulating forever
  * 
  * PREMIUM USERS (CUMULATIVE):
  * - Week 0 (signup): 200 prompts balanced across heat levels, 200 dates, 10 positions
@@ -29,21 +29,21 @@ const WEEKLY_LIMITS = {
   [CONTENT_TYPES.PROMPTS]: {
     premium: 10,         // Premium gets 10 new prompts/week
     premiumStart: 200,   // Premium starts with ~40 prompts per heat level
-    freeWelcomePack: 5,  // Free gets a 5-card signup deck
-    freeOngoing: 3,      // Free gets a 3-card deck each week after week 0
+    freeWelcomePack: 20, // Free gets a full weekly deck right away
+    freeOngoing: 20,     // Free gets the same weekly deck size after week 0
     freeLockedPreview: 0,
   },
   [CONTENT_TYPES.DATES]: {
     premium: 8,          // Premium gets 8 new dates/week
-    freeWelcomePack: 5,  // Free gets a 5-card signup deck
-    freeOngoing: 3,      // Free gets a 3-card deck each week after week 0
+    freeWelcomePack: 20, // Free gets a full weekly deck right away
+    freeOngoing: 20,     // Free gets the same weekly deck size after week 0
     freeLockedPreview: 0,
   },
   [CONTENT_TYPES.POSITIONS]: {
     premium: 2,          // Premium gets 2 new positions/week
     freeWelcomePack: 5,  // Free gets 5 positions on signup
-    freeOngoing: 1,      // Free gets 1 new position each week after week 0
-    freeLockedPreview: 2,
+    freeOngoing: 5,      // Free gets 5 positions each week after week 0
+    freeLockedPreview: 0,
   },
 };
 
@@ -59,18 +59,18 @@ const PREMIUM_LIBRARY_TOTALS = {
 
 const UPGRADE_COPY = {
   [CONTENT_TYPES.PROMPTS]: {
-    headline: 'Your starter pack is just the beginning',
-    body: 'Premium unlocks a deeper prompt library right now, balanced across every heat level, plus fresh prompts every week.',
+    headline: 'Keep more of the conversation open',
+    body: 'Free gives you 20 prompts each week. Premium opens the larger prompt library right away, balanced across every heat level, plus fresh prompts every week.',
     cta: 'Unlock All Prompts',
   },
   [CONTENT_TYPES.DATES]: {
     headline: 'Ready for more date inspiration?',
-    body: 'Premium unlocks the full date library right now, plus fresh ideas every week.',
+    body: 'Free gives you 20 date ideas each week. Premium opens the larger date library right away, plus fresh ideas every week.',
     cta: 'Unlock All Dates',
   },
   [CONTENT_TYPES.POSITIONS]: {
     headline: 'Explore the full sex position library',
-    body: 'You experienced 5 sex positions. Premium unlocks 10+ positions right now, plus 2 new ones every week.',
+    body: 'Free gives you 5 sex positions each week. Premium opens a larger library right away, plus new ones every week.',
     cta: 'Unlock All Sex Positions',
   },
 };

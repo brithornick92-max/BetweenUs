@@ -61,16 +61,16 @@ describe('GuardBehavior enum', () => {
 // ─── Limits ──────────────────────────────────────────────────────────────────
 
 describe('FREE_LIMITS', () => {
-  it('allows one daily prompt response', () => {
-    expect(FREE_LIMITS.PROMPTS_PER_DAY).toBe(1);
+  it('does not use daily prompt locks on the free tier', () => {
+    expect(FREE_LIMITS.PROMPTS_PER_DAY).toBe(Infinity);
   });
 
-  it('allows three date idea previews per day', () => {
-    expect(FREE_LIMITS.DATE_IDEAS_PER_DAY ?? 3).toBe(3);
+  it('does not use daily date locks on the free tier', () => {
+    expect(FREE_LIMITS.DATE_IDEAS_PER_DAY).toBe(Infinity);
   });
 
-  it('allows two fully planned date flows per week', () => {
-    expect(FREE_LIMITS.FULL_DATE_FLOWS_PER_WEEK).toBe(1);
+  it('keeps date planning available on the free tier', () => {
+    expect(FREE_LIMITS.FULL_DATE_FLOWS_PER_WEEK).toBe(Infinity);
   });
 
   it('has 12 preview prompts to build habit before gating', () => {
@@ -81,17 +81,17 @@ describe('FREE_LIMITS', () => {
     expect(FREE_LIMITS.FREE_HEAT_LEVELS).toEqual([1, 2, 3, 4, 5]);
   });
 
-  it('limits weekly free catalog previews', () => {
-    expect(FREE_LIMITS.VISIBLE_PROMPTS_PER_WEEK).toBe(3);
-    expect(FREE_LIMITS.VISIBLE_DATE_IDEAS_PER_WEEK).toBe(3);
-    expect(FREE_LIMITS.VISIBLE_POSITIONS_PER_WEEK).toBe(1);
+  it('uses the new weekly free content deck sizes', () => {
+    expect(FREE_LIMITS.VISIBLE_PROMPTS_PER_WEEK).toBe(20);
+    expect(FREE_LIMITS.VISIBLE_DATE_IDEAS_PER_WEEK).toBe(20);
+    expect(FREE_LIMITS.VISIBLE_POSITIONS_PER_WEEK).toBe(5);
   });
 
-  it('disables premium-only features', () => {
-    expect(FREE_LIMITS.SURPRISE_ME_ENABLED).toBe(false);
-    expect(FREE_LIMITS.CALENDAR_ENABLED).toBe(false);
+  it('keeps the core app experience available on free', () => {
+    expect(FREE_LIMITS.SURPRISE_ME_ENABLED).toBe(true);
+    expect(FREE_LIMITS.CALENDAR_ENABLED).toBe(true);
     expect(FREE_LIMITS.PARTNER_LINKING_ENABLED).toBe(true);
-    expect(FREE_LIMITS.CLOUD_SYNC_ENABLED).toBe(false);
+    expect(FREE_LIMITS.CLOUD_SYNC_ENABLED).toBe(true);
   });
 
   it('keeps prompt responses available on the free tier', () => {
@@ -269,29 +269,8 @@ describe('getAccessibleHeatLevels', () => {
 });
 
 describe('getTimedUnlockLimits', () => {
-  afterEach(() => {
-    jest.useRealTimers();
-  });
-
-  it('returns expanded free limits on Fridays', () => {
-    jest.useFakeTimers().setSystemTime(new Date('2026-04-17T12:00:00Z'));
-
-    expect(getTimedUnlockLimits(false)).toEqual(
-      expect.objectContaining({
-        isUnlockDay: true,
-        unlockLabel: 'Friday Date Night',
-        VISIBLE_DATE_IDEAS: 5,
-        DATE_IDEAS_PER_DAY: 5,
-        PROMPTS_PER_DAY: 2,
-      })
-    );
-  });
-
-  it('returns null for premium users and non-Friday free users', () => {
-    jest.useFakeTimers().setSystemTime(new Date('2026-04-16T12:00:00Z'));
+  it('returns null for both free and premium users', () => {
     expect(getTimedUnlockLimits(true)).toBeNull();
-
-    jest.useFakeTimers().setSystemTime(new Date('2026-04-16T12:00:00Z'));
     expect(getTimedUnlockLimits(false)).toBeNull();
   });
 });

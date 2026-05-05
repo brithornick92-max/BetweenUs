@@ -14,7 +14,6 @@ import { useAuth } from '../context/AuthContext';
 import { useEntitlements } from '../context/EntitlementsContext';
 import { useContent } from '../context/ContentContext';
 import { useTheme } from '../context/ThemeContext';
-import { PremiumFeature } from '../utils/featureFlags';
 import { SPACING, BORDER_RADIUS } from '../utils/theme';
 import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
 import { HEAT_LEVEL_ACCENTS, HEAT_LEVEL_GRADIENTS } from '../config/constants';
@@ -25,7 +24,7 @@ const FREE_BADGE_TEXT = '#07110A';
 
 export default function HeatLevelScreen({ navigation }) {
   const { colors, isDark } = useTheme();
-  const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
+  const { isPremiumEffective: isPremium } = useEntitlements();
   const { loadTodayPrompt, usageStatus, loadContentProfile } = useContent();
   const { updateProfile } = useAuth();
   const [loading, setLoading] = useState(false);
@@ -84,19 +83,6 @@ export default function HeatLevelScreen({ navigation }) {
       setLoading(true);
       impact(ImpactFeedbackStyle.Light);
 
-      // Check daily limits for free users
-      if (!isPremium && usageStatus?.remaining?.prompts === 0) {
-        Alert.alert(
-          'There\'s more waiting for you',
-          'Free users can answer one prompt per day. Premium opens deeper reveals, date ideas, memories, recaps, and your full archive.',
-          [
-            { text: 'Maybe Later', style: 'cancel' },
-            { text: 'Discover more', onPress: () => showPaywall(PremiumFeature.UNLIMITED_PROMPTS) }
-          ]
-        );
-        return;
-      }
-
       // Load today's prompt for this heat level
       const prompt = await loadTodayPrompt(level);
 
@@ -125,8 +111,7 @@ export default function HeatLevelScreen({ navigation }) {
   };
 
   const renderHeatLevel = (heatLevel) => {
-    const isLocked = heatLevel.premium && !isPremium;
-    const isDisabled = loading || (isLocked && heatLevel.level >= 4);
+    const isDisabled = loading;
 
     return (
       <TouchableOpacity
@@ -140,7 +125,7 @@ export default function HeatLevelScreen({ navigation }) {
         activeOpacity={0.9}
       >
         <LinearGradient
-          colors={isLocked ? ['#1C1520', '#241C28'] : (heatLevel.gradient || ['#5E1940', '#4C1030'])}
+          colors={heatLevel.gradient || ['#5E1940', '#4C1030']}
           style={styles.heatLevelGradient}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
@@ -149,17 +134,11 @@ export default function HeatLevelScreen({ navigation }) {
             <View style={styles.heatLevelHeader}>
               <View style={styles.heatLevelIcon}>
                 <Icon
-                  name={isLocked ? 'lock-closed-outline' : heatLevel.icon}
+                  name={heatLevel.icon}
                   size={32}
                   color={HEAT_CARD_TEXT}
                 />
               </View>
-              
-              {isLocked && (
-                <View style={styles.premiumBadge}>
-                  <Icon name="ribbon-outline" size={16} color={HEAT_CARD_TEXT} />
-                </View>
-              )}
             </View>
 
             <Text style={styles.heatLevelNumber}>Level {heatLevel.level}</Text>
@@ -208,28 +187,6 @@ export default function HeatLevelScreen({ navigation }) {
           showsVerticalScrollIndicator={false}
         >
           {HEAT_LEVELS.map(renderHeatLevel)}
-
-          {/* Premium CTA */}
-          {!isPremium && (
-            <TouchableOpacity
-              style={styles.premiumCTA}
-              onPress={() => showPaywall(PremiumFeature.UNLIMITED_PROMPTS)}
-              activeOpacity={0.9}
-            >
-              <LinearGradient
-                colors={['#A89060', '#7A1E4E']}
-                style={styles.premiumCTAGradient}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-              >
-                <Icon name="ribbon-outline" size={24} color={HEAT_CARD_TEXT} />
-                <Text style={styles.premiumCTAText}>
-                  Discover the full experience
-                </Text>
-                <Icon name="arrow-forward-outline" size={20} color={HEAT_CARD_TEXT} />
-              </LinearGradient>
-            </TouchableOpacity>
-          )}
         </ScrollView>
     </EditorialScreenScaffold>
   );

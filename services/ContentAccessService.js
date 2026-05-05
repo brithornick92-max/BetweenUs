@@ -84,19 +84,19 @@ class ContentAccessService {
 
     this.RELEASE_SCHEDULE = {
       prompts: {
-        week0: { free: 10, premium: 200 },
-        perWeek: { free: 5, premium: 10 },
-        description: 'Personalized releases - new content drops weekly on your schedule',
+        week0: { free: 20, premium: 200 },
+        perWeek: { free: 20, premium: 10 },
+        description: 'Free rotates a weekly set. Premium opens a larger library with more added every week.',
       },
       dates: {
-        week0: { free: 10, premium: 200 },
-        perWeek: { free: 5, premium: 8 },
-        description: 'Personalized releases - new content drops weekly on your schedule',
+        week0: { free: 20, premium: 200 },
+        perWeek: { free: 20, premium: 8 },
+        description: 'Free rotates a weekly set. Premium opens a larger library with more added every week.',
       },
       positions: {
         week0: { free: 5, premium: 10 },
-        perWeek: { free: 1, premium: 2 },
-        description: 'Personalized releases - new content drops weekly on your schedule',
+        perWeek: { free: 5, premium: 2 },
+        description: 'Free rotates 5 sex positions each week. Premium opens a larger library with new additions every week.',
       },
     };
   }
@@ -350,7 +350,7 @@ class ContentAccessService {
     return {
       canAccess: false,
       reason: 'weekly_preview_locked',
-      message: 'This one is outside this week\'s free preview. Premium opens the full released collection.',
+      message: 'This one is outside this week\'s free set. Premium opens the larger released collection.',
       weeklyVisibleLimit,
       previewAvailable: preview.length,
     };
@@ -557,7 +557,7 @@ class ContentAccessService {
         return {
           canAccess: false,
           reason: 'daily_limit_reached',
-          message: `Today's free prompt is used. Premium unlocks unlimited daily prompts.`,
+          message: `Today's free prompt access is used. Premium opens the larger prompt library right away.`,
           dailyUsed,
           dailyLimit,
         };
@@ -644,7 +644,7 @@ class ContentAccessService {
         return {
           canAccess: false,
           reason: 'daily_limit_reached',
-          message: `You've viewed your ${dailyLimit} free dates today. Premium unlocks unlimited date browsing.`,
+          message: `You've used today's free date access. Premium opens the larger date library right away.`,
           dailyUsed,
           dailyLimit,
         };

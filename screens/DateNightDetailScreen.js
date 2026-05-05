@@ -32,7 +32,6 @@ import GlowOrb from "../components/GlowOrb";
 import { useAuth } from '../context/AuthContext';
 import { useContent } from '../context/ContentContext';
 import * as PreferenceEngine from '../services/PreferenceEngine';
-import PremiumGatekeeper from '../services/PremiumGatekeeper';
 import { CONTENT_TYPES } from '../services/WeeklyContentSetService';
 import { getDateCardPalette } from '../components/dateCardPalette';
 import {
@@ -69,7 +68,6 @@ export default function DateNightDetailScreen({ route, navigation }) {
   const userId = userProfile?.id || userProfile?.user_id || userProfile?.uid || user?.uid || user?.id || null;
   const { loadUsageStatus } = useContent();
   const [date, setDate] = useState(routeDate || null);
-  const [freeDateFlowRemaining, setFreeDateFlowRemaining] = useState(null);
   const [dateHistoryEntry, setDateHistoryEntry] = useState(null);
   const [isSaved, setIsSaved] = useState(false);
   const [isMatched, setIsMatched] = useState(false);
@@ -87,26 +85,6 @@ export default function DateNightDetailScreen({ route, navigation }) {
     subtext: isDark ? 'rgba(242,233,230,0.6)' : 'rgba(60, 60, 67, 0.6)',
     border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
   }), [colors, isDark]);
-
-  useEffect(() => {
-    let active = true;
-
-    if (!user?.uid) return undefined;
-
-    PremiumGatekeeper.getUserUsageStatus(user.uid, isPremium)
-      .then((status) => {
-        if (active) {
-          setFreeDateFlowRemaining(status?.remaining?.dateFlowsPerWeek ?? null);
-        }
-      })
-      .catch(() => {
-        if (active) setFreeDateFlowRemaining(null);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [user?.uid, isPremium, date?.id]);
 
   useEffect(() => {
     let active = true;
@@ -425,19 +403,6 @@ export default function DateNightDetailScreen({ route, navigation }) {
   const handleSchedule = async () => {
     if (!date) return;
 
-    if (!isPremium && user?.uid) {
-      const accessCheck = await PremiumGatekeeper.canAccessDateFlow(user.uid, date.id, isPremium);
-      if (!accessCheck.canAccess) {
-        showPaywall(PremiumFeature.UNLIMITED_DATE_IDEAS);
-        return;
-      }
-
-      await PremiumGatekeeper.trackDateFlowUsage(user.uid, date.id, isPremium);
-      await loadUsageStatus?.();
-      const refreshed = await PremiumGatekeeper.getUserUsageStatus(user.uid, isPremium);
-      setFreeDateFlowRemaining(refreshed?.remaining?.dateFlowsPerWeek ?? null);
-    }
-
     selection();
     const stepsText = steps.length ? `• ${steps.join("\n• ")}` : "";
     const tomorrow = new Date();
@@ -515,11 +480,6 @@ export default function DateNightDetailScreen({ route, navigation }) {
 
         {/* Primary Editorial Action */}
         <ReAnimated.View entering={FadeInDown.delay(200)} style={styles.centerAction}>
-          {!isPremium && freeDateFlowRemaining !== null ? (
-            <Text style={[styles.freeAccessNote, { color: t.subtext }]}>
-              {freeDateFlowRemaining > 0 ? '1 free date plan available this week.' : 'Your free weekly date plan is used. More can open anytime.'}
-            </Text>
-          ) : null}
           <TouchableOpacity onPress={handleSchedule} activeOpacity={0.9}>
             <LinearGradient colors={[t.primary, t.primaryMuted || '#8E0D2C']} style={styles.scheduleBtn}>
               <Icon name="calendar-outline" size={22} color="#FFF" />

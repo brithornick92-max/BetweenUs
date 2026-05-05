@@ -21,8 +21,6 @@ import {
 import Icon from '../components/Icon';
 import { impact, ImpactFeedbackStyle } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
-import { useEntitlements } from '../context/EntitlementsContext';
-import { PremiumFeature } from '../utils/featureFlags';
 import { withAlpha } from '../utils/theme';
 import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
 
@@ -34,7 +32,6 @@ function sanitizePin(input) {
 
 const SetPinScreen = ({ navigation }) => {
   const { colors, isDark } = useTheme();
-  const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
 
   // ─── SEXY RED x APPLE EDITORIAL THEME MAP ───
   const t = useMemo(() => ({
@@ -102,32 +99,6 @@ const SetPinScreen = ({ navigation }) => {
     }
   };
 
-  // ─── PREMIUM PAYWALL STATE ───
-  if (!isPremium) {
-    return (
-      <EditorialScreenScaffold
-        navigation={navigation}
-        headerTitle="Vault Protection"
-        heroIcon="lock-closed-outline"
-        heroTitle="Secure Your World"
-        heroSubtitle="App Lock is a pro security feature. Protect your intimacy with localized PIN and biometric authentication."
-        scroll={false}
-      >
-        <View style={styles.paywallContent}>
-          <TouchableOpacity
-            onPress={() => showPaywall(PremiumFeature.VAULT_AND_BIOMETRIC)}
-            style={[styles.primaryButton, { backgroundColor: t.primary }]}
-            activeOpacity={0.9}
-          >
-            <Icon name="sparkles-outline" size={18} color="#FFF" />
-            <Text style={styles.primaryButtonText}>Unlock Pro Experience</Text>
-          </TouchableOpacity>
-        </View>
-      </EditorialScreenScaffold>
-    );
-  }
-
-  // ─── ACTIVE SETTING STATE ───
   return (
     <EditorialScreenScaffold
       navigation={navigation}

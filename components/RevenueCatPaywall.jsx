@@ -37,42 +37,42 @@ const SERIF_FONT = Platform.select({ ios: "Georgia", android: "serif" });
 const FEATURE_COPY = {
   [PremiumFeature.UNLIMITED_PROMPTS]: {
     eyebrow: "PROMPTS",
-    title: "Keep the conversation open.",
-    body: "You reached today's free prompt. Premium can be shared with your linked partner and keeps the card deck flowing with more questions for every mood and heat level.",
+    title: "Keep the conversation going.",
+    body: "Free already gives you 20 prompts each week. Premium opens the larger prompt library right away, with more new prompts added every week.",
     benefits: [
-      ["copy-outline", "More prompt cards each week"],
-      ["heart-outline", "Answer and reveal together"],
-      ["eye-off-outline", "Keep boundaries and filters"],
+      ["copy-outline", "A larger prompt library right away"],
+      ["sparkles-outline", "More new prompts added every week"],
+      ["heart-outline", "Shared access for both linked partners"],
     ],
   },
   [PremiumFeature.UNLIMITED_DATE_IDEAS]: {
     eyebrow: "DATES",
-    title: "More plans for tonight.",
-    body: "You reached today's free date ideas. Premium can be shared with your linked partner and opens more date cards, full planning flows, and the saved shortlist.",
+    title: "More plans for the two of you.",
+    body: "Free already gives you 20 date ideas each week. Premium opens the larger date library right away, with more new date ideas added every week.",
     benefits: [
-      ["calendar-outline", "More date ideas each week"],
-      ["map-outline", "At-home and out plans"],
-      ["bookmark-outline", "Save the ones you want"],
+      ["calendar-outline", "A larger date library right away"],
+      ["map-outline", "More new date ideas every week"],
+      ["bookmark-outline", "Shared access for both linked partners"],
     ],
   },
   [PremiumFeature.UNLIMITED_JOURNAL_HISTORY]: {
-    eyebrow: "JOURNAL",
-    title: "Save the story you are building.",
-    body: "Premium can be shared with your linked partner and opens your shared journal history, media keepsakes, and private reflections.",
+    eyebrow: "KEEPSAKE",
+    title: "Keep the full story.",
+    body: "Free Keepsake shows the last 30 days. Premium unlocks your full archive of prompt answers, notes, date memories, sex positions, photos, and videos.",
     benefits: [
-      ["book-outline", "Shared journal entries"],
-      ["images-outline", "Photos and videos"],
-      ["shield-checkmark-outline", "Private couple space"],
+      ["archive-outline", "Your full keepsake timeline"],
+      ["images-outline", "Photos, videos, and saved moments"],
+      ["book-outline", "Older notes and reflections stay visible"],
     ],
   },
   default: {
     eyebrow: "PREMIUM",
-    title: "Unlock the full Between Us experience.",
-    body: "One subscription can share premium access with your linked partner, with more prompts, richer date ideas, shared keepsakes, and tools that help your connection keep moving.",
+    title: "Keep more of what you start.",
+    body: "Free already gives you the full core experience. Premium adds more prompts, more date ideas, more sex positions, and the full Keepsake archive.",
     benefits: [
-      ["sparkles-outline", "Fresh content every week"],
-      ["heart-outline", "Built for both partners"],
-      ["archive-outline", "Keep the moments that matter"],
+      ["copy-outline", "More prompts every week"],
+      ["calendar-outline", "More date ideas every week"],
+      ["archive-outline", "Your full keepsake archive"],
     ],
   },
 };
@@ -95,7 +95,7 @@ function getPackageSubtitle(pkg) {
   const type = String(pkg?.packageType || pkg?.identifier || "").toLowerCase();
   if (type.includes("annual") || type.includes("year")) return "Best for building a shared habit.";
   if (type.includes("month")) return "Flexible access, billed monthly.";
-  return "Unlock the full experience.";
+  return "Adds more prompts, dates, and keepsake history.";
 }
 
 function isRecommendedPackage(pkg) {
@@ -292,7 +292,7 @@ const RevenueCatPaywall = ({ onDismiss, onPurchaseSuccess, navigation, route }) 
 
               <Text style={[styles.title, { color: t.text }]}>Choose your rhythm.</Text>
               <Text style={[styles.body, { color: t.subtext }]}>
-                Choose monthly or yearly access for your couple. One subscription can share premium access with your linked partner, and you can manage or cancel through your App Store account.
+                Choose monthly or yearly access for your couple. Premium adds more prompts, more date ideas, more sex positions, and the full Keepsake archive for both linked partners.
               </Text>
 
               <View style={styles.planList}>

@@ -22,10 +22,8 @@ import { impact, ImpactFeedbackStyle } from '../utils/haptics';
 import LiveVibeSync from '../components/LiveVibeSync';
 import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
-import { useEntitlements } from '../context/EntitlementsContext';
 import { useTheme } from '../context/ThemeContext';
 import { useTogetherPresence } from '../hooks/useTogetherPresence';
-import { PremiumFeature } from '../utils/featureFlags';
 import { SPACING, withAlpha } from '../utils/theme';
 import { vibeStorage } from '../utils/storage';
 import { getVibeSignalById, VIBE_SIGNALS } from '../utils/vibeSignals';
@@ -124,7 +122,6 @@ export default function VibeSignalScreen({ navigation }) {
   const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
   const { state } = useAppContext();
   const { userProfile } = useAuth();
-  const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
   const partnerLabel = getPartnerDisplayName(userProfile, state?.userProfile, 'Partner');
   const { isTogetherNow } = useTogetherPresence();
 
@@ -201,47 +198,6 @@ export default function VibeSignalScreen({ navigation }) {
     if (partnerVibe) loadFluxData();
   }, [partnerVibe, loadFluxData]);
 
-  // ── Paywall Gate ──────────────────────────────────────────────────
-  if (!isPremium) {
-    return (
-      <SafeAreaView style={[styles.container, { backgroundColor: t.background }]}>
-        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
-        <LinearGradient
-          colors={isDark ? [t.background, '#120206', '#0A0003', t.background] : [t.background, '#F2F2F7', t.background]}
-          style={StyleSheet.absoluteFillObject}
-          start={{ x: 0.5, y: 0 }}
-          end={{ x: 0.5, y: 1 }}
-        />
-        <FilmGrain opacity={0.1} />
-        <CloseScreenHeader
-          title="Vibe Signals"
-          subtitle="LIVE MOOD SYNC"
-          titleColor={t.text}
-          subtitleColor={t.primary}
-          closeColor={t.text}
-          closeIcon="close"
-          onClose={() => navigation.goBack()}
-        />
-        <View style={styles.paywallContent}>
-          <View style={[styles.iconHero, { backgroundColor: withAlpha(t.primary, 0.12) }]}>
-            <Icon name="pulse-outline" size={42} color={t.primary} />
-          </View>
-          <Text style={styles.paywallTitle}>Vibe Signals</Text>
-          <Text style={styles.paywallDescription}>
-            Share your emotional state and send your partner a tactile pulse through high-end synchronized signals.
-          </Text>
-          <TouchableOpacity
-            onPress={() => showPaywall?.(PremiumFeature.VIBE_SIGNAL)}
-            style={[styles.primaryButton, { backgroundColor: t.primary }]}
-            activeOpacity={0.9}
-          >
-            <Text style={styles.primaryButtonText}>Unlock Pro Sync</Text>
-          </TouchableOpacity>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
   // ── Main Screen ───────────────────────────────────────────────────
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: t.background }]}>
@@ -275,12 +231,6 @@ export default function VibeSignalScreen({ navigation }) {
             closeColor={t.text}
             closeIcon="close"
             onClose={() => navigation.goBack()}
-            rightAccessory={isPremium ? (
-              <View style={[styles.premiumBadge, { backgroundColor: withAlpha(t.primary, 0.15) }]}>
-                <Icon name="sparkles-outline" size={12} color={t.primary} />
-                <Text style={[styles.premiumBadgeText, { color: t.primary }]}>PREMIUM</Text>
-              </View>
-            ) : null}
           />
 
           {/* Vibe Grid */}

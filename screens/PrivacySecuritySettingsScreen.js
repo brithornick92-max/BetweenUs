@@ -29,8 +29,6 @@ import * as LocalAuthentication from 'expo-local-authentication';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useAppContext } from '../context/AppContext';
-import { useEntitlements } from '../context/EntitlementsContext';
-import { PremiumFeature } from '../utils/featureFlags';
 import { settingsStorage } from '../utils/storage';
 
 const { width: SCREEN_W } = Dimensions.get('window');
@@ -40,7 +38,6 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
   const { colors, isDark } = useTheme();
   const { signOutLocal, signOutGlobal, busy } = useAuth();
   const { actions } = useAppContext();
-  const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
   
   // High-End Color Logic (No Gold)
   const theme = useMemo(() => ({
@@ -104,10 +101,6 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
   };
 
   const handleToggleAppLock = async (value) => {
-    if (value && !isPremium) {
-      showPaywall(PremiumFeature.VAULT_AND_BIOMETRIC);
-      return;
-    }
     if (value && biometricsAvailable) {
       const result = await LocalAuthentication.authenticateAsync({
         promptMessage: 'Authenticate to enable app lock',
@@ -241,12 +234,6 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
             <BlurView intensity={isDark ? 30 : 50} tint={isDark ? "dark" : "light"} style={[styles.settingsCard, { borderColor: theme.glassBorder }]}>
               <View style={styles.cardHeaderRow}>
                 <Text style={[styles.sectionTitle, { color: colors.text }]}>Vault Lock</Text>
-                {!isPremium && (
-                  <View style={[styles.premiumBadge, { backgroundColor: theme.crimson + '15' }]}>
-                    <Icon name="lock-closed" size={10} color={theme.crimson} style={{ marginRight: 4 }} />
-                    <Text style={[styles.premiumBadgeText, { color: theme.crimson }]}>PREMIUM</Text>
-                  </View>
-                )}
               </View>
 
               {renderSettingRow(

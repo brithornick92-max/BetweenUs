@@ -46,7 +46,7 @@ const FAQ_DATA = [
       },
       {
         q: 'How much does it cost?',
-        a: `The free version includes 1 prompt per day, limited previews of date ideas and sex positions, and 1 fully planned date flow per week. Viewing or revealing limited free prompts and date ideas may count toward free usage limits.\n\nPremium unlocks a growing library of prompts, date ideas, and sex positions over time, with new content released to you weekly. One subscription covers both linked partners after entitlement sync completes.\n\n• Monthly: ${FALLBACK_PRICES.monthly}\n• Yearly: ${FALLBACK_PRICES.yearly}`,
+        a: `The free version includes the full core experience: prompts, notes, date ideas, shared calendar, Keepsake, vibe signals, app lock, and recaps.\n\nEach week, free users get 20 prompts, 20 date ideas, and 5 sex positions. Free Keepsake shows the last 30 days of your shared story.\n\nPremium adds a larger content library plus the full Keepsake archive. One subscription covers both linked partners after entitlement sync completes.\n\n• Monthly: ${FALLBACK_PRICES.monthly}\n• Yearly: ${FALLBACK_PRICES.yearly}`,
       },
       {
         q: 'How do I get started?',
@@ -63,7 +63,7 @@ const FAQ_DATA = [
       },
       {
         q: 'How do I link with my partner?',
-        a: '1. Both partners create accounts\n2. One partner generates an invite code\n3. The other partner enters the code manually\n4. Both accounts are linked into one couple space\n\nPartner linking is free. Premium adds expanded prompts, date planning, recaps, signals, and more shared features.',
+        a: '1. Both partners create accounts\n2. One partner generates an invite code\n3. The other partner enters the code manually\n4. Both accounts are linked into one couple space\n\nPartner linking is free. Premium only adds more prompts, more date ideas, more sex positions, and the full Keepsake archive.',
       },
       {
         q: 'Can I unlink from my partner?',
@@ -105,7 +105,7 @@ const FAQ_DATA = [
     questions: [
       {
         q: 'What are Heat Levels?',
-        a: 'Heat levels help you choose the intensity of prompts, from emotional connection (1) to explicit (5). Free users can preview all levels. Premium unlocks a growing library of prompts, date ideas, and sex positions over time, with new content released to you weekly.',
+        a: 'Heat levels help you choose the intensity of prompts, from emotional connection (1) to explicit (5). All 5 Heat Levels are available on both free and premium. Premium mainly adds a larger content library and the full Keepsake archive.',
       },
       {
         q: 'How do prompts work?',
@@ -134,7 +134,7 @@ const FAQ_DATA = [
     questions: [
       {
         q: 'What\'s included in Premium?',
-        a: 'Premium unlocks a growing library of prompts, date ideas, and sex positions over time, with new content released to you weekly. It also includes access to all 5 Heat Levels, shared calendar features, Our Story Wall/Keepsake media uploads and shared memories, vibe and moment signals, and other premium experiences. One subscription covers both linked partners after entitlement sync completes.',
+        a: 'Premium adds a larger library of prompts, date ideas, and sex positions, plus the full Keepsake archive beyond the last 30 days. The rest of the core experience stays available on free. One subscription covers both linked partners after entitlement sync completes.',
       },
       {
         q: 'How do I subscribe?',

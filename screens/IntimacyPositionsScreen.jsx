@@ -408,8 +408,8 @@ export default function IntimacyPositionsScreen() {
     <EditorialScreenScaffold
       navigation={navigation}
       headerTitle="Sex Positions"
-      headerSubtitle={isPremiumEffective ? "10 curated positions" : "SEX POSITIONS"}
-      headerDescription={isPremiumEffective ? "2 new positions added each week." : null}
+      headerSubtitle="SEX POSITIONS"
+      headerDescription={isPremiumEffective ? "A larger library with new positions added every week." : "5 positions refreshed each week."}
       scroll={false}
       onBack={handleBack}
       bodyStyle={{ paddingHorizontal: 0 }} // Remove scaffold padding for edge-to-edge

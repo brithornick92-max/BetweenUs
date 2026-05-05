@@ -20,7 +20,6 @@ import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import Icon from '../components/Icon';
 import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
-import { useEntitlements } from '../context/EntitlementsContext';
 import { useTheme } from '../context/ThemeContext';
 import { cloudSyncStorage } from '../utils/storage';
 import StorageRouter from '../services/storage/StorageRouter';
@@ -30,7 +29,6 @@ import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 
 export default function SyncSetupScreen({ navigation }) {
-  const { isPremiumEffective: isPremium } = useEntitlements();
   const { colors, isDark } = useTheme();
   
   // ── High-End Color Logic (No Gold) ──────────────────────────────────────────
@@ -144,7 +142,6 @@ export default function SyncSetupScreen({ navigation }) {
       if (session) {
         await StorageRouter.setSupabaseSession(session);
         await StorageRouter.configureSync({
-          isPremium: !!isPremium,
           syncEnabled,
           supabaseSessionPresent: true,
         });
@@ -159,10 +156,6 @@ export default function SyncSetupScreen({ navigation }) {
   };
 
   const handleEnableSync = async () => {
-    if (!isPremium) {
-      Alert.alert('Premium Feature', 'Cloud sync is exclusive to our premium members.');
-      return;
-    }
     const session = await refreshSession();
     if (!session) {
       Alert.alert('Sign In Required', 'Please sign in to your account before enabling sync.');
@@ -170,14 +163,14 @@ export default function SyncSetupScreen({ navigation }) {
     }
 
     await cloudSyncStorage.setSyncStatus({ enabled: true, email: session?.user?.email || null });
-    await StorageRouter.configureSync({ isPremium, syncEnabled: true, supabaseSessionPresent: true });
+    await StorageRouter.configureSync({ syncEnabled: true, supabaseSessionPresent: true });
     setSyncEnabled(true);
     impact(ImpactFeedbackStyle.Heavy);
   };
 
   const handleDisableSync = async () => {
     await cloudSyncStorage.setSyncStatus({ enabled: false });
-    await StorageRouter.configureSync({ isPremium, syncEnabled: false, supabaseSessionPresent: false });
+    await StorageRouter.configureSync({ syncEnabled: false, supabaseSessionPresent: false });
     setSyncEnabled(false);
     impact(ImpactFeedbackStyle.Light);
   };

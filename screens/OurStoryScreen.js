@@ -35,6 +35,7 @@ import { KEEPSAKE_CATEGORY_COLORS } from '../config/constants';
 import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
 import MediaLightbox from '../components/MediaLightbox';
 import { NicknameEngine } from '../services/PolishEngine';
+import { useEntitlements } from '../context/EntitlementsContext';
 import positionsData from '../content/intimacy-positions.json';
 
 const HEARTS_KEY = '@betweenus:cache:momentHearts';
@@ -66,6 +67,7 @@ const DEFAULT_KEEPSAKE_SETTINGS = {
 
 const POSITION_ITEMS = Array.isArray(positionsData?.items) ? positionsData.items : [];
 const POSITION_BY_ID = new Map(POSITION_ITEMS.map((position) => [position.id, position]));
+const FREE_KEEPSAKE_ARCHIVE_DAYS = 30;
 
 function normalizeKeepsakeSettings(settings) {
   return {
@@ -1050,9 +1052,23 @@ function applyOccurrenceOverrides(entries = [], overrides = {}) {
   }).sort((a, b) => getSortTime(b) - getSortTime(a));
 }
 
+export function filterKeepsakeEntriesByDateWindow(entries = [], days = FREE_KEEPSAKE_ARCHIVE_DAYS, referenceDate = new Date()) {
+  const windowDays = Number(days);
+  if (!Number.isFinite(windowDays) || windowDays <= 0) return [];
+
+  const now = referenceDate instanceof Date ? referenceDate : new Date(referenceDate);
+  const cutoff = now.getTime() - (windowDays * 24 * 60 * 60 * 1000);
+
+  return (entries || []).filter((entry) => {
+    const sortTime = getSortTime(entry);
+    return sortTime > 0 && sortTime >= cutoff;
+  });
+}
+
 export default function OurStoryScreen() {
   const navigation = useNavigation();
   const { colors, isDark } = useTheme();
+  const { isPremiumEffective: isPremium } = useEntitlements();
 
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -1122,7 +1138,12 @@ export default function OurStoryScreen() {
 
       const hidden = new Set(Array.isArray(hiddenKeepsakeIds) ? hiddenKeepsakeIds : []);
       const visible = merged.filter((entry) => !hidden.has(entry.id));
-      setEntries(applyOccurrenceOverrides(visible, occurrenceOverrides));
+      const resolvedEntries = applyOccurrenceOverrides(visible, occurrenceOverrides);
+      setEntries(
+        isPremium
+          ? resolvedEntries
+          : filterKeepsakeEntriesByDateWindow(resolvedEntries)
+      );
     } catch (error) {
       if (__DEV__) console.warn('[OurStory] Load failed:', error?.message);
       setEntries([]);
@@ -1130,7 +1151,7 @@ export default function OurStoryScreen() {
       setLoading(false);
       setRefreshing(false);
     }
-  }, []);
+  }, [isPremium]);
 
   useFocusEffect(
     useCallback(() => {
@@ -1821,7 +1842,11 @@ export default function OurStoryScreen() {
     <ReAnimated.View entering={FadeIn.duration(500)}>
       <View style={styles.headerIntroContainer}>
         <Text style={styles.headerIntro}>
-          {entries.length ? `${entries.length} keepsakes, newest first` : 'Newest first'}
+          {isPremium
+            ? (entries.length ? `${entries.length} keepsakes, newest first` : 'Newest first')
+            : (entries.length
+              ? `Last 30 days • ${entries.length} keepsakes`
+              : 'Last 30 days')}
         </Text>
       </View>
     </ReAnimated.View>
@@ -1838,7 +1863,9 @@ export default function OurStoryScreen() {
       </Text>
 
       <Text style={styles.emptyBody}>
-        Prompt, memory, date, and sex position keepsakes will collect here.
+        {isPremium
+          ? 'Prompt, memory, date, and sex position keepsakes will collect here.'
+          : 'Prompt, memory, date, and sex position keepsakes from the last 30 days will collect here.'}
       </Text>
     </ReAnimated.View>
   );

@@ -19,11 +19,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
 import Icon from '../components/Icon';
-import { LinearGradient } from 'expo-linear-gradient';
 import { impact, selection, notification, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
-import { useEntitlements } from '../context/EntitlementsContext';
-import { PremiumFeature } from '../utils/featureFlags';
 import { YearReflection } from '../services/PolishEngine';
 import GlowOrb from '../components/GlowOrb';
 import FilmGrain from '../components/FilmGrain';
@@ -79,7 +76,6 @@ function FadeSection({ children, delay = 0 }) {
 // ------------------------------------------------------------------
 export default function YearReflectionScreen({ navigation }) {
   const { colors, isDark } = useTheme();
-  const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
   const [reflection, setReflection] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -146,27 +142,6 @@ export default function YearReflectionScreen({ navigation }) {
       setIsExporting(false);
     }
   }, [selectedParagraph, reflection, year]);
-
-  if (!isPremium) {
-    return (
-      <View style={[styles.container, { backgroundColor: t.background }]}>
-        <LinearGradient colors={[PALETTE.sexyRed, '#9A0D12']} style={styles.premiumHeaderGrad} />
-        <SafeAreaView style={styles.premiumGate}>
-          <Icon name="sparkles-outline" size={48} color="#FFF" />
-          <Text style={[styles.gateTitle, { color: '#FFF' }]}>Annual Recap</Text>
-          <Text style={[styles.gateSub, { color: 'rgba(255,255,255,0.8)' }]}>
-            Premium turns your answers, memories, and milestones into a private recap of the love you are building.
-          </Text>
-          <TouchableOpacity
-            style={styles.premiumButton}
-            onPress={() => { selection(); showPaywall(PremiumFeature.YEAR_REFLECTION); }}
-          >
-            <Text style={styles.premiumButtonText}>Open Recap</Text>
-          </TouchableOpacity>
-        </SafeAreaView>
-      </View>
-    );
-  }
 
   // Derive the current paragraph text for the off-screen snapshot
   const snapshotText = (selectedParagraph !== null && reflection?.sections[selectedParagraph])

@@ -116,9 +116,9 @@ describe('ContentAccessService', () => {
     expect(result.reason).toBe('within_free_limits');
   });
 
-  it('limits the legacy free prompt preview using current tightened limits', async () => {
+  it('limits the free prompt deck to 20 weekly cards', async () => {
     const prompts = [1, 2, 3, 4, 5].flatMap((heat) =>
-      [0, 1, 2, 3].map((index) => ({
+      [0, 1, 2, 3, 4].map((index) => ({
         id: `h${heat}_${index}`,
         heat,
         releaseWeek: 0,
@@ -131,22 +131,29 @@ describe('ContentAccessService', () => {
       userSettings: { maxHeatLevel: 5 },
     });
 
-    expect(result.prompts).toHaveLength(3);
-    expect(new Set(result.prompts.map((prompt) => prompt.heat))).toEqual(new Set([1, 2, 3]));
+    expect(result.prompts).toHaveLength(20);
     expect(result.access.isPreviewLimited).toBe(true);
     expect(result.access.lockedCount).toBeGreaterThan(0);
   });
 
   it('blocks free access to released prompts outside the weekly preview set', async () => {
     const prompts = [1, 2, 3, 4, 5].flatMap((heat) =>
-      [0, 1, 2, 3].map((index) => ({
+      [0, 1, 2, 3, 4].map((index) => ({
         id: `h${heat}_${index}`,
         heat,
         releaseWeek: 0,
       }))
     );
 
-    const result = await contentAccessService.canAccessPrompt('h1_0', {
+    const preview = await contentAccessService.getAccessiblePrompts(prompts, {
+      userId: 'user-1',
+      isPremium: false,
+      userSettings: { maxHeatLevel: 5 },
+    });
+    const visibleIds = new Set(preview.prompts.map((prompt) => prompt.id));
+    const lockedPrompt = prompts.find((prompt) => !visibleIds.has(prompt.id));
+
+    const result = await contentAccessService.canAccessPrompt(lockedPrompt.id, {
       userId: 'user-1',
       isPremium: false,
       userSettings: { maxHeatLevel: 5 },
@@ -157,9 +164,9 @@ describe('ContentAccessService', () => {
     expect(result.reason).toBe('weekly_preview_locked');
   });
 
-  it('limits the legacy free date preview and respects heat boundaries', async () => {
+  it('limits the free date deck to 20 weekly cards and respects heat boundaries', async () => {
     const dates = [1, 2, 3].flatMap((heat) =>
-      [0, 1, 2, 3].map((index) => ({
+      Array.from({ length: 12 }, (_, index) => ({
         id: `date${heat}_${index}`,
         heat,
         releaseWeek: 0,
@@ -172,13 +179,14 @@ describe('ContentAccessService', () => {
       userSettings: { maxHeatLevel: 2 },
     });
 
-    expect(result.dates).toHaveLength(3);
+    expect(result.dates).toHaveLength(20);
     expect(result.dates.every((date) => date.heat <= 2)).toBe(true);
     expect(result.access.accessibleHeatLevels).toEqual([1, 2]);
+    expect(result.access.isPreviewLimited).toBe(true);
   });
 
-  it('blocks free prompt access after the daily limit', async () => {
-    UsageEventsService.getDailyUsage.mockResolvedValue({ prompts: 1, dates: 0 });
+  it('does not block free prompt access based on daily usage anymore', async () => {
+    UsageEventsService.getDailyUsage.mockResolvedValue({ prompts: 100, dates: 0 });
 
     const result = await contentAccessService.canAccessPrompt('prompt-1', {
       userId: 'user-1',
@@ -187,8 +195,9 @@ describe('ContentAccessService', () => {
       allPrompts: [{ id: 'prompt-1', heat: 1, releaseWeek: 0 }],
     });
 
-    expect(result.canAccess).toBe(false);
-    expect(result.reason).toBe('daily_limit_reached');
+    expect(result.canAccess).toBe(true);
+    expect(result.reason).toBe('within_free_limits');
+    expect(result.dailyLimit).toBe(Infinity);
   });
 
   it('tracks free usage but skips premium users', async () => {
@@ -211,7 +220,7 @@ describe('ContentAccessService', () => {
     expect(UsageEventsService.incrementDailyUsage).not.toHaveBeenCalled();
   });
 
-  it('allows free users a limited legacy position preview', async () => {
+  it('allows free users a 5-card weekly sex-position deck', async () => {
     const positions = [1, 2, 3].flatMap((heat) =>
       [0, 1].map((index) => ({
         id: `ip${heat}_${index}`,
@@ -225,7 +234,7 @@ describe('ContentAccessService', () => {
       userSettings: { maxHeatLevel: 3 },
     });
 
-    expect(result.positions).toHaveLength(1);
+    expect(result.positions).toHaveLength(5);
     expect(result.access.requiresPremium).toBe(false);
     expect(result.access.isPreviewLimited).toBe(true);
   });

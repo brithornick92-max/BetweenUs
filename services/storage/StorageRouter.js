@@ -234,7 +234,7 @@ class StorageRouter {
   }
 
   _useCloud() {
-    return this.isPremium && this.syncEnabled && this.sessionPresent;
+    return this.syncEnabled && this.sessionPresent;
   }
 
   _canUseAuthenticatedCloud() {

@@ -5,11 +5,11 @@ import { storage } from '../utils/storage';
  * Supabase-backed usage service with a cache-only fallback.
  */
 export const FREE_TIER_LIMITS = {
-  promptsPerDay: 1,
-  visibleDates: 3,
-  fullDateFlowsPerWeek: 1,
-  journalEntriesVisible: 0,
-  surpriseMeEnabled: false,
+  promptsPerDay: Infinity,
+  visibleDates: 20,
+  fullDateFlowsPerWeek: Infinity,
+  journalEntriesVisible: Infinity,
+  surpriseMeEnabled: true,
 };
 
 const CACHE_PREFIX = '@betweenus:cache:usage';

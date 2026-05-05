@@ -19,28 +19,28 @@ describe('freePromptAnswerQuota', () => {
     jest.clearAllMocks();
   });
 
-  it('allows 3 saved prompt answers during signup week', () => {
+  it('allows 20 saved prompt answers during signup week', () => {
     const quota = getFreePromptAnswerQuota({
       userProfile: { created_at: '2026-04-30T12:00:00.000Z' },
       date: new Date('2026-05-03T12:00:00.000Z'),
     });
 
     expect(quota.weekNumber).toBe(0);
-    expect(quota.limit).toBe(3);
+    expect(quota.limit).toBe(20);
   });
 
-  it('allows 1 saved prompt answer after signup week', () => {
+  it('allows 20 saved prompt answers after signup week', () => {
     const quota = getFreePromptAnswerQuota({
       userProfile: { created_at: '2026-04-01T12:00:00.000Z' },
       date: new Date('2026-04-30T12:00:00.000Z'),
     });
 
     expect(quota.weekNumber).toBeGreaterThan(0);
-    expect(quota.limit).toBe(1);
+    expect(quota.limit).toBe(20);
   });
 
   it('blocks free saves when the weekly answer quota is used', async () => {
-    UsageEventsService.getPeriodUsage.mockResolvedValue({ prompts: 1 });
+    UsageEventsService.getPeriodUsage.mockResolvedValue({ prompts: 20 });
 
     const result = await canSaveFreePromptAnswer({
       userId: 'user-1',
@@ -92,7 +92,7 @@ describe('freePromptAnswerQuota', () => {
 
   it('does not increment usage when a weekly item was already used', async () => {
     UsageEventsService.getPeriodUsage.mockResolvedValue({
-      prompts: 3,
+      prompts: 20,
       usedItemIds: { prompts: ['prompt-1'] },
     });
 
@@ -109,7 +109,7 @@ describe('freePromptAnswerQuota', () => {
   });
 
   it('blocks new date details after the weekly date quota is used', async () => {
-    UsageEventsService.getPeriodUsage.mockResolvedValue({ dates: 1 });
+    UsageEventsService.getPeriodUsage.mockResolvedValue({ dates: 20 });
 
     const result = await canOpenFreeDateDetail({
       userId: 'user-1',
@@ -120,7 +120,7 @@ describe('freePromptAnswerQuota', () => {
 
     expect(result.canUse).toBe(false);
     expect(result.reason).toBe('weekly_date_detail_limit_reached');
-    expect(result.limit).toBe(1);
+    expect(result.limit).toBe(20);
   });
 
   it('tracks date detail opens against the weekly date quota', async () => {
@@ -142,8 +142,8 @@ describe('freePromptAnswerQuota', () => {
     );
   });
 
-  it('uses the same 3 then 1 quota shape for prompts and date details', async () => {
-    UsageEventsService.getPeriodUsage.mockResolvedValue({ dates: 3 });
+  it('uses the same 20-per-week quota shape for prompts and date details', async () => {
+    UsageEventsService.getPeriodUsage.mockResolvedValue({ dates: 20 });
     const welcomeWeekDate = await canUseFreeWeeklyItem({
       type: 'dates',
       itemId: 'date-4',
@@ -152,7 +152,7 @@ describe('freePromptAnswerQuota', () => {
       date: new Date('2026-05-03T12:00:00.000Z'),
     });
 
-    UsageEventsService.getPeriodUsage.mockResolvedValue({ dates: 1 });
+    UsageEventsService.getPeriodUsage.mockResolvedValue({ dates: 20 });
     const ongoingDate = await canUseFreeWeeklyItem({
       type: 'dates',
       itemId: 'date-2',
@@ -162,8 +162,8 @@ describe('freePromptAnswerQuota', () => {
     });
 
     expect(welcomeWeekDate.canUse).toBe(false);
-    expect(welcomeWeekDate.limit).toBe(3);
+    expect(welcomeWeekDate.limit).toBe(20);
     expect(ongoingDate.canUse).toBe(false);
-    expect(ongoingDate.limit).toBe(1);
+    expect(ongoingDate.limit).toBe(20);
   });
 });

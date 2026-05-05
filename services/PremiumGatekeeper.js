@@ -16,6 +16,10 @@ class PremiumGatekeeper {
     };
   }
 
+  hasFiniteLimit(limit) {
+    return Number.isFinite(limit);
+  }
+
   // Check if user has premium access
   isPremiumUser(isPremiumFlag) {
     return !!isPremiumFlag;
@@ -33,6 +37,13 @@ class PremiumGatekeeper {
           reason: 'premium_access'
         };
       }
+
+      if (!this.hasFiniteLimit(this.DAILY_LIMITS.FREE_PROMPTS)) {
+        return {
+          canAccess: true,
+          reason: 'within_free_limits'
+        };
+      }
       
       // Check daily usage limit
       const usage = await UsageEventsService.getDailyUsage(userId);
@@ -40,7 +51,7 @@ class PremiumGatekeeper {
         return {
           canAccess: false,
           reason: 'daily_limit_reached',
-          message: `Today's free moment is used. Discover the full experience for deeper reveals, private notes, date ideas, and your shared archive.`
+          message: `Free already includes the core experience. Premium adds a larger prompt library and the full Keepsake archive.`
         };
       }
       
@@ -70,6 +81,13 @@ class PremiumGatekeeper {
           reason: 'premium_access'
         };
       }
+
+      if (!this.hasFiniteLimit(this.DAILY_LIMITS.FREE_DATES)) {
+        return {
+          canAccess: true,
+          reason: 'within_free_limits'
+        };
+      }
       
       // Check daily usage limit for free users
       const usage = await UsageEventsService.getDailyUsage(userId);
@@ -77,7 +95,7 @@ class PremiumGatekeeper {
         return {
           canAccess: false,
           reason: 'daily_limit_reached',
-          message: `Free users can explore ${this.DAILY_LIMITS.FREE_DATES} date ideas per day. Discover the full date catalog for ideas shaped around the two of you.`
+          message: `Free already includes weekly date ideas. Premium adds a larger date library for the two of you.`
         };
       }
       
@@ -173,6 +191,13 @@ class PremiumGatekeeper {
         };
       }
 
+      if (!this.hasFiniteLimit(this.WEEKLY_LIMITS.FREE_FULL_DATE_FLOWS)) {
+        return {
+          canAccess: true,
+          reason: 'within_free_limits'
+        };
+      }
+
       const weeklyUsage = await UsageEventsService.getWeeklyUsage(userId);
       const unlockedDateId = weeklyUsage.unlockedDateId || null;
       const usedFlows = weeklyUsage.dateFlows || 0;
@@ -187,7 +212,7 @@ class PremiumGatekeeper {
       return {
         canAccess: false,
         reason: 'weekly_limit_reached',
-        message: `Free users can fully plan ${this.WEEKLY_LIMITS.FREE_FULL_DATE_FLOWS} dates per week. Discover premium for more date nights made for the two of you.`
+        message: `Free already includes weekly planning. Premium adds a larger date library and the full Keepsake archive.`
       };
     } catch (error) {
       CrashReporting.captureException(error, { source: 'PremiumGatekeeper.canAccessDateFlow' });
@@ -241,14 +266,26 @@ class PremiumGatekeeper {
           unlockedDateId: weeklyUsage.unlockedDateId || null
         },
         limits: {
-          prompts: isPremium ? 'unlimited' : this.DAILY_LIMITS.FREE_PROMPTS,
-          dates: isPremium ? 'unlimited' : this.DAILY_LIMITS.FREE_DATES,
-          dateFlowsPerWeek: isPremium ? 'unlimited' : this.WEEKLY_LIMITS.FREE_FULL_DATE_FLOWS
+          prompts: isPremium || !this.hasFiniteLimit(this.DAILY_LIMITS.FREE_PROMPTS)
+            ? 'unlimited'
+            : this.DAILY_LIMITS.FREE_PROMPTS,
+          dates: isPremium || !this.hasFiniteLimit(this.DAILY_LIMITS.FREE_DATES)
+            ? 'unlimited'
+            : this.DAILY_LIMITS.FREE_DATES,
+          dateFlowsPerWeek: isPremium || !this.hasFiniteLimit(this.WEEKLY_LIMITS.FREE_FULL_DATE_FLOWS)
+            ? 'unlimited'
+            : this.WEEKLY_LIMITS.FREE_FULL_DATE_FLOWS
         },
         remaining: {
-          prompts: isPremium ? 'unlimited' : Math.max(0, this.DAILY_LIMITS.FREE_PROMPTS - (usage.prompts || 0)),
-          dates: isPremium ? 'unlimited' : Math.max(0, this.DAILY_LIMITS.FREE_DATES - (usage.dates || 0)),
-          dateFlowsPerWeek: isPremium ? 'unlimited' : Math.max(0, this.WEEKLY_LIMITS.FREE_FULL_DATE_FLOWS - (weeklyUsage.dateFlows || 0))
+          prompts: isPremium || !this.hasFiniteLimit(this.DAILY_LIMITS.FREE_PROMPTS)
+            ? 'unlimited'
+            : Math.max(0, this.DAILY_LIMITS.FREE_PROMPTS - (usage.prompts || 0)),
+          dates: isPremium || !this.hasFiniteLimit(this.DAILY_LIMITS.FREE_DATES)
+            ? 'unlimited'
+            : Math.max(0, this.DAILY_LIMITS.FREE_DATES - (usage.dates || 0)),
+          dateFlowsPerWeek: isPremium || !this.hasFiniteLimit(this.WEEKLY_LIMITS.FREE_FULL_DATE_FLOWS)
+            ? 'unlimited'
+            : Math.max(0, this.WEEKLY_LIMITS.FREE_FULL_DATE_FLOWS - (weeklyUsage.dateFlows || 0))
         },
         accessibleHeatLevels: getAccessibleHeatLevels(isPremium)
       };

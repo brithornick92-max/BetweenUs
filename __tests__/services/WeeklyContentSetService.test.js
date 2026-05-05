@@ -54,15 +54,6 @@ describe('WeeklyContentSetService', () => {
     makePrompt('p9', 1, 'location'),
   ];
 
-  const dates = [
-    makeDate('d1', 2, 1, 'mixed', 'Low effort mixed date', 'romantic'),
-    makeDate('d2', 3, 2, 'talking', 'Talking date', 'after-dark'),
-    makeDate('d3', 2, 2, 'doing', 'Doing date', 'creative'),
-    makeDate('d4', 1, 3, 'doing', 'Higher load soft date', 'adventure'),
-    makeDate('d5', 3, 3, 'mixed', 'Bold mixed date', 'health'),
-    makeDate('d6', 1, 1, 'talking', 'Soft talking date', 'cozy'),
-  ];
-
   const positions = [
     makePosition('i1', 1, 'deep-connection', 'low-mobility', 'Soft connected hold'),
     makePosition('i2', 2, 'playful-energy', 'low-mobility', 'Playful low mobility'),
@@ -116,13 +107,8 @@ describe('WeeklyContentSetService', () => {
     });
   });
 
-  it('builds free prompt welcome-week decks with 5 usable cards and no locked previews', () => {
-    const promptCatalog = [
-      ...prompts,
-      makePrompt('p10', 4, 'visual'),
-      makePrompt('p11', 5, 'kinky'),
-      makePrompt('p12', 5, 'roleplay'),
-    ];
+  it('builds free prompt welcome-week decks with 20 usable cards and no locked previews', () => {
+    const promptCatalog = makePromptCatalog(6);
     const result = buildWeeklySet(promptCatalog, {
       contentType: CONTENT_TYPES.PROMPTS,
       userId: 'user-1',
@@ -131,17 +117,28 @@ describe('WeeklyContentSetService', () => {
       date: TEST_DATE,
     });
 
-    expect(result.freeUnlockedLimit).toBe(5);
+    expect(result.freeUnlockedLimit).toBe(20);
     expect(result.freeLockedPreviewLimit).toBe(0);
-    expect(result.unlocked).toHaveLength(5);
+    expect(result.unlocked).toHaveLength(20);
     expect(result.lockedPreviews).toHaveLength(0);
-    expect(result.items).toHaveLength(5);
+    expect(result.items).toHaveLength(20);
     expect(result.items.every((item) => item.isLockedPreview === false)).toBe(true);
     expect(result.items.every((item) => item.requiresPremium === false)).toBe(true);
   });
 
-  it('builds free date welcome-week decks with 5 usable cards and no locked previews', () => {
-    const result = buildWeeklySet(dates, {
+  it('builds free date welcome-week decks with 20 usable cards and no locked previews', () => {
+    const dateCatalog = Array.from({ length: 24 }, (_, index) =>
+      makeDate(
+        `d${index + 1}`,
+        (index % 3) + 1,
+        (index % 3) + 1,
+        index % 2 === 0 ? 'mixed' : 'talking',
+        `Date ${index + 1}`,
+        ['romantic', 'after-dark', 'creative', 'adventure', 'health', 'cozy'][index % 6]
+      )
+    );
+
+    const result = buildWeeklySet(dateCatalog, {
       contentType: CONTENT_TYPES.DATES,
       userId: 'user-1',
       isPremium: false,
@@ -149,11 +146,11 @@ describe('WeeklyContentSetService', () => {
       date: TEST_DATE,
     });
 
-    expect(result.freeUnlockedLimit).toBe(5);
+    expect(result.freeUnlockedLimit).toBe(20);
     expect(result.freeLockedPreviewLimit).toBe(0);
-    expect(result.unlocked).toHaveLength(5);
+    expect(result.unlocked).toHaveLength(20);
     expect(result.lockedPreviews).toHaveLength(0);
-    expect(result.items).toHaveLength(5);
+    expect(result.items).toHaveLength(20);
     expect(new Set(result.unlocked.map((item) => item.category)).size).toBeGreaterThanOrEqual(3);
     expect(result.items.every((item) => item.isLockedPreview === false)).toBe(true);
     expect(result.items.every((item) => item.requiresPremium === false)).toBe(true);
@@ -169,15 +166,15 @@ describe('WeeklyContentSetService', () => {
     });
 
     expect(result.unlocked).toHaveLength(5);
-    expect(result.lockedPreviews).toHaveLength(1);
-    expect(result.items).toHaveLength(6);
+    expect(result.lockedPreviews).toHaveLength(0);
+    expect(result.items).toHaveLength(5);
     expect(result.unlocked[0].heat).toBe(1);
     expect(result.unlocked[0].accessibility).toBe('low-mobility');
   });
 
 
-  it('caps free prompt sets at 3 cards after welcome week', () => {
-    const result = buildWeeklySet(prompts, {
+  it('keeps free prompt sets at 20 cards after welcome week', () => {
+    const result = buildWeeklySet(makePromptCatalog(6), {
       contentType: CONTENT_TYPES.PROMPTS,
       userId: 'user-1',
       isPremium: false,
@@ -187,15 +184,26 @@ describe('WeeklyContentSetService', () => {
     });
 
     expect(result.weekNumber).toBeGreaterThan(0);
-    expect(result.freeUnlockedLimit).toBe(3);
+    expect(result.freeUnlockedLimit).toBe(20);
     expect(result.freeLockedPreviewLimit).toBe(0);
-    expect(result.unlocked).toHaveLength(3);
+    expect(result.unlocked).toHaveLength(20);
     expect(result.lockedPreviews).toHaveLength(0);
-    expect(result.items).toHaveLength(3);
+    expect(result.items).toHaveLength(20);
   });
 
-  it('caps free date sets at 3 cards after welcome week', () => {
-    const result = buildWeeklySet(dates, {
+  it('keeps free date sets at 20 cards after welcome week', () => {
+    const dateCatalog = Array.from({ length: 24 }, (_, index) =>
+      makeDate(
+        `d${index + 1}`,
+        (index % 3) + 1,
+        (index % 3) + 1,
+        index % 2 === 0 ? 'mixed' : 'talking',
+        `Date ${index + 1}`,
+        ['romantic', 'after-dark', 'creative', 'adventure', 'health', 'cozy'][index % 6]
+      )
+    );
+
+    const result = buildWeeklySet(dateCatalog, {
       contentType: CONTENT_TYPES.DATES,
       userId: 'user-1',
       isPremium: false,
@@ -205,11 +213,11 @@ describe('WeeklyContentSetService', () => {
     });
 
     expect(result.weekNumber).toBeGreaterThan(0);
-    expect(result.freeUnlockedLimit).toBe(3);
+    expect(result.freeUnlockedLimit).toBe(20);
     expect(result.freeLockedPreviewLimit).toBe(0);
-    expect(result.unlocked).toHaveLength(3);
+    expect(result.unlocked).toHaveLength(20);
     expect(result.lockedPreviews).toHaveLength(0);
-    expect(result.items).toHaveLength(3);
+    expect(result.items).toHaveLength(20);
   });
 
   it('does not keep stale numeric free-copy in prompt or date upgrade copy', () => {

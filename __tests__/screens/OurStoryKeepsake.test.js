@@ -7,6 +7,7 @@ jest.mock('expo-blur', () => ({
 const {
   buildDateGroupedKeepsakeList,
   buildKeepsakeEntriesFromSources,
+  filterKeepsakeEntriesByDateWindow,
 } = require('../../screens/OurStoryScreen');
 const { KEEPSAKE_CATEGORY_COLORS } = require('../../config/constants');
 
@@ -308,5 +309,28 @@ describe('OurStory Keepsake entry building', () => {
     ]);
     expect(rows[1].sourceId).toBe('date-1');
     expect(rows[3].sourceId).toBe('snap-1');
+  });
+
+  it('filters free keepsakes to the most recent 30 days', () => {
+    const filtered = filterKeepsakeEntriesByDateWindow(
+      [
+        {
+          id: 'recent-entry',
+          kind: 'memory',
+          sourceId: 'recent-entry',
+          sortAt: '2026-05-04T12:00:00.000Z',
+        },
+        {
+          id: 'old-entry',
+          kind: 'memory',
+          sourceId: 'old-entry',
+          sortAt: '2026-03-20T12:00:00.000Z',
+        },
+      ],
+      30,
+      new Date('2026-05-05T12:00:00.000Z')
+    );
+
+    expect(filtered.map((entry) => entry.id)).toEqual(['recent-entry']);
   });
 });

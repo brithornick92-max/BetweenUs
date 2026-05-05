@@ -199,9 +199,9 @@ const TermsScreen = ({ navigation, route }) => {
               </Text>
               <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
                 Free and Premium Features:{'\n'}
-                • Free users can answer 1 guided prompt per day and preview prompts across Heat levels 1–5. Viewing or revealing limited free prompts and date ideas may count toward free usage limits.{'\n'}
-                • Free users can link with a partner, preview limited date ideas and sex positions, fully plan 1 date flow per week, and export supported data{'\n'}
-                • Premium adds a growing weekly library of prompts, date ideas, sex positions, calendar features, recaps, signals, and other premium experiences shown in the app{'\n'}
+                • Free users can access the app's core couple features, including prompts, notes, date ideas, shared calendar, Keepsake, vibe signals, app lock, and recaps{'\n'}
+                • Free users receive 20 prompts, 20 date ideas, and 5 sex positions each week, and free Keepsake access is limited to the most recent 30 days of supported shared content{'\n'}
+                • Premium adds a larger prompt, date-idea, and sex-position library, plus the full Keepsake archive beyond the free 30-day window{'\n'}
                 • One premium subscription is intended to cover both linked partners after entitlement sync completes{'\n\n'}
                 Current pricing:{'\n'}
                 • Monthly: {FALLBACK_PRICES.monthly}{'\n'}
@@ -223,7 +223,7 @@ const TermsScreen = ({ navigation, route }) => {
                 • You can cancel monthly or yearly subscriptions anytime through your app store account settings{'\n'}
                 • Access to premium features generally continues until the end of your billing period unless the App Store indicates otherwise{'\n'}
                 • Refund requests and billing issues are handled by Apple according to App Store policy and applicable law{'\n'}
-                • Your data generally remains accessible after cancellation, subject to free-tier feature limits and your account status{'\n'}
+                • Your data generally remains accessible after cancellation, subject to the free-tier content and archive limits and your account status{'\n'}
                 • You can resubscribe at any time
               </Text>
             </View>
