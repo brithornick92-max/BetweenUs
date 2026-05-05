@@ -63,7 +63,7 @@ import {
   resolvePromptUsageUserId,
   trackFreePromptAnswerUsage,
 } from '../utils/freePromptAnswerQuota';
-import { isItemInFreeWeeklyDeck } from '../utils/freeWeeklyDeckAccess';
+import { isItemInStableFreeWeeklyDeck } from '../utils/freeWeeklyDeckAccess';
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 const PROMPTED_PARTNER_SHARE_KEY = '@betweenus:cache:promptedPartnerShare';
@@ -118,7 +118,11 @@ export default function HomeScreen({ navigation }) {
   const { state } = useAppContext();
   const { user, userProfile } = useAuth();
   const { data: dataLayer } = useData();
-  const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
+  const {
+    isPremiumEffective: isPremium,
+    isLoading: entitlementsLoading,
+    showPaywall,
+  } = useEntitlements();
   const { todayPrompt, loadTodayPrompt, loadUsageStatus } = useContent();
   const { colors, isDark } = useTheme();
 
@@ -625,7 +629,7 @@ export default function HomeScreen({ navigation }) {
         const weeklyEligiblePrompts = loadAllBundledPrompts().filter((item) =>
           PreferenceEngine.getPromptVisibilityState(item, profile).visible
         );
-        const isWeeklyPrompt = isItemInFreeWeeklyDeck(prompt.id, weeklyEligiblePrompts, {
+        const isWeeklyPrompt = await isItemInStableFreeWeeklyDeck(prompt.id, weeklyEligiblePrompts, {
           contentType: CONTENT_TYPES.PROMPTS,
           user,
           userProfile,
@@ -913,6 +917,13 @@ export default function HomeScreen({ navigation }) {
             <TouchableOpacity
               onPress={() => {
                 selection();
+                if (entitlementsLoading) {
+                  return;
+                }
+                if (!isPremium) {
+                  showPaywall?.(PremiumFeature.VIBE_SIGNAL);
+                  return;
+                }
                 navigation.navigate('VibeSignal');
               }}
               activeOpacity={0.7}

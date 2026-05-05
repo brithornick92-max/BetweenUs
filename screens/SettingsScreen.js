@@ -454,7 +454,7 @@ export default function SettingsScreen({ navigation }) {
                 </View>
                 <Text style={[styles.promoTitle, { color: t.text }]}>Connect With Your Partner</Text>
                 <Text style={[styles.promoBody, { color: t.subtext }]}>
-                  Pair with your partner for a shared space. Free already includes shared prompts, notes, calendar, and keepsakes. Premium adds more prompts, dates, sex positions, and the full Keepsake archive.
+                  Pair with your partner for a shared space. Free already includes shared prompts, notes, calendar, and keepsakes. Premium adds more prompts, dates, sex positions, the Vibe Signal screen, and the full Keepsake archive.
                 </Text>
                 
                 <TouchableOpacity 

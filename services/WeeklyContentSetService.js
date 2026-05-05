@@ -4,15 +4,15 @@
  * MODEL: Each user gets their own content schedule starting from signup date
  * 
  * FREE USERS (CUMULATIVE):
- * - Week 0: 5 prompts, 5 dates, 1 position
+ * - Week 0: 20 prompts, 20 dates, 5 positions
  * - Each week after: +5 prompts, +5 dates, +1 position
  * - The library grows over time instead of rotating away old cards
  * 
  * PREMIUM USERS (CUMULATIVE):
- * - Week 0 (signup): 100 prompts balanced across heat levels, 100 dates, 10 positions
- * - Week 1: 115 prompts, 115 dates, 13 positions
- * - Week 10: 250 prompts, 250 dates, 40 positions
- * - Eventually: 880 prompts, 675 dates, 200 positions (full library)
+ * - Week 0 (premium start): 100 prompts balanced across heat levels, 100 date ideas, 10 sex positions
+ * - Week 1: 115 prompts, 115 date ideas, 13 sex positions
+ * - Week 10: 250 prompts, 250 date ideas, 40 sex positions
+ * - Eventually: 1003 prompts, 675 date ideas, 200 sex positions (full library)
  * - Library GROWS each week - they get cumulative access
  * 
  * NOTE: buildWeeklySet returns the current visible library for the user's tier.
@@ -28,21 +28,21 @@ const WEEKLY_LIMITS = {
   [CONTENT_TYPES.PROMPTS]: {
     premium: 15,         // Premium gets 15 new prompts/week
     premiumStart: 100,   // Premium starts with ~20 prompts per heat level
-    freeWelcomePack: 5,  // Free starts with 5 prompts
+    freeWelcomePack: 20, // Free starts with 20 prompts
     freeOngoing: 5,      // Free gets 5 more prompts each week
     freeLockedPreview: 0,
   },
   [CONTENT_TYPES.DATES]: {
     premium: 15,         // Premium gets 15 new dates/week
     premiumStart: 100,   // Premium starts with a larger date library
-    freeWelcomePack: 5,  // Free starts with 5 dates
+    freeWelcomePack: 20, // Free starts with 20 dates
     freeOngoing: 5,      // Free gets 5 more dates each week
     freeLockedPreview: 0,
   },
   [CONTENT_TYPES.POSITIONS]: {
     premium: 3,          // Premium gets 3 new positions/week
-    premiumStart: 10,    // Premium starts with 10 positions
-    freeWelcomePack: 1,  // Free starts with 1 position
+    premiumStart: 10,    // Premium starts with 10 sex positions
+    freeWelcomePack: 5,  // Free starts with 5 positions
     freeOngoing: 1,      // Free gets 1 more position each week
     freeLockedPreview: 0,
   },
@@ -53,7 +53,7 @@ const PREMIUM_PROMPT_START_PER_HEAT = 20;
 const PREMIUM_PROMPT_WEEKLY_PER_HEAT = 3;
 
 const PREMIUM_LIBRARY_TOTALS = {
-  [CONTENT_TYPES.PROMPTS]: 880,
+  [CONTENT_TYPES.PROMPTS]: 1003,
   [CONTENT_TYPES.DATES]: 675,
   [CONTENT_TYPES.POSITIONS]: 200,
 };
@@ -61,17 +61,17 @@ const PREMIUM_LIBRARY_TOTALS = {
 const UPGRADE_COPY = {
   [CONTENT_TYPES.PROMPTS]: {
     headline: 'Keep more of the conversation open',
-    body: 'Free starts with 5 prompts and adds 5 more each week. Premium starts with 100 prompts across every heat level and adds 15 more each week.',
+    body: 'Free starts with 20 prompts and adds 5 more each week. Premium starts with 100 prompts across every heat level and adds 15 more each week.',
     cta: 'Unlock All Prompts',
   },
   [CONTENT_TYPES.DATES]: {
     headline: 'Ready for more date inspiration?',
-    body: 'Free starts with 5 date ideas and adds 5 more each week. Premium starts with 100 date ideas and adds 15 more each week.',
+    body: 'Free starts with 20 date ideas and adds 5 more each week. Premium starts with 100 date ideas and adds 15 more each week.',
     cta: 'Unlock All Dates',
   },
   [CONTENT_TYPES.POSITIONS]: {
     headline: 'Explore the full sex position library',
-    body: 'Free starts with 1 sex position and adds 1 more each week. Premium starts with 10 positions and adds 3 more each week.',
+    body: 'Free starts with 5 sex positions and adds 1 more each week. Premium starts with 10 sex positions and adds 3 more each week.',
     cta: 'Unlock All Sex Positions',
   },
 };
@@ -443,7 +443,7 @@ const buildWeeklySet = (
   const freeLockedPreviewLimit = limits.freeLockedPreview;
 
   const settings = normalizeUserSettings(userSettings);
-  const seed = `${type}:${userId || 'anonymous'}:${weekNumber}`;
+  const seed = `${type}:${userId || 'anonymous'}:library`;
 
   const eligible = (Array.isArray(items) ? items : []).filter((item) =>
     isAllowedByHeat(item, settings)
@@ -525,6 +525,7 @@ const buildWeeklySet = (
     weekNumber,
     isPremium,
     premiumLibraryTotal: PREMIUM_LIBRARY_TOTALS[type] ?? eligible.length,
+    premiumUnlockedLimit,
     freeUnlockedLimit,
     freeLockedPreviewLimit,
     totalWeeklyPicks: weeklySelection.length,

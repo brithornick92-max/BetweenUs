@@ -4,11 +4,13 @@
  * Centralizes content gating for prompts, date ideas, and sex positions.
  * Access is evaluated in this order:
  * 1. User content boundaries and paused/hidden content.
- * 2. Weekly content release schedule.
- * 3. Preview-catalog and usage limits for free users.
+ * 2. Tier heat access.
+ * 3. Usage counters for non-content features.
+ *
+ * Personal weekly content allocations are handled by WeeklyContentSetService
+ * through the stable weekly deck helpers at the screen/detail boundaries.
  */
 
-import WeeklyContentScheduler from './WeeklyContentScheduler';
 import UsageEventsService from './UsageEventsService';
 import CrashReporting from './CrashReporting';
 import {
@@ -84,19 +86,19 @@ class ContentAccessService {
 
     this.RELEASE_SCHEDULE = {
       prompts: {
-        week0: { free: 5, premium: 100 },
+        week0: { free: 20, premium: 100 },
         perWeek: { free: 5, premium: 15 },
-        description: 'Free starts with 5 prompts and adds 5 more each week. Premium starts with 100 prompts and grows faster.',
+        description: 'Free starts with 20 prompts and adds 5 more each week. Premium starts with 100 prompts and grows faster.',
       },
       dates: {
-        week0: { free: 5, premium: 100 },
+        week0: { free: 20, premium: 100 },
         perWeek: { free: 5, premium: 15 },
-        description: 'Free starts with 5 date ideas and adds 5 more each week. Premium starts with 100 dates and grows faster.',
+        description: 'Free starts with 20 date ideas and adds 5 more each week. Premium starts with 100 date ideas and grows faster.',
       },
       positions: {
-        week0: { free: 1, premium: 10 },
+        week0: { free: 5, premium: 10 },
         perWeek: { free: 1, premium: 3 },
-        description: 'Free starts with 1 sex position and adds 1 each week. Premium starts with 10 positions and grows faster.',
+        description: 'Free starts with 5 sex positions and adds 1 each week. Premium starts with 10 sex positions and grows faster.',
       },
     };
   }
@@ -247,85 +249,11 @@ class ContentAccessService {
   }
 
   filterByWeeklySchedule(items) {
-    return WeeklyContentScheduler.filterAvailable(this.normalizeItems(items));
+    return this.normalizeItems(items);
   }
 
-  rotateItems(items, offset = 0) {
-    if (items.length <= 1) return items;
-    const normalizedOffset = offset % items.length;
-    return [...items.slice(normalizedOffset), ...items.slice(0, normalizedOffset)];
-  }
-
-  selectBalancedWeeklyPreview(items, limit, userSettings = {}) {
-    const normalized = this.normalizeItems(items);
-    if (this.isUnlimited(limit) || normalized.length <= limit) return normalized;
-
-    const currentWeek = WeeklyContentScheduler.getCurrentWeek();
-    const heatLevels = [1, 2, 3, 4, 5].filter((level) => level <= this.getUserMaxHeatLevel(userSettings));
-    const selected = [];
-    const selectedIds = new Set();
-    const groups = new Map();
-
-    heatLevels.forEach((heatLevel) => {
-      const group = normalized
-        .filter((item) => this.getItemHeat(item) === heatLevel)
-        .sort((a, b) => {
-          const releaseDelta = (b.releaseWeek ?? 0) - (a.releaseWeek ?? 0);
-          if (releaseDelta !== 0) return releaseDelta;
-          return String(a.id || '').localeCompare(String(b.id || ''));
-        });
-
-      const newThisWeek = group.filter((item) => item.releaseWeek === currentWeek);
-      const older = group.filter((item) => item.releaseWeek !== currentWeek);
-      groups.set(heatLevel, [...newThisWeek, ...this.rotateItems(older, currentWeek)]);
-    });
-
-    while (selected.length < limit) {
-      let addedInPass = false;
-
-      for (const heatLevel of heatLevels) {
-        const group = groups.get(heatLevel) || [];
-        const next = group.find((item) => {
-          const id = String(item?.id ?? `${heatLevel}:${selected.length}`);
-          return !selectedIds.has(id);
-        });
-
-        if (!next) continue;
-
-        const nextId = String(next?.id ?? `${heatLevel}:${selected.length}`);
-        selected.push(next);
-        selectedIds.add(nextId);
-        addedInPass = true;
-
-        if (selected.length >= limit) break;
-      }
-
-      if (!addedInPass) break;
-    }
-
-    if (selected.length < limit) {
-      for (const item of normalized) {
-        const itemId = String(item?.id ?? `fallback:${selected.length}`);
-        if (selectedIds.has(itemId)) continue;
-        selected.push(item);
-        selectedIds.add(itemId);
-        if (selected.length >= limit) break;
-      }
-    }
-
-    return selected;
-  }
-
-  applyWeeklyPreviewLimit(items, contentType, { isPremium = false, userSettings = {} } = {}) {
-    const normalized = this.normalizeItems(items);
-    const limits = this.getEffectiveLimits(isPremium);
-    const limit = limits[contentType]?.weeklyVisible ?? UNLIMITED;
-
-    if (this.isPremiumUser(isPremium) || this.isUnlimited(limit)) {
-      return normalized;
-    }
-
-    return this.selectBalancedWeeklyPreview(normalized, limit, userSettings);
+  applyWeeklyPreviewLimit(items) {
+    return this.normalizeItems(items);
   }
 
   getEligibleReleasedItems(items, contentType, { isPremium = false, userSettings = {} } = {}) {
@@ -335,25 +263,8 @@ class ContentAccessService {
     return eligible;
   }
 
-  getWeeklyPreviewAccessResult(item, allItems, contentType, { isPremium = false, userSettings = {} } = {}) {
-    if (this.isPremiumUser(isPremium)) return null;
-
-    const eligible = this.getEligibleReleasedItems(allItems, contentType, { isPremium, userSettings });
-    const preview = this.applyWeeklyPreviewLimit(eligible, contentType, { isPremium, userSettings });
-    const previewIds = new Set(preview.map((previewItem) => String(previewItem?.id)));
-
-    if (item?.id == null || previewIds.has(String(item.id))) return null;
-
-    const limits = this.getEffectiveLimits(isPremium);
-    const weeklyVisibleLimit = limits[contentType]?.weeklyVisible ?? UNLIMITED;
-
-    return {
-      canAccess: false,
-      reason: 'weekly_preview_locked',
-      message: 'This one is outside this week\'s free set. Premium opens the larger released collection.',
-      weeklyVisibleLimit,
-      previewAvailable: preview.length,
-    };
+  getWeeklyPreviewAccessResult() {
+    return null;
   }
 
   async getDailyUsage(userId) {
@@ -453,14 +364,6 @@ class ContentAccessService {
       };
     }
 
-    if (!WeeklyContentScheduler.isAvailable(item)) {
-      return {
-        canAccess: false,
-        reason: 'not_released_yet',
-        message: 'This content unlocks in a future week. New content releases every Monday.',
-      };
-    }
-
     const boundaryState = this.getBoundaryState(userSettings, contentType);
     if (item?.id != null && boundaryState.pausedIds.has(String(item.id))) {
       return {
@@ -521,7 +424,7 @@ class ContentAccessService {
           totalEligible: eligible.length,
           visibleCount: available.length,
         }),
-        newThisWeek: WeeklyContentScheduler.getNewThisWeek(available),
+        newThisWeek: [],
       };
     } catch (error) {
       CrashReporting.captureException(error, { source: 'ContentAccessService.getAccessiblePrompts' });
@@ -608,7 +511,7 @@ class ContentAccessService {
           totalEligible: eligible.length,
           visibleCount: available.length,
         }),
-        newThisWeek: WeeklyContentScheduler.getNewThisWeek(available),
+        newThisWeek: [],
       };
     } catch (error) {
       CrashReporting.captureException(error, { source: 'ContentAccessService.getAccessibleDates' });
@@ -707,7 +610,7 @@ class ContentAccessService {
           visibleCount: available.length,
           lockedCount: Math.max(0, eligible.length - available.length),
         },
-        newThisWeek: WeeklyContentScheduler.getNewThisWeek(available),
+        newThisWeek: [],
       };
     } catch (error) {
       CrashReporting.captureException(error, { source: 'ContentAccessService.getAccessiblePositions' });
@@ -769,7 +672,7 @@ class ContentAccessService {
       return {
         canAccess: false,
         reason: 'weekly_limit_reached',
-        message: `Free users can fully plan ${limits.dateFlowsPerWeek} dates per week. Premium unlocks unlimited date planning.`,
+        message: 'Date planning is available on the free tier. Please try again.',
         weeklyUsed: usedFlows,
         weeklyLimit: limits.dateFlowsPerWeek,
       };
@@ -908,7 +811,7 @@ class ContentAccessService {
   }
 
   getCurrentReleaseWeek() {
-    return WeeklyContentScheduler.getCurrentWeek();
+    return 0;
   }
 }
 

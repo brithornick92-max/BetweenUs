@@ -25,7 +25,7 @@ export function resolveWeeklyContentAnchorDate({
   userProfile = null,
 } = {}) {
   if (isPremium) {
-    return normalizeAnchorDate(premiumStartedAt) || getSignupAnchorDate({ user, userProfile });
+    return normalizeAnchorDate(premiumStartedAt);
   }
 
   return getSignupAnchorDate({ user, userProfile });

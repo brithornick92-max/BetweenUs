@@ -24,7 +24,7 @@ Yes. Between Us is designed to be inclusive of adults across orientations, ident
 
 ### How much does it cost?
 
-- **Free version:** 1 guided prompt answer per day, weekly previews across Heat levels 1-5, limited date and sex position previews, 1 full date flow per week, partner linking, and supported data export. Viewing or revealing limited free prompts and date ideas may count toward free usage limits.
+- **Free version:** 20 prompts, 20 dates, and 5 sex positions to start, then 5 more prompts, 5 more dates, and 1 more sex position each personal week. Calendar, journal, partner linking, heartbeat/sync, and supported data export are included. Keepsake history is available one month at a time.
 - **Premium Monthly:** fallback display price $7.99/month
 - **Premium Yearly:** fallback display price $49.99/year
 

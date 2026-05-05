@@ -34,7 +34,7 @@ export default function HeatLevelScreen({ navigation }) {
     {
       level: 1,
       name: 'Emotional Connection',
-      description: 'Emotional intimacy, non-sexual',
+      description: 'Emotional closeness, non-sexual',
       icon: 'spa-outline',
       color: HEAT_LEVEL_ACCENTS[1],
       gradient: HEAT_LEVEL_GRADIENTS[1],
@@ -52,7 +52,7 @@ export default function HeatLevelScreen({ navigation }) {
     {
       level: 3,
       name: 'Sensual',
-      description: 'Sensual, relationship-focused intimacy',
+      description: 'Sensual, relationship-focused sex',
       icon: 'heart-outline',
       color: HEAT_LEVEL_ACCENTS[3],
       gradient: HEAT_LEVEL_GRADIENTS[3],

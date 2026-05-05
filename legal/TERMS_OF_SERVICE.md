@@ -93,10 +93,10 @@ You agree not to use the Service to create, upload, store, or share content that
 
 ### 5.1 Free and Premium Features
 
-- Free users can answer 1 guided prompt per day and preview prompts across Heat levels 1-5
-- Viewing or revealing limited free prompts and date ideas may count toward free usage limits
-- Free users can browse a limited weekly selection of date ideas and sex positions, fully plan 1 date flow per week, link with a partner, and export supported data
-- Premium unlocks a growing library of prompts, date ideas, and sex positions over time, with new content released to you weekly. It also adds calendar features, signals, recaps, inside-joke features, and other premium experiences shown in the app.
+- Free users start with 20 prompts, 20 dates, and 5 sex positions, then receive 5 more prompts, 5 more dates, and 1 more sex position each personal week.
+- Free users can use calendar, journal, partner linking, heartbeat/sync, date planning, and supported data export.
+- Free Keepsake history is available one month at a time.
+- Premium starts with 100 prompts, 100 dates, and 10 sex positions, then receives 15 more prompts, 15 more dates, and 3 more sex positions each personal premium week. Premium also includes full Keepsake history, Vibe Signal, recaps, inside-joke features, and other premium experiences shown in the app.
 - One premium subscription is intended to cover both linked partners after entitlement sync completes
 - Current fallback display pricing in the app is:
   - Monthly: $7.99/month

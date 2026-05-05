@@ -1,7 +1,6 @@
 import CloudEngine from './CloudEngine';
 import { SupabaseAuthService } from '../supabase/SupabaseAuthService';
 import CoupleService from '../supabase/CoupleService';
-import WeeklyContentScheduler from '../WeeklyContentScheduler';
 import { cloudSyncStorage, makeId, storage, STORAGE_KEYS } from '../../utils/storage';
 
 function isCloudUnavailableError(error) {
@@ -573,7 +572,6 @@ class StorageRouter {
   getPrompts(filters = {}) {
     const promptsData = require('../../content/prompts.json');
     let prompts = Array.isArray(promptsData?.items) ? promptsData.items : [];
-    prompts = WeeklyContentScheduler.filterAvailable(prompts);
     if (filters.category) prompts = prompts.filter((p) => p.category === filters.category);
     if (Array.isArray(filters.categories) && filters.categories.length > 0) {
       prompts = prompts.filter((p) => filters.categories.includes(p.category));
@@ -592,7 +590,6 @@ class StorageRouter {
   getDates(filters = {}) {
     const datesData = require('../../content/dates.json');
     let dates = Array.isArray(datesData?.items) ? datesData.items : [];
-    dates = WeeklyContentScheduler.filterAvailable(dates);
     if (filters.category) dates = dates.filter((d) => d.category === filters.category);
     if (filters.heat) dates = dates.filter((d) => d.heat === filters.heat);
     if (typeof filters.heatLevel === 'number') dates = dates.filter((d) => d.heat === filters.heatLevel);

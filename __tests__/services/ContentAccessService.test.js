@@ -11,16 +11,6 @@ jest.mock('../../services/UsageEventsService', () => ({
   },
 }));
 
-jest.mock('../../services/WeeklyContentScheduler', () => ({
-  __esModule: true,
-  default: {
-    getCurrentWeek: jest.fn(() => 1),
-    filterAvailable: jest.fn((items) => (Array.isArray(items) ? items : [])),
-    getNewThisWeek: jest.fn((items) => (items || []).filter((item) => item.releaseWeek === 1)),
-    isAvailable: jest.fn(() => true),
-  },
-}));
-
 jest.mock('../../services/CrashReporting', () => ({
   __esModule: true,
   default: {
@@ -116,7 +106,7 @@ describe('ContentAccessService', () => {
     expect(result.reason).toBe('within_free_limits');
   });
 
-  it('limits the free prompt deck to 5 visible cards', async () => {
+  it('returns all prompt cards that pass boundaries and tier checks', async () => {
     const prompts = [1, 2, 3, 4, 5].flatMap((heat) =>
       [0, 1, 2, 3, 4].map((index) => ({
         id: `h${heat}_${index}`,
@@ -131,12 +121,12 @@ describe('ContentAccessService', () => {
       userSettings: { maxHeatLevel: 5 },
     });
 
-    expect(result.prompts).toHaveLength(5);
-    expect(result.access.isPreviewLimited).toBe(true);
-    expect(result.access.lockedCount).toBeGreaterThan(0);
+    expect(result.prompts).toHaveLength(25);
+    expect(result.access.isPreviewLimited).toBe(false);
+    expect(result.access.lockedCount).toBe(0);
   });
 
-  it('blocks free access to released prompts outside the weekly preview set', async () => {
+  it('does not apply a legacy visible-card lock in direct prompt access checks', async () => {
     const prompts = [1, 2, 3, 4, 5].flatMap((heat) =>
       [0, 1, 2, 3, 4].map((index) => ({
         id: `h${heat}_${index}`,
@@ -145,26 +135,18 @@ describe('ContentAccessService', () => {
       }))
     );
 
-    const preview = await contentAccessService.getAccessiblePrompts(prompts, {
-      userId: 'user-1',
-      isPremium: false,
-      userSettings: { maxHeatLevel: 5 },
-    });
-    const visibleIds = new Set(preview.prompts.map((prompt) => prompt.id));
-    const lockedPrompt = prompts.find((prompt) => !visibleIds.has(prompt.id));
-
-    const result = await contentAccessService.canAccessPrompt(lockedPrompt.id, {
+    const result = await contentAccessService.canAccessPrompt(prompts[0].id, {
       userId: 'user-1',
       isPremium: false,
       userSettings: { maxHeatLevel: 5 },
       allPrompts: prompts,
     });
 
-    expect(result.canAccess).toBe(false);
-    expect(result.reason).toBe('weekly_preview_locked');
+    expect(result.canAccess).toBe(true);
+    expect(result.reason).toBe('within_free_limits');
   });
 
-  it('limits the free date deck to 5 visible cards and respects heat boundaries', async () => {
+  it('returns all date cards that pass boundaries and tier checks', async () => {
     const dates = [1, 2, 3].flatMap((heat) =>
       Array.from({ length: 12 }, (_, index) => ({
         id: `date${heat}_${index}`,
@@ -179,10 +161,10 @@ describe('ContentAccessService', () => {
       userSettings: { maxHeatLevel: 2 },
     });
 
-    expect(result.dates).toHaveLength(5);
+    expect(result.dates).toHaveLength(24);
     expect(result.dates.every((date) => date.heat <= 2)).toBe(true);
     expect(result.access.accessibleHeatLevels).toEqual([1, 2]);
-    expect(result.access.isPreviewLimited).toBe(true);
+    expect(result.access.isPreviewLimited).toBe(false);
   });
 
   it('does not block free prompt access based on daily usage anymore', async () => {
@@ -220,7 +202,7 @@ describe('ContentAccessService', () => {
     expect(UsageEventsService.incrementDailyUsage).not.toHaveBeenCalled();
   });
 
-  it('allows free users a 1-card visible sex-position deck', async () => {
+  it('returns all sex positions that pass boundaries and tier checks', async () => {
     const positions = [1, 2, 3].flatMap((heat) =>
       [0, 1].map((index) => ({
         id: `ip${heat}_${index}`,
@@ -234,8 +216,8 @@ describe('ContentAccessService', () => {
       userSettings: { maxHeatLevel: 3 },
     });
 
-    expect(result.positions).toHaveLength(1);
+    expect(result.positions).toHaveLength(6);
     expect(result.access.requiresPremium).toBe(false);
-    expect(result.access.isPreviewLimited).toBe(true);
+    expect(result.access.isPreviewLimited).toBe(false);
   });
 });

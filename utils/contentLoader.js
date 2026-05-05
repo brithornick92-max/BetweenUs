@@ -3,14 +3,12 @@
 // OK: Guarantees prompt-returning functions always return an object with .text (never undefined)
 // Apple Editorial System Colors Integrated
 
-import WeeklyContentScheduler from '../services/WeeklyContentScheduler';
-
 if (__DEV__) console.log("[content] ContentLoader: Module loading started");
 
 // Helper: return the eligible library. releaseWeek is metadata for freshness;
 // weekly/free limits are applied by the feature-specific access services.
 const weeklyFilter = (items) =>
-  WeeklyContentScheduler.filterAvailable(items);
+  (Array.isArray(items) ? items : []);
 
 // Initialize with empty safe defaults
 let promptsData = { items: [], meta: {} };
@@ -493,9 +491,9 @@ export function getDateCategoryMeta() {
 export function getHeatLevels() {
   return (
     promptsData?.meta?.heatLevels || {
-      1: { name: "Emotional Connection", description: "Emotional intimacy, non-sexual" },
+      1: { name: "Emotional Connection", description: "Emotional closeness, non-sexual" },
       2: { name: "Flirty & Romantic", description: "Flirty attraction, romantic tension" },
-      3: { name: "Sensual", description: "Sensual, relationship-focused intimacy" },
+      3: { name: "Sensual", description: "Sensual, relationship-focused sex" },
       4: { name: "Steamy", description: "Suggestive, adventurous, and heated" },
       5: { name: "Explicit", description: "Intensely passionate, graphic, explicit" },
     }

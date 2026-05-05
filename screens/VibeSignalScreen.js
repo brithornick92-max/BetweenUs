@@ -22,8 +22,10 @@ import { impact, ImpactFeedbackStyle } from '../utils/haptics';
 import LiveVibeSync from '../components/LiveVibeSync';
 import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
+import { useEntitlements } from '../context/EntitlementsContext';
 import { useTheme } from '../context/ThemeContext';
 import { useTogetherPresence } from '../hooks/useTogetherPresence';
+import { PremiumFeature } from '../utils/featureFlags';
 import { SPACING, withAlpha } from '../utils/theme';
 import { vibeStorage } from '../utils/storage';
 import { getVibeSignalById, VIBE_SIGNALS } from '../utils/vibeSignals';
@@ -122,6 +124,11 @@ export default function VibeSignalScreen({ navigation }) {
   const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
   const { state } = useAppContext();
   const { userProfile } = useAuth();
+  const {
+    isPremiumEffective,
+    isLoading: entitlementsLoading,
+    showPaywall,
+  } = useEntitlements();
   const partnerLabel = getPartnerDisplayName(userProfile, state?.userProfile, 'Partner');
   const { isTogetherNow } = useTogetherPresence();
 
@@ -197,6 +204,20 @@ export default function VibeSignalScreen({ navigation }) {
   useEffect(() => {
     if (partnerVibe) loadFluxData();
   }, [partnerVibe, loadFluxData]);
+
+  useEffect(() => {
+    if (entitlementsLoading || isPremiumEffective) return;
+    showPaywall?.(PremiumFeature.VIBE_SIGNAL);
+    if (navigation.canGoBack?.()) {
+      navigation.goBack();
+    } else {
+      navigation.navigate?.('MainTabs');
+    }
+  }, [entitlementsLoading, isPremiumEffective, navigation, showPaywall]);
+
+  if (entitlementsLoading || !isPremiumEffective) {
+    return null;
+  }
 
   // ── Main Screen ───────────────────────────────────────────────────
   return (

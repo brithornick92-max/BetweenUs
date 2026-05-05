@@ -34,25 +34,33 @@ const FALLBACK_COLORS = {
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 const SERIF_FONT = Platform.select({ ios: "Georgia", android: "serif" });
 
+const PREMIUM_EXACT_BENEFITS = [
+  ["copy-outline", "100 prompts at premium start, then 15 new prompts each week"],
+  ["calendar-outline", "100 date ideas at premium start, then 15 new date ideas each week"],
+  ["sparkles-outline", "10 sex positions at premium start, then 3 new sex positions each week"],
+  ["radio-outline", "Vibe Signal screen for real-time mood and heartbeat sync"],
+  ["archive-outline", "Full Keepsake archive beyond the free 30-day view"],
+];
+
 const FEATURE_COPY = {
   [PremiumFeature.UNLIMITED_PROMPTS]: {
     eyebrow: "PROMPTS",
     title: "Keep the conversation going.",
-    body: "Free starts with 5 prompts and adds 5 more each week from signup. Premium starts with 100 prompts and adds 15 more each week from the day premium starts.",
+    body: "Premium starts with 100 prompts on the day premium begins, then adds 15 new prompts each week from that premium start day.",
     benefits: [
-      ["copy-outline", "A larger prompt library right away"],
-      ["sparkles-outline", "More new prompts added every week"],
-      ["heart-outline", "Shared access for both linked partners"],
+      ["copy-outline", "100 prompts at premium start"],
+      ["sparkles-outline", "15 new prompts each premium week"],
+      ["heart-outline", "Shared premium access for both linked partners"],
     ],
   },
   [PremiumFeature.UNLIMITED_DATE_IDEAS]: {
     eyebrow: "DATES",
     title: "More plans for the two of you.",
-    body: "Free starts with 5 date ideas and adds 5 more each week from signup. Premium starts with 100 date ideas and adds 15 more each week from the day premium starts.",
+    body: "Premium starts with 100 date ideas on the day premium begins, then adds 15 new date ideas each week from that premium start day.",
     benefits: [
-      ["calendar-outline", "A larger date library right away"],
-      ["map-outline", "More new date ideas every week"],
-      ["bookmark-outline", "Shared access for both linked partners"],
+      ["calendar-outline", "100 date ideas at premium start"],
+      ["map-outline", "15 new date ideas each premium week"],
+      ["bookmark-outline", "Shared premium access for both linked partners"],
     ],
   },
   [PremiumFeature.UNLIMITED_JOURNAL_HISTORY]: {
@@ -65,14 +73,24 @@ const FEATURE_COPY = {
       ["book-outline", "Older notes and reflections stay visible"],
     ],
   },
+  [PremiumFeature.VIBE_SIGNAL]: {
+    eyebrow: "VIBE SIGNAL",
+    title: "Send a signal in the moment.",
+    body: "Premium includes the Vibe Signal screen, so you can send real-time moods and heartbeat-style signals to your linked partner.",
+    benefits: [
+      ["radio-outline", "Vibe Signal screen access"],
+      ["heart-outline", "Real-time mood and heartbeat sync"],
+      ["people-outline", "Built for linked partners"],
+    ],
+  },
   default: {
     eyebrow: "PREMIUM",
     title: "Keep more of what you start.",
-    body: "Free gives you the core couple experience with a smaller growing content library from signup. Premium starts with 100 prompts, 100 dates, and 10 sex positions, adds more every week from the day premium starts, and unlocks the full Keepsake archive.",
+    body: "Premium starts with 100 prompts, 100 date ideas, and 10 sex positions on the day premium begins. After that, premium adds 15 prompts, 15 date ideas, and 3 sex positions every week from that premium start day.",
     benefits: [
-      ["copy-outline", "More prompts every week"],
-      ["calendar-outline", "More date ideas every week"],
+      ["sparkles-outline", "A larger growing library for both of you"],
       ["archive-outline", "Your full keepsake archive"],
+      ["heart-outline", "Shared premium access for both linked partners"],
     ],
   },
 };
@@ -292,8 +310,18 @@ const RevenueCatPaywall = ({ onDismiss, onPurchaseSuccess, navigation, route }) 
 
               <Text style={[styles.title, { color: t.text }]}>Choose your rhythm.</Text>
               <Text style={[styles.body, { color: t.subtext }]}>
-                Choose monthly or yearly access for your couple. Premium adds more prompts, more date ideas, more sex positions, and the full Keepsake archive for both linked partners.
+                Choose monthly or yearly access for your couple. Premium starts with 100 prompts, 100 date ideas, and 10 sex positions, then adds 15 prompts, 15 date ideas, and 3 sex positions each week from the day premium starts.
               </Text>
+
+              <View style={[styles.exactBenefitsBlock, { borderColor: t.border }]}>
+                <Text style={[styles.exactBenefitsTitle, { color: t.primary }]}>Premium includes</Text>
+                {PREMIUM_EXACT_BENEFITS.map(([icon, label]) => (
+                  <View key={label} style={styles.exactBenefitRow}>
+                    <Icon name={icon} size={17} color={t.primary} />
+                    <Text style={[styles.exactBenefitText, { color: t.text }]}>{label}</Text>
+                  </View>
+                ))}
+              </View>
 
               <View style={styles.planList}>
                 {packages.map((pkg) => {
@@ -387,6 +415,16 @@ const RevenueCatPaywall = ({ onDismiss, onPurchaseSuccess, navigation, route }) 
                     </View>
                     <Text style={[styles.benefitText, { color: t.text }]}>{label}</Text>
                   </BlurView>
+                ))}
+              </View>
+
+              <View style={[styles.exactBenefitsBlock, { borderColor: t.border }]}>
+                <Text style={[styles.exactBenefitsTitle, { color: t.primary }]}>Premium includes</Text>
+                {PREMIUM_EXACT_BENEFITS.map(([icon, label]) => (
+                  <View key={label} style={styles.exactBenefitRow}>
+                    <Icon name={icon} size={17} color={t.primary} />
+                    <Text style={[styles.exactBenefitText, { color: t.text }]}>{label}</Text>
+                  </View>
                 ))}
               </View>
 
@@ -616,6 +654,32 @@ const styles = StyleSheet.create({
     flex: 1,
     fontFamily: SYSTEM_FONT,
     fontSize: 15,
+    lineHeight: 20,
+    fontWeight: "800",
+  },
+  exactBenefitsBlock: {
+    borderTopWidth: 1,
+    marginTop: 28,
+    paddingTop: 16,
+    gap: 12,
+  },
+  exactBenefitsTitle: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: "900",
+    textTransform: "uppercase",
+    letterSpacing: 0.8,
+  },
+  exactBenefitRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 10,
+  },
+  exactBenefitText: {
+    flex: 1,
+    fontFamily: SYSTEM_FONT,
+    fontSize: 14,
     lineHeight: 20,
     fontWeight: "800",
   },

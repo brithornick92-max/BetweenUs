@@ -1,4 +1,4 @@
-import { buildWeeklySet } from '../services/WeeklyContentSetService';
+import { buildStableWeeklySet } from './stableWeeklyContent';
 import {
   resolvePromptUsageUserId,
   resolveUserCreatedAt,
@@ -6,7 +6,7 @@ import {
 
 const getItemId = (item) => item?.id ?? item?.promptId ?? item?.dateId ?? null;
 
-export function getFreeWeeklyDeck(items, {
+export async function getStableFreeWeeklyDeck(items, {
   contentType,
   userId,
   user,
@@ -14,7 +14,7 @@ export function getFreeWeeklyDeck(items, {
   userSettings = {},
   date = new Date(),
 } = {}) {
-  const weeklySet = buildWeeklySet(Array.isArray(items) ? items : [], {
+  const weeklySet = await buildStableWeeklySet(Array.isArray(items) ? items : [], {
     contentType,
     userId: userId || resolvePromptUsageUserId(user, userProfile),
     isPremium: false,
@@ -26,24 +26,16 @@ export function getFreeWeeklyDeck(items, {
   return weeklySet.items || [];
 }
 
-export function getFreeWeeklyDeckItemIds(items, options = {}) {
+export async function getStableFreeWeeklyDeckItemIds(items, options = {}) {
   return new Set(
-    getFreeWeeklyDeck(items, options)
+    (await getStableFreeWeeklyDeck(items, options))
       .map((item) => getItemId(item))
       .filter(Boolean)
       .map((itemId) => String(itemId))
   );
 }
 
-export function filterItemsToFreeWeeklyDeck(items, options = {}) {
-  const weeklyDeckItemIds = getFreeWeeklyDeckItemIds(items, options);
-  return (Array.isArray(items) ? items : []).filter((item) => {
-    const itemId = getItemId(item);
-    return itemId != null && weeklyDeckItemIds.has(String(itemId));
-  });
-}
-
-export function isItemInFreeWeeklyDeck(itemId, items, options = {}) {
+export async function isItemInStableFreeWeeklyDeck(itemId, items, options = {}) {
   if (!itemId) return false;
-  return getFreeWeeklyDeckItemIds(items, options).has(String(itemId));
+  return (await getStableFreeWeeklyDeckItemIds(items, options)).has(String(itemId));
 }

@@ -79,7 +79,7 @@ const GOAL_PREFERENCES = {
     tones: ['playful', 'light', 'spontaneous'],
     preferLoad: 2,
   },
-  intimacy: {             // Keep intimacy alive
+  intimacy: {             // Keep sex alive
     categories: ['physical', 'sensory', 'romance', 'kinky'],
     tones: ['sensual', 'bold', 'deep'],
     preferLoad: 2,

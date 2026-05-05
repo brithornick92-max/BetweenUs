@@ -8,14 +8,14 @@ Between Us uses a **personalized content release calendar** where each user gets
 ### Free Users
 
 #### **Week 0 (Signup Day) - Welcome Pack**
-- **10 prompts** (2 from each category - gives breadth of experience)
-- **10 dates** (variety across heat/load/style dimensions)
+- **20 prompts** (starter conversation library)
+- **20 dates** (starter date idea library)
 - **5 positions** (introductory set)
 
 **Messaging:** "Welcome! Here's your starter pack to explore"
 
 #### **Week 1+ (Every 7 Days After Signup) - Ongoing Weekly Drops**
-- **3 new prompts** every week
+- **5 new prompts** every week
 - **5 new dates** every week  
 - **1 new position** every week
 
@@ -23,15 +23,15 @@ Between Us uses a **personalized content release calendar** where each user gets
 
 ### Premium Users
 
-#### **Week 0 (Signup Day) - Premium Launch Pack**
-- **300 prompts** (~60 in each category)
-- **200 dates** (full variety)
-- **10 positions**
+#### **Week 0 (Premium Start Day) - Premium Launch Pack**
+- **100 prompts** (20 in each heat level)
+- **100 date ideas** (full variety)
+- **10 sex positions**
 
-#### **Week 1+ (Every 7 Days After Signup) - Premium Weekly Drops**
-- **10 new prompts** every week
-- **8 new dates** every week
-- **2 new positions** every week
+#### **Week 1+ (Every 7 Days After Premium Start) - Premium Weekly Drops**
+- **15 new prompts** every week
+- **15 new dates** every week
+- **3 new positions** every week
 
 #### **Eventually (After ~49 weeks)**
 - **792 total prompts** (entire library)
@@ -102,8 +102,8 @@ Each call to `buildWeeklySet()` needs:
 ```
 📦 Welcome!
 Here's your starter pack:
-• 10 conversation prompts
-• 10 date ideas
+• 20 conversation prompts
+• 20 date ideas
 • 5 sex positions
 
 Explore and see what resonates with you two.
@@ -112,7 +112,7 @@ Explore and see what resonates with you two.
 ### Week 1 (7 days later)
 ```
 ✨ Fresh content unlocked!
-• 3 new prompts
+• 5 new prompts
 • 5 new dates
 • 1 new position
 
@@ -122,7 +122,7 @@ Your next refresh: 7 days
 ### Week 2+
 ```
 🎁 Your weekly refresh
-• 3 new prompts
+• 5 new prompts
 • 5 new dates
 • 1 new position
 ```
@@ -130,8 +130,8 @@ Your next refresh: 7 days
 With upsell hint:
 ```
 💎 Want more?
-Premium unlocks 300+ prompts right now
-+ 10 new ones every week
+Premium starts with 100 prompts
++ 15 new ones every week
 ```
 
 ---
@@ -139,13 +139,13 @@ Premium unlocks 300+ prompts right now
 ## Conversion Strategy
 
 ### The "Nostalgia Hook"
-- Week 0: User gets 10 cards - experiences variety & depth
-- Week 1+: User drops to 5 cards - feels the loss
-- Week 2: "Remember when you had 10? Get that back forever with Premium"
+- Week 0: User gets 20 prompts, 20 dates, and 5 sex positions - enough to build habit
+- Week 1+: User gets 5 more prompts, 5 more dates, and 1 more sex position
+- Week 2: Premium becomes a larger-library upgrade, not a core-access rescue
 
 ### Value Proposition Clarity
-- Free = Welcome pack + 5/week drip feed
-- Premium = 300 right now + 10/week ongoing
+- Free = Starter library + smaller weekly drops
+- Premium = 100 prompts and dates right away + larger weekly drops
 
 **The gap is clear:** Premium isn't just "more" - it's "everything now" vs "little by little"
 
@@ -155,20 +155,20 @@ Premium unlocks 300+ prompts right now
 
 ### Key Metrics:
 1. **Welcome Pack Utilization**
-   - Do users explore all 10 cards in week 0?
+   - Do users explore the week 0 starter library?
    - Which categories get most engagement?
 
 2. **Week 1 Drop-off**
-   - Do users return after week 1 transition (10 → 5)?
+   - Do users return after the first weekly drop?
    - Retention: Week 0 → Week 1 → Week 2
 
 3. **Conversion Timing**
    - When do free users convert? (Week 1? 2? 3?)
-   - Does "nostalgia" for 10 cards drive upgrades?
+   - Does the larger premium library drive upgrades after habit forms?
 
 4. **Premium Engagement**
    - How many cards do premium users actually use per week?
-   - Does 300 cards feel overwhelming or exciting?
+   - Does the 100-card premium starter library feel useful without feeling overwhelming?
 
 ### SQL Queries:
 See `docs/ANALYTICS_QUERIES.md` for tracking queries
@@ -196,10 +196,11 @@ All settings in `services/WeeklyContentSetService.js`:
 ```javascript
 const WEEKLY_LIMITS = {
   [CONTENT_TYPES.PROMPTS]: {
-    premium: 10,          // Premium weekly drops
-    freeWelcomePack: 10,  // Free week 0
-    freeOngoing: 3,       // Free week 1+
-    freeLockedPreview: 2, // Locked prompt teasers shown
+    premium: 15,          // Premium weekly drops
+    premiumStart: 100,    // Premium week 0
+    freeWelcomePack: 20,  // Free week 0
+    freeOngoing: 5,       // Free week 1+
+    freeLockedPreview: 0, // No locked prompt teasers shown
   },
   // ... similar for DATES and POSITIONS
 };
@@ -210,7 +211,7 @@ const WEEKLY_LIMITS = {
 ## Future Enhancements
 
 ### Potential additions:
-1. **"Next drop" countdown** - "3 new prompts in 3 days"
+1. **"Next drop" countdown** - "5 new prompts in 3 days"
 2. **Custom drop day** - Let users choose their refresh day (Mon/Wed/Fri/Sun)
 3. **Anniversary bonuses** - Extra content on relationship milestones
 4. **Seasonal events** - Valentine's, holidays override regular schedule
@@ -221,10 +222,10 @@ const WEEKLY_LIMITS = {
 ## Summary
 
 ✅ **Model B (Personalized)** is now implemented
-✅ Free users get a **generous welcome pack** (10/10/5)
+✅ Free users get a **generous welcome pack** (20/20/5)
 ✅ Ongoing drops are **balanced** (5/5/1 weekly)
-✅ Premium value prop is **crystal clear** (300 now vs 5/week)
+✅ Premium value prop is **crystal clear** (larger starter library and larger weekly drops)
 ✅ User experience is **fair** (everyone gets same schedule)
-✅ Conversion funnel is **optimized** (nostalgia + scarcity)
+✅ Conversion funnel is **optimized** around user value first
 
 **Result:** Better onboarding, clearer value, higher conversion potential.

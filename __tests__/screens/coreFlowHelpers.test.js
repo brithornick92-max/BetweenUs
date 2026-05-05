@@ -14,13 +14,6 @@ jest.mock('../../services/WeeklyContentSetService', () => ({
   buildWeeklySet: jest.fn(() => ({ items: [] })),
 }));
 
-jest.mock('../../services/WeeklyContentScheduler', () => ({
-  __esModule: true,
-  default: {
-    getCurrentWeek: jest.fn(() => 1),
-  },
-}));
-
 jest.mock('../../services/PreferenceEngine', () => ({
   getContentProfile: jest.fn(),
 }));

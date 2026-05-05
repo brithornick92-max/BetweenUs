@@ -4,11 +4,11 @@
     "app": "Between Us",
     "version": "3.3.0",
     "description": "Couples prompts with 5 heat levels, diverse categories, comfort controls, and relationship duration targeting",
-    "totalPrompts": 880,
+    "totalPrompts": 1028,
     "heatLevels": {
       "1": {
         "name": "Emotional Connection",
-        "description": "Emotional intimacy, non-sexual"
+        "description": "Emotional closeness, non-sexual"
       },
       "2": {
         "name": "Flirty & Romantic",
@@ -16,7 +16,7 @@
       },
       "3": {
         "name": "Sensual",
-        "description": "Sensual, relationship-focused intimacy"
+        "description": "Sensual, relationship-focused sex"
       },
       "4": {
         "name": "Steamy",
@@ -29,7 +29,7 @@
     },
     "categories": {
       "romance": "Sweet romantic connection",
-      "emotional": "Deep emotional intimacy",
+      "emotional": "Deep emotional closeness",
       "playful": "Light-hearted and fun",
       "physical": "Touch and physical connection",
       "fantasy": "Desires and imagination",
@@ -492,7 +492,7 @@
     },
     {
       "id": "h1_116",
-      "text": "What annoying habit of mine do you actually think is cute?",
+      "text": "Which small habit of mine have you grown unexpectedly fond of?",
       "category": "playful",
       "heat": 2,
       "relationshipDuration": [
@@ -555,7 +555,7 @@
     },
     {
       "id": "h1_039",
-      "text": "Which of my nervous habits do you find secretly adorable?",
+      "text": "Which nervous habit of mine helps you understand me better?",
       "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
@@ -702,7 +702,7 @@
     },
     {
       "id": "h1_052",
-      "text": "Describe your perfect day. How would we spend it together.",
+      "text": "What would a deeply good day together look like from morning to night?",
       "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
@@ -1037,7 +1037,7 @@
     },
     {
       "id": "h1_130",
-      "text": "Who was your celebrity crush as a kid?",
+      "text": "What early crush or childhood admiration taught you something about what you notice in people?",
       "category": "memory",
       "heat": 2,
       "relationshipDuration": [
@@ -1132,7 +1132,7 @@
     },
     {
       "id": "h1_014",
-      "text": "What's one thing I do with animals that melts you instantly?",
+      "text": "What's one moment you've seen me with animals that made you feel tender toward me?",
       "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
@@ -1173,7 +1173,7 @@
     },
     {
       "id": "h1_165",
-      "text": "What's your favorite thing about being in your relationship?",
+      "text": "What part of being with me feels most grounding lately?",
       "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
@@ -1847,7 +1847,7 @@
     },
     {
       "id": "h1_099",
-      "text": "What do you think are your three best qualities?",
+      "text": "Which qualities in yourself do you most want me to really see?",
       "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
@@ -2242,7 +2242,7 @@
     },
     {
       "id": "h3_069",
-      "text": "How do emotional and physical intimacy support each other for you?",
+      "text": "How do emotional closeness and sex support each other for you?",
       "category": "emotional",
       "heat": 3,
       "relationshipDuration": [
@@ -2771,7 +2771,7 @@
     },
     {
       "id": "h2_059",
-      "text": "What do you think is your best physical feature? Don't be modest.",
+      "text": "What part of yourself do you feel most confident about lately, and how do you like me to notice it?",
       "category": "visual",
       "heat": 2,
       "relationshipDuration": [
@@ -3034,7 +3034,7 @@
     },
     {
       "id": "h2_089",
-      "text": "If you had to rank our kisses, which one was the best?",
+      "text": "Which kiss between us do you still remember most clearly, and what made it stay with you?",
       "category": "memory",
       "heat": 2,
       "relationshipDuration": [
@@ -3572,7 +3572,7 @@
     },
     {
       "id": "h2_002",
-      "text": "Describe the butterflies you felt during our first kiss.",
+      "text": "What do you remember feeling during our first kiss?",
       "category": "romance",
       "heat": 2,
       "relationshipDuration": [
@@ -3605,7 +3605,7 @@
     },
     {
       "id": "h2_057",
-      "text": "What's one thing I do that still makes you feel butterflies?",
+      "text": "What do I do that still catches you off guard in a good way?",
       "category": "emotional",
       "heat": 2,
       "relationshipDuration": [
@@ -3676,7 +3676,7 @@
     },
     {
       "id": "h2_035",
-      "text": "Which ordinary moment do I transform into something magical for you?",
+      "text": "Which ordinary moment do I make feel different for you?",
       "category": "romance",
       "heat": 2,
       "relationshipDuration": [
@@ -3954,7 +3954,7 @@
     },
     {
       "id": "h4_054",
-      "text": "What is one small thing we could try to make intimacy feel more fun or less serious?",
+      "text": "What is one small thing we could try to make sex feel more fun or less serious?",
       "category": "playful",
       "heat": 3,
       "relationshipDuration": [
@@ -4093,7 +4093,7 @@
     },
     {
       "id": "h3_010",
-      "text": "How do you feel when I look into your eyes during intimate moments?",
+      "text": "How do you feel when I look into your eyes while we're making love?",
       "category": "visual",
       "heat": 3,
       "relationshipDuration": [
@@ -4183,7 +4183,7 @@
     },
     {
       "id": "h3_089",
-      "text": "What's a shared memory of ours that still gives you butterflies when you think about it?",
+      "text": "What's a shared memory that still changes how you feel when you think about it?",
       "category": "memory",
       "heat": 3,
       "relationshipDuration": [
@@ -4270,7 +4270,7 @@
     },
     {
       "id": "h3_007",
-      "text": "What's the most vulnerable you've felt during an intimate moment with me?",
+      "text": "What's the most vulnerable you've felt while making love with me?",
       "category": "emotional",
       "heat": 3,
       "relationshipDuration": [
@@ -4512,7 +4512,7 @@
     },
     {
       "id": "h3_081",
-      "text": "What would make our physical intimacy feel even better for you lately?",
+      "text": "What would make sex feel even better for you lately?",
       "category": "physical",
       "heat": 3,
       "relationshipDuration": [
@@ -4720,7 +4720,7 @@
     },
     {
       "id": "h3_207",
-      "text": "Tell me about a scent that reminds you of an intimate moment between us.",
+      "text": "Tell me about a scent that reminds you of a time we made love.",
       "category": "sensory",
       "heat": 3,
       "relationshipDuration": [
@@ -4843,7 +4843,7 @@
     },
     {
       "id": "h3_210",
-      "text": "Which kiss from me makes you melt?",
+      "text": "Which kind of kiss from me makes you pause and want more?",
       "category": "physical",
       "heat": 3,
       "relationshipDuration": [
@@ -4904,7 +4904,7 @@
     },
     {
       "id": "h3_042",
-      "text": "How do you feel when our physical intimacy happens spontaneously?",
+      "text": "How do you feel when sex happens spontaneously between us?",
       "category": "physical",
       "heat": 3,
       "relationshipDuration": [
@@ -4988,7 +4988,7 @@
     },
     {
       "id": "h3_018",
-      "text": "How has being intimate with me changed how you see your own body?",
+      "text": "How has having sex with me changed how you see your own body?",
       "category": "emotional",
       "heat": 3,
       "relationshipDuration": [
@@ -5156,7 +5156,7 @@
     },
     {
       "id": "h3_028",
-      "text": "Tell me about a time our physical intimacy brought you to tears of joy.",
+      "text": "Tell me about a time making love brought you to tears of joy.",
       "category": "emotional",
       "heat": 3,
       "relationshipDuration": [
@@ -5288,7 +5288,7 @@
     },
     {
       "id": "h3_046",
-      "text": "How has being intimate with me changed your relationship with pleasure?",
+      "text": "How has having sex with me changed your relationship with pleasure?",
       "category": "emotional",
       "heat": 3,
       "relationshipDuration": [
@@ -5373,7 +5373,7 @@
     },
     {
       "id": "h4_113",
-      "text": "When we're being intimate, what are some things I do that make you feel most present and connected?",
+      "text": "When we're having sex, what are some things I do that make you feel most present and connected?",
       "category": "emotional",
       "heat": 4,
       "relationshipDuration": [
@@ -5458,7 +5458,7 @@
     },
     {
       "id": "h4_200",
-      "text": "What playful challenge would make intimacy feel exciting without pressure?",
+      "text": "What playful challenge would make sex feel exciting without pressure?",
       "category": "kinky",
       "heat": 4,
       "relationshipDuration": [
@@ -5722,7 +5722,7 @@
     },
     {
       "id": "h4_075",
-      "text": "Who would be your celebrity hall pass? Tell me more.",
+      "text": "If a celebrity crush fantasy has ever crossed your mind, what about it actually appeals to you?",
       "category": "fantasy",
       "heat": 4,
       "relationshipDuration": [
@@ -5933,7 +5933,7 @@
     },
     {
       "id": "h4_022",
-      "text": "What adventurous setting would make intimacy feel exciting for you?",
+      "text": "What adventurous setting would make sex feel exciting for you?",
       "category": "location",
       "heat": 4,
       "relationshipDuration": [
@@ -6079,7 +6079,7 @@
     },
     {
       "id": "h4_110",
-      "text": "Imagine we're breathless after a workout and your hands linger just a little too long? Tell me more.",
+      "text": "After a workout, our hands linger longer than they need to. What would you want the moment to become?",
       "category": "fantasy",
       "heat": 4,
       "relationshipDuration": [
@@ -6138,7 +6138,7 @@
     },
     {
       "id": "h4_018",
-      "text": "What intimate moment would you want to remember forever?",
+      "text": "What sexual moment would you want to remember forever?",
       "category": "visual",
       "heat": 4,
       "relationshipDuration": [
@@ -6331,7 +6331,7 @@
     },
     {
       "id": "h4_092",
-      "text": "What intimacy act have you always wanted to try? Tell me more.",
+      "text": "What sex act have you wanted to try, and what would help it feel safe to bring up?",
       "category": "fantasy",
       "heat": 4,
       "relationshipDuration": [
@@ -6452,7 +6452,7 @@
     },
     {
       "id": "h4_106",
-      "text": "Imagine we're talking late into the night on a couch and the tension suddenly becomes impossible to ignore? Tell me more.",
+      "text": "We're talking late on the couch and the mood shifts. What would you want me to notice, and what would you hope happens next?",
       "category": "fantasy",
       "heat": 4,
       "relationshipDuration": [
@@ -6510,7 +6510,7 @@
     },
     {
       "id": "h4_003",
-      "text": "What's something adventurous and playful you'd like to try with me? Tell me more.",
+      "text": "What's something adventurous and playful you'd like to try with me, and what makes it appealing?",
       "category": "fantasy",
       "heat": 4,
       "relationshipDuration": [
@@ -6534,7 +6534,7 @@
     },
     {
       "id": "h5_008",
-      "text": "Tell me the hottest thing you want to whisper in my ear during our most intimate moments.",
+      "text": "Tell me the hottest thing you want to whisper in my ear during sex.",
       "category": "sensory",
       "heat": 4,
       "relationshipDuration": [
@@ -6570,7 +6570,7 @@
     },
     {
       "id": "h4_069",
-      "text": "What do you think about when you masturbate? Tell me more.",
+      "text": "When you fantasize on your own, what themes or feelings tend to come up most?",
       "category": "fantasy",
       "heat": 4,
       "relationshipDuration": [
@@ -6628,7 +6628,7 @@
     },
     {
       "id": "h4_051",
-      "text": "I've always wanted to explore [X]. Would you be open to that?",
+      "text": "What's one intimate idea you want to bring up in a way that would feel clear, safe, and mutual?",
       "category": "fantasy",
       "heat": 4,
       "relationshipDuration": [
@@ -6804,7 +6804,7 @@
     },
     {
       "id": "h4_114",
-      "text": "What's the most exotic or unusual location you imagine being intimate in?",
+      "text": "What is the most exotic or unusual location you imagine having sex in?",
       "category": "location",
       "heat": 4,
       "relationshipDuration": [
@@ -6865,7 +6865,7 @@
     },
     {
       "id": "h4_020",
-      "text": "What's a playful fantasy that excites you? Tell me more.",
+      "text": "What's a playful fantasy that excites you, and what part of it feels most alive?",
       "category": "fantasy",
       "heat": 4,
       "relationshipDuration": [
@@ -6913,7 +6913,7 @@
     },
     {
       "id": "h4_109",
-      "text": "Imagine we steal a private moment in the middle of a high-pressure day and neither of us can keep it professional anymore? Tell me more.",
+      "text": "We steal a private moment in the middle of a high-pressure day. What would make it hard for us to stay composed?",
       "category": "fantasy",
       "heat": 4,
       "relationshipDuration": [
@@ -6937,7 +6937,7 @@
     },
     {
       "id": "h5_024",
-      "text": "Walk me through your ideal extended intimacy session with me.",
+      "text": "Walk me through your ideal long sex session with me.",
       "category": "fantasy",
       "heat": 4,
       "relationshipDuration": [
@@ -7019,7 +7019,7 @@
     },
     {
       "id": "h4_100",
-      "text": "What would you like me to call you during our intimate moments?",
+      "text": "What would you like me to call you when we're having sex?",
       "category": "physical",
       "heat": 4,
       "relationshipDuration": [
@@ -7031,7 +7031,7 @@
     },
     {
       "id": "h4_107",
-      "text": "Imagine you take your time exploring every inch of me with slow, deliberate attention? Tell me more.",
+      "text": "Imagine I take my time learning every reaction your body gives me. Where would you want my attention to linger?",
       "category": "fantasy",
       "heat": 4,
       "relationshipDuration": [
@@ -7055,7 +7055,7 @@
     },
     {
       "id": "h4_111",
-      "text": "Imagine you start with a slow massage and make it very clear you have much more in mind? Tell me more.",
+      "text": "Imagine I start with a slow massage and make it clear I have more in mind. How would you want the tension to build?",
       "category": "fantasy",
       "heat": 4,
       "relationshipDuration": [
@@ -7067,7 +7067,7 @@
     },
     {
       "id": "h4_041",
-      "text": "How do you like to make intimate moments last longer?",
+      "text": "How do you like to make sex last longer?",
       "category": "physical",
       "heat": 4,
       "relationshipDuration": [
@@ -7102,7 +7102,7 @@
     },
     {
       "id": "h4_079",
-      "text": "What happened in your most recent dirty dream? Tell me more.",
+      "text": "What happened in a recent sexual dream you still remember?",
       "category": "fantasy",
       "heat": 4,
       "relationshipDuration": [
@@ -7149,7 +7149,7 @@
     },
     {
       "id": "h4_001",
-      "text": "What's your favorite intimate fantasy involving just the two of us? Tell me more.",
+      "text": "What intimate fantasy involving just the two of us has stayed with you, and what makes it appealing?",
       "category": "fantasy",
       "heat": 4,
       "relationshipDuration": [
@@ -7198,7 +7198,7 @@
     },
     {
       "id": "h4_108",
-      "text": "Imagine we get stuck alone together after everyone else has gone, and the tension between us finally snaps? Tell me more.",
+      "text": "We're alone after everyone else has gone, and the tension finally breaks. What do you imagine happens first?",
       "category": "fantasy",
       "heat": 4,
       "relationshipDuration": [
@@ -7222,7 +7222,7 @@
     },
     {
       "id": "h4_053",
-      "text": "What's something you've always wanted to try, but haven't asked for yet? Tell me more.",
+      "text": "What's something you've wanted to try but haven't asked for yet, and what would make it easier to ask?",
       "category": "fantasy",
       "heat": 4,
       "relationshipDuration": [
@@ -7294,7 +7294,7 @@
     },
     {
       "id": "h4_010",
-      "text": "What intimate thoughts about me turn you on the most? Tell me more.",
+      "text": "What intimate thoughts about me turn you on most, and when do they usually show up?",
       "category": "fantasy",
       "heat": 4,
       "relationshipDuration": [
@@ -7306,7 +7306,7 @@
     },
     {
       "id": "h4_119",
-      "text": "When do you most like being intimate with me?",
+      "text": "When do you most like having sex with me?",
       "category": "physical",
       "heat": 4,
       "relationshipDuration": [
@@ -8699,7 +8699,7 @@
     },
     {
       "id": "h5_075",
-      "text": "You discover just how sensitive I'm to your touch and decide to take your time with me. Describe how you explore my reactions, where your hands wander, and how you slowly make me melt beneath you.",
+      "text": "You discover how responsive I'm to your touch and decide to take your time with me. Describe how you explore my reactions, where your hands wander, and how you keep building pleasure until I cannot stay still.",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
@@ -9096,7 +9096,7 @@
     },
     {
       "id": "h5_116",
-      "text": "You're a genie and I just rubbed your lamp. My three wishes are all variations of 'I want you.' Describe how you grant each wish — the first tender, the second wild, the third absolutely no-holds-barred — every magical, explicit detail of each granted desire.",
+      "text": "You're playing the wish-granter and I get three wishes, all variations of 'I want you.' Describe how you grant each one: the first tender, the second wild, and the third completely unrestrained.",
       "category": "physical",
       "heat": 5,
       "relationshipDuration": [
@@ -10137,6 +10137,1755 @@
         "long_term"
       ],
       "releaseWeek": 171
+    },
+    {
+      "id": "h1_226",
+      "text": "What tiny opinion will you defend with unreasonable confidence, and why?",
+      "category": "playful",
+      "heat": 1,
+      "relationshipDuration": [
+        "universal"
+      ],
+      "releaseWeek": 172
+    },
+    {
+      "id": "h1_227",
+      "text": "If one meal had to be the only meal you ate from now on, what would you choose and what memory does it carry for you?",
+      "category": "playful",
+      "heat": 1,
+      "relationshipDuration": [
+        "universal"
+      ],
+      "releaseWeek": 172
+    },
+    {
+      "id": "h1_228",
+      "text": "What childhood belief were you completely sure was true that makes you laugh now?",
+      "category": "memory",
+      "heat": 1,
+      "relationshipDuration": [
+        "universal"
+      ],
+      "releaseWeek": 172
+    },
+    {
+      "id": "h1_229",
+      "text": "What is your favorite memory from our first year together, and what detail still stands out?",
+      "category": "memory",
+      "heat": 1,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 172
+    },
+    {
+      "id": "h2_124",
+      "text": "If we had a superpower that only worked while we were holding hands, what would you want it to help us do?",
+      "category": "playful",
+      "heat": 2,
+      "relationshipDuration": [
+        "universal"
+      ],
+      "releaseWeek": 172
+    },
+    {
+      "id": "h1_230",
+      "text": "What quiet talent or strength of yours do I not get to see often enough?",
+      "category": "playful",
+      "heat": 1,
+      "relationshipDuration": [
+        "universal"
+      ],
+      "releaseWeek": 173
+    },
+    {
+      "id": "h1_231",
+      "text": "If we had to perform together with no time to rehearse, what would our act be?",
+      "category": "playful",
+      "heat": 1,
+      "relationshipDuration": [
+        "universal"
+      ],
+      "releaseWeek": 173
+    },
+    {
+      "id": "h1_232",
+      "text": "Which fictional couple reminds you of us, even if only in one specific way?",
+      "category": "playful",
+      "heat": 1,
+      "relationshipDuration": [
+        "universal"
+      ],
+      "releaseWeek": 173
+    },
+    {
+      "id": "h1_233",
+      "text": "What is one future bucket-list thing you want us to make real this year?",
+      "category": "future",
+      "heat": 1,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 173
+    },
+    {
+      "id": "h1_234",
+      "text": "If money suddenly stopped being a constraint, what part of our future would you want us to build or buy first, and why?",
+      "category": "future",
+      "heat": 1,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 173
+    },
+    {
+      "id": "h2_125",
+      "text": "Where do you hope we'll travel for our next major anniversary?",
+      "category": "future",
+      "heat": 2,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 174
+    },
+    {
+      "id": "h1_235",
+      "text": "What idea, dream, or plan have you been carrying that I have not heard yet?",
+      "category": "future",
+      "heat": 1,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 174
+    },
+    {
+      "id": "h1_236",
+      "text": "If we were designing a future home around the life we want, what feature would matter most to you?",
+      "category": "future",
+      "heat": 1,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 174
+    },
+    {
+      "id": "h1_237",
+      "text": "What dream work, craft, or passion project would you give yourself to if money were not a factor?",
+      "category": "future",
+      "heat": 1,
+      "relationshipDuration": [
+        "universal"
+      ],
+      "releaseWeek": 174
+    },
+    {
+      "id": "h1_238",
+      "text": "What belief did you use to hold tightly that life has softened or changed?",
+      "category": "emotional",
+      "heat": 1,
+      "relationshipDuration": [
+        "universal"
+      ],
+      "releaseWeek": 174
+    },
+    {
+      "id": "h1_239",
+      "text": "If you could know the truth about one unanswered question in the universe, what would you ask?",
+      "category": "emotional",
+      "heat": 1,
+      "relationshipDuration": [
+        "universal"
+      ],
+      "releaseWeek": 175
+    },
+    {
+      "id": "h1_240",
+      "text": "What moment has shaped who you are more than people realize?",
+      "category": "emotional",
+      "heat": 1,
+      "relationshipDuration": [
+        "universal"
+      ],
+      "releaseWeek": 175
+    },
+    {
+      "id": "h1_241",
+      "text": "What do you think happens to a person's energy, love, or consciousness after they die?",
+      "category": "emotional",
+      "heat": 1,
+      "relationshipDuration": [
+        "universal"
+      ],
+      "releaseWeek": 175
+    },
+    {
+      "id": "h1_242",
+      "text": "What habit do you want to build or leave behind this year, and how can I support you without taking over?",
+      "category": "emotional",
+      "heat": 1,
+      "relationshipDuration": [
+        "universal"
+      ],
+      "releaseWeek": 175
+    },
+    {
+      "id": "h1_243",
+      "text": "What does a thriving relationship look like to you in ordinary weeks, not just easy ones?",
+      "category": "emotional",
+      "heat": 1,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 175
+    },
+    {
+      "id": "h1_244",
+      "text": "After a draining week, what kind of care helps you feel like yourself again?",
+      "category": "emotional",
+      "heat": 1,
+      "relationshipDuration": [
+        "universal"
+      ],
+      "releaseWeek": 176
+    },
+    {
+      "id": "h1_245",
+      "text": "Where do you think we balance each other well between growth and acceptance?",
+      "category": "emotional",
+      "heat": 1,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 176
+    },
+    {
+      "id": "h1_246",
+      "text": "What is a fear or insecurity you have moved through recently, even a little?",
+      "category": "emotional",
+      "heat": 1,
+      "relationshipDuration": [
+        "universal"
+      ],
+      "releaseWeek": 176
+    },
+    {
+      "id": "h1_247",
+      "text": "How have our core values become clearer or stronger since we committed to each other?",
+      "category": "emotional",
+      "heat": 1,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 177
+    },
+    {
+      "id": "h1_248",
+      "text": "Where do we challenge each other to grow in ways that actually help?",
+      "category": "emotional",
+      "heat": 1,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 177
+    },
+    {
+      "id": "h1_249",
+      "text": "When did you realize our partnership had become deeper and more rooted?",
+      "category": "memory",
+      "heat": 1,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 177
+    },
+    {
+      "id": "h1_250",
+      "text": "What does life partnership mean to you, and where do you see us living that now?",
+      "category": "future",
+      "heat": 1,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 177
+    },
+    {
+      "id": "h1_251",
+      "text": "How do our strengths and weaknesses complement each other during major life changes?",
+      "category": "emotional",
+      "heat": 1,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 177
+    },
+    {
+      "id": "h1_252",
+      "text": "What belief or perspective of yours has been shaped by being with me?",
+      "category": "emotional",
+      "heat": 1,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 178
+    },
+    {
+      "id": "h1_253",
+      "text": "How do you imagine our dynamic evolving over the next decade?",
+      "category": "future",
+      "heat": 1,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 178
+    },
+    {
+      "id": "h1_254",
+      "text": "When have you felt proud of how we handled pressure as a team?",
+      "category": "memory",
+      "heat": 1,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 178
+    },
+    {
+      "id": "h1_255",
+      "text": "What unseen effort do you put into us that helps keep us steady long term?",
+      "category": "emotional",
+      "heat": 1,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 178
+    },
+    {
+      "id": "h1_256",
+      "text": "How do we protect our separate identities while growing closely together?",
+      "category": "emotional",
+      "heat": 1,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 178
+    },
+    {
+      "id": "h1_257",
+      "text": "What internal struggle or big question have you been wrestling with lately?",
+      "category": "emotional",
+      "heat": 1,
+      "relationshipDuration": [
+        "universal"
+      ],
+      "releaseWeek": 179
+    },
+    {
+      "id": "h1_258",
+      "text": "How do you process deep disappointment, and how can I support you in those moments?",
+      "category": "emotional",
+      "heat": 1,
+      "relationshipDuration": [
+        "universal"
+      ],
+      "releaseWeek": 179
+    },
+    {
+      "id": "h1_259",
+      "text": "What have you learned this past year about your emotional triggers or boundaries?",
+      "category": "emotional",
+      "heat": 1,
+      "relationshipDuration": [
+        "universal"
+      ],
+      "releaseWeek": 179
+    },
+    {
+      "id": "h1_260",
+      "text": "Which social or cultural norm do you find yourself pushing back against lately?",
+      "category": "emotional",
+      "heat": 1,
+      "relationshipDuration": [
+        "universal"
+      ],
+      "releaseWeek": 179
+    },
+    {
+      "id": "h1_261",
+      "text": "How do you understand the difference between happiness and meaning in your own life?",
+      "category": "emotional",
+      "heat": 1,
+      "relationshipDuration": [
+        "universal"
+      ],
+      "releaseWeek": 179
+    },
+    {
+      "id": "h1_262",
+      "text": "What early life experience shaped your emotional world most?",
+      "category": "memory",
+      "heat": 1,
+      "relationshipDuration": [
+        "universal"
+      ],
+      "releaseWeek": 180
+    },
+    {
+      "id": "h1_263",
+      "text": "What belief or habit have you had to unlearn, and what did that process feel like?",
+      "category": "emotional",
+      "heat": 1,
+      "relationshipDuration": [
+        "universal"
+      ],
+      "releaseWeek": 180
+    },
+    {
+      "id": "h1_264",
+      "text": "What does emotional vulnerability look like when you feel safe with me?",
+      "category": "emotional",
+      "heat": 1,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 180
+    },
+    {
+      "id": "h1_265",
+      "text": "What complex subject do you want us to understand more deeply together?",
+      "category": "emotional",
+      "heat": 1,
+      "relationshipDuration": [
+        "universal"
+      ],
+      "releaseWeek": 180
+    },
+    {
+      "id": "h1_266",
+      "text": "How do we balance radical honesty with care for each other's feelings?",
+      "category": "emotional",
+      "heat": 1,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 180
+    },
+    {
+      "id": "h1_267",
+      "text": "What legacy do you want us to leave for family and broader community?",
+      "category": "future",
+      "heat": 1,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 181
+    },
+    {
+      "id": "h1_268",
+      "text": "What purpose or mission do you feel our partnership serves?",
+      "category": "future",
+      "heat": 1,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 181
+    },
+    {
+      "id": "h1_269",
+      "text": "What does financial freedom mean to you emotionally, not just mathematically?",
+      "category": "future",
+      "heat": 1,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 181
+    },
+    {
+      "id": "h1_270",
+      "text": "How do you hope our relationship is remembered by the people closest to us?",
+      "category": "future",
+      "heat": 1,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 181
+    },
+    {
+      "id": "h1_271",
+      "text": "What kind of home environment do you want us to cultivate as a sanctuary?",
+      "category": "future",
+      "heat": 1,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 181
+    },
+    {
+      "id": "h1_272",
+      "text": "What shared ambition have we not yet turned into clear steps?",
+      "category": "future",
+      "heat": 1,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 182
+    },
+    {
+      "id": "h1_273",
+      "text": "How do you measure success in a relationship beyond longevity and milestones?",
+      "category": "emotional",
+      "heat": 1,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 182
+    },
+    {
+      "id": "h1_274",
+      "text": "What major risk might elevate our life in the next five years?",
+      "category": "future",
+      "heat": 1,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 182
+    },
+    {
+      "id": "h1_275",
+      "text": "What traditions or rituals feel foundational to our shared culture?",
+      "category": "future",
+      "heat": 1,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 182
+    },
+    {
+      "id": "h1_276",
+      "text": "How should we use our time, energy, and money for causes we care about?",
+      "category": "future",
+      "heat": 1,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 182
+    },
+    {
+      "id": "h1_277",
+      "text": "How would you describe the wordless language we've built for each other's needs?",
+      "category": "emotional",
+      "heat": 1,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 183
+    },
+    {
+      "id": "h1_278",
+      "text": "What does absolute emotional safety feel like with me?",
+      "category": "emotional",
+      "heat": 1,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 183
+    },
+    {
+      "id": "h1_279",
+      "text": "When has my presence helped you shift from chaos toward calm?",
+      "category": "memory",
+      "heat": 1,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 183
+    },
+    {
+      "id": "h1_280",
+      "text": "In our quietest moments, when do we feel most like a connected unit without losing ourselves?",
+      "category": "emotional",
+      "heat": 1,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 183
+    },
+    {
+      "id": "h1_281",
+      "text": "Which parts of my character make it easier for you to lower your guard?",
+      "category": "emotional",
+      "heat": 1,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 183
+    },
+    {
+      "id": "h1_282",
+      "text": "How do you receive my affection when outside stress has overwhelmed you?",
+      "category": "emotional",
+      "heat": 1,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 184
+    },
+    {
+      "id": "h1_283",
+      "text": "How can we keep renewing our emotional closeness before routines become stale?",
+      "category": "emotional",
+      "heat": 1,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 184
+    },
+    {
+      "id": "h1_284",
+      "text": "What part of your inner world are you only now learning how to share with me?",
+      "category": "emotional",
+      "heat": 1,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 184
+    },
+    {
+      "id": "h1_285",
+      "text": "When have you felt completely seen by me without needing to explain?",
+      "category": "memory",
+      "heat": 1,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 184
+    },
+    {
+      "id": "h1_286",
+      "text": "How does our home feel different when we're in sync versus distracted?",
+      "category": "emotional",
+      "heat": 1,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 184
+    },
+    {
+      "id": "h1_287",
+      "text": "What part of your authentic self needs more room right now?",
+      "category": "emotional",
+      "heat": 1,
+      "relationshipDuration": [
+        "universal"
+      ],
+      "releaseWeek": 185
+    },
+    {
+      "id": "h1_288",
+      "text": "What fear do you carry about your potential, and how can I help you work through it?",
+      "category": "emotional",
+      "heat": 1,
+      "relationshipDuration": [
+        "universal"
+      ],
+      "releaseWeek": 185
+    },
+    {
+      "id": "h1_289",
+      "text": "How do you reconcile who the world asks you to be with who you are when it's just us?",
+      "category": "emotional",
+      "heat": 1,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 185
+    },
+    {
+      "id": "h1_290",
+      "text": "What does self-actualization look like for you in this season?",
+      "category": "emotional",
+      "heat": 1,
+      "relationshipDuration": [
+        "universal"
+      ],
+      "releaseWeek": 185
+    },
+    {
+      "id": "h1_291",
+      "text": "What boundary have you learned to set to protect your peace?",
+      "category": "emotional",
+      "heat": 1,
+      "relationshipDuration": [
+        "universal"
+      ],
+      "releaseWeek": 185
+    },
+    {
+      "id": "h1_292",
+      "text": "How do you balance accepting yourself as you are with wanting to keep growing?",
+      "category": "emotional",
+      "heat": 1,
+      "relationshipDuration": [
+        "universal"
+      ],
+      "releaseWeek": 186
+    },
+    {
+      "id": "h1_293",
+      "text": "What passion or interest from your past feels worth returning to?",
+      "category": "emotional",
+      "heat": 1,
+      "relationshipDuration": [
+        "universal"
+      ],
+      "releaseWeek": 186
+    },
+    {
+      "id": "h1_294",
+      "text": "What moment of clarity have you had recently about what matters most?",
+      "category": "emotional",
+      "heat": 1,
+      "relationshipDuration": [
+        "universal"
+      ],
+      "releaseWeek": 186
+    },
+    {
+      "id": "h1_295",
+      "text": "How do you define fulfillment now, and how has that changed over the last decade?",
+      "category": "emotional",
+      "heat": 1,
+      "relationshipDuration": [
+        "universal"
+      ],
+      "releaseWeek": 186
+    },
+    {
+      "id": "h1_296",
+      "text": "What truth about yourself have you discovered through our relationship?",
+      "category": "emotional",
+      "heat": 1,
+      "relationshipDuration": [
+        "developing",
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 186
+    },
+    {
+      "id": "h3_244",
+      "text": "Describe the moment you first felt undeniable physical attraction to me.",
+      "category": "memory",
+      "heat": 3,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 187
+    },
+    {
+      "id": "h4_229",
+      "text": "What was running through your mind the first time we had sex?",
+      "category": "memory",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 187
+    },
+    {
+      "id": "h3_245",
+      "text": "What anticipation do you feel when you know we're going to have a passionate night together?",
+      "category": "emotional",
+      "heat": 3,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 187
+    },
+    {
+      "id": "h4_230",
+      "text": "Tell me about a time we were out in public and you were distracted by how much you wanted me.",
+      "category": "memory",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 187
+    },
+    {
+      "id": "h3_246",
+      "text": "What is it about a favorite outfit of mine that gets your attention?",
+      "category": "visual",
+      "heat": 3,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 187
+    },
+    {
+      "id": "h3_247",
+      "text": "Which kiss between us do you remember most, and what made it stay with you?",
+      "category": "memory",
+      "heat": 3,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 188
+    },
+    {
+      "id": "h3_248",
+      "text": "How has your physical desire for me changed since early in our relationship?",
+      "category": "emotional",
+      "heat": 3,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 188
+    },
+    {
+      "id": "h4_231",
+      "text": "What physical memory of us do you replay when you're alone?",
+      "category": "memory",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 188
+    },
+    {
+      "id": "h4_232",
+      "text": "When have I caught you off guard in a seductive way?",
+      "category": "memory",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 188
+    },
+    {
+      "id": "h4_233",
+      "text": "How would you tell the story of our most spontaneous sexual moment?",
+      "category": "memory",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 188
+    },
+    {
+      "id": "h4_234",
+      "text": "What would the ideal hour-long buildup before we make love look like for you?",
+      "category": "physical",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 189
+    },
+    {
+      "id": "h4_235",
+      "text": "How does it feel different when we make love slowly versus when we have wild sex?",
+      "category": "physical",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 189
+    },
+    {
+      "id": "h3_249",
+      "text": "Tell me about a time my touch gave you unexpected chills.",
+      "category": "physical",
+      "heat": 3,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 189
+    },
+    {
+      "id": "h4_236",
+      "text": "Which words, tones, or phrases make your mind go straight to sex?",
+      "category": "sensory",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 189
+    },
+    {
+      "id": "h3_250",
+      "text": "How would you design the ultimate romantic and sensual atmosphere for us?",
+      "category": "sensory",
+      "heat": 3,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 189
+    },
+    {
+      "id": "h4_237",
+      "text": "What does strong eye contact do to you when we're having sex?",
+      "category": "visual",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 190
+    },
+    {
+      "id": "h4_238",
+      "text": "What physical sensations do you crave from me after a stressful week?",
+      "category": "physical",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 190
+    },
+    {
+      "id": "h4_239",
+      "text": "How do you feel when I take control, and what do you want me to do?",
+      "category": "kinky",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 190
+    },
+    {
+      "id": "h4_240",
+      "text": "What would your ideal Sunday morning sex look like?",
+      "category": "physical",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 190
+    },
+    {
+      "id": "h3_251",
+      "text": "How does our sexual chemistry mirror our emotional connection?",
+      "category": "emotional",
+      "heat": 3,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 190
+    },
+    {
+      "id": "h4_241",
+      "text": "If we had an empty luxury resort to ourselves for 24 hours, how would you want the day and night to unfold?",
+      "category": "location",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 191
+    },
+    {
+      "id": "h4_242",
+      "text": "What fantasy scene have you imagined that you'd like us to act out together?",
+      "category": "fantasy",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 191
+    },
+    {
+      "id": "h4_243",
+      "text": "What boundaries are you curious to push together, and what would make that exploration feel safe?",
+      "category": "kinky",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 191
+    },
+    {
+      "id": "h4_244",
+      "text": "Tell me about a spicy dream about us that stayed with you after you woke up.",
+      "category": "fantasy",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 191
+    },
+    {
+      "id": "h4_245",
+      "text": "How would you direct a private sensual video starring only us?",
+      "category": "fantasy",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 191
+    },
+    {
+      "id": "h4_246",
+      "text": "What unconventional location have you fantasized about having sex in, and how would we make it work?",
+      "category": "location",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 192
+    },
+    {
+      "id": "h4_247",
+      "text": "What roleplay dynamic turns you on, and how would you want us to set the scene?",
+      "category": "roleplay",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 192
+    },
+    {
+      "id": "h4_248",
+      "text": "What new sensations or dynamics are you curious about, and how would you want me to introduce them?",
+      "category": "sensory",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 192
+    },
+    {
+      "id": "h4_249",
+      "text": "What slightly forbidden idea turns you on, and what about it gets to you?",
+      "category": "kinky",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 192
+    },
+    {
+      "id": "h4_250",
+      "text": "How would you want me to surprise you with a new bedroom experience?",
+      "category": "fantasy",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 192
+    },
+    {
+      "id": "h4_251",
+      "text": "How do you want me to touch you when we're just starting to get close?",
+      "category": "physical",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 193
+    },
+    {
+      "id": "h4_252",
+      "text": "What is it about my scent that turns you on, and when do you notice it most?",
+      "category": "sensory",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 193
+    },
+    {
+      "id": "h4_253",
+      "text": "How would you guide me to the sensitive places on your body that deserve more attention?",
+      "category": "physical",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 193
+    },
+    {
+      "id": "h5_221",
+      "text": "What rhythm, pacing, and intensity bring you the most pleasure?",
+      "category": "physical",
+      "heat": 5,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 193
+    },
+    {
+      "id": "h4_254",
+      "text": "Which reactions or sounds of mine make you feel powerful and desired?",
+      "category": "sensory",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 193
+    },
+    {
+      "id": "h4_255",
+      "text": "How do you like to be touched during foreplay compared with how you like sex to build after that?",
+      "category": "physical",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 194
+    },
+    {
+      "id": "h4_256",
+      "text": "How would you describe our skin against each other when we're fully wrapped up together?",
+      "category": "physical",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 194
+    },
+    {
+      "id": "h4_257",
+      "text": "What subtle cues do you give when you want me to take things further?",
+      "category": "physical",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 194
+    },
+    {
+      "id": "h4_258",
+      "text": "How do you want to be kissed when you want to lose control?",
+      "category": "physical",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 194
+    },
+    {
+      "id": "h4_259",
+      "text": "How do lighting, music, and temperature change what you feel during sex?",
+      "category": "sensory",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 194
+    },
+    {
+      "id": "h4_260",
+      "text": "What does ideal aftercare look and feel like for you after intense sex?",
+      "category": "emotional",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 195
+    },
+    {
+      "id": "h3_252",
+      "text": "How does being physically vulnerable with me help you feel emotionally secure?",
+      "category": "emotional",
+      "heat": 3,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 195
+    },
+    {
+      "id": "h3_253",
+      "text": "When have you felt deeply connected to me while we were making love?",
+      "category": "emotional",
+      "heat": 3,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 195
+    },
+    {
+      "id": "h4_261",
+      "text": "What thoughts run through your head in the quiet moments right after we finish?",
+      "category": "emotional",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 195
+    },
+    {
+      "id": "h4_262",
+      "text": "What feels special about lying naked together and talking?",
+      "category": "emotional",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 195
+    },
+    {
+      "id": "h3_254",
+      "text": "How does sex with me become a safe space away from the rest of the world?",
+      "category": "emotional",
+      "heat": 3,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 196
+    },
+    {
+      "id": "h3_255",
+      "text": "How does physical touch help you heal, decompress, or reset during hard seasons?",
+      "category": "physical",
+      "heat": 3,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 196
+    },
+    {
+      "id": "h4_263",
+      "text": "What do I say during sex that makes you feel cherished and wanted?",
+      "category": "emotional",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 196
+    },
+    {
+      "id": "h3_256",
+      "text": "How do you want us to nurture our physical spark over the next decade?",
+      "category": "future",
+      "heat": 3,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 196
+    },
+    {
+      "id": "h3_257",
+      "text": "When you think about how far our sex life has come since day one, what feeling stays with you?",
+      "category": "memory",
+      "heat": 3,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 196
+    },
+    {
+      "id": "h5_222",
+      "text": "What mental shift happens when casual affection between us turns into intense sexual desire?",
+      "category": "emotional",
+      "heat": 5,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 197
+    },
+    {
+      "id": "h5_223",
+      "text": "What parts of consensual dominance or submission make you feel deeply aroused and safe at the same time?",
+      "category": "kinky",
+      "heat": 5,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 197
+    },
+    {
+      "id": "h5_224",
+      "text": "How does being physically exposed and vulnerable with me affect your arousal?",
+      "category": "physical",
+      "heat": 5,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 197
+    },
+    {
+      "id": "h5_225",
+      "text": "Describe a sexual fantasy where the power dynamic between us is what turns you on most.",
+      "category": "kinky",
+      "heat": 5,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 197
+    },
+    {
+      "id": "h5_226",
+      "text": "What is the moment during sex when your mind gives in fully to physical pleasure?",
+      "category": "physical",
+      "heat": 5,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 197
+    },
+    {
+      "id": "h5_227",
+      "text": "How do you want your body touched, kissed, or gripped when you want aggressive, passionate sex?",
+      "category": "physical",
+      "heat": 5,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 198
+    },
+    {
+      "id": "h5_228",
+      "text": "What pressure, speed, and rhythm do you need from me when you are close to climax?",
+      "category": "physical",
+      "heat": 5,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 198
+    },
+    {
+      "id": "h5_229",
+      "text": "What sex act we already do would you want more often, longer, or more intensely?",
+      "category": "physical",
+      "heat": 5,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 198
+    },
+    {
+      "id": "h5_230",
+      "text": "How do you want me to use dirty talk, breath, or tone of voice to heighten your pleasure during sex?",
+      "category": "sensory",
+      "heat": 5,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 198
+    },
+    {
+      "id": "h5_231",
+      "text": "What bedroom boundary have you held before that you now feel secure enough to explore with me?",
+      "category": "kinky",
+      "heat": 5,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 198
+    },
+    {
+      "id": "h5_232",
+      "text": "What does intense, unbroken eye contact do to you during orgasm?",
+      "category": "visual",
+      "heat": 5,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 199
+    },
+    {
+      "id": "h5_233",
+      "text": "When you want to surrender control, how do you want me to restrain or hold you with your consent?",
+      "category": "kinky",
+      "heat": 5,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 199
+    },
+    {
+      "id": "h5_234",
+      "text": "Which natural scents, tastes, or bodily fluids during sex turn you on most, and why?",
+      "category": "sensory",
+      "heat": 5,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 199
+    },
+    {
+      "id": "h5_235",
+      "text": "What scenario would make you want me to control your pleasure while you are not allowed to touch me back?",
+      "category": "kinky",
+      "heat": 5,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 199
+    },
+    {
+      "id": "h5_236",
+      "text": "How would you direct me to edge you for as long as possible before letting you finish?",
+      "category": "physical",
+      "heat": 5,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 199
+    },
+    {
+      "id": "h5_237",
+      "text": "Describe the most intense orgasm you have had with me and what pushed you over the edge.",
+      "category": "memory",
+      "heat": 5,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 200
+    },
+    {
+      "id": "h5_238",
+      "text": "Describe a time we had sex that felt raw and unfiltered, and what made it different.",
+      "category": "memory",
+      "heat": 5,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 200
+    },
+    {
+      "id": "h5_239",
+      "text": "What visual memory of my body during sex do you recall when you want to turn yourself on?",
+      "category": "visual",
+      "heat": 5,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 200
+    },
+    {
+      "id": "h5_240",
+      "text": "When was our sexual pacing exactly what your body needed, whether slow, fast, or changing between both?",
+      "category": "memory",
+      "heat": 5,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 200
+    },
+    {
+      "id": "h5_241",
+      "text": "How do our bodies communicate during sex now compared with the first time we slept together?",
+      "category": "memory",
+      "heat": 5,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 200
+    },
+    {
+      "id": "h5_242",
+      "text": "What dominant or submissive urge have you felt toward me but not fully acted out yet?",
+      "category": "kinky",
+      "heat": 5,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 201
+    },
+    {
+      "id": "h5_243",
+      "text": "What does zero-inhibition sexual freedom look like for you, and what environment would help you reach it?",
+      "category": "kinky",
+      "heat": 5,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 201
+    },
+    {
+      "id": "h5_244",
+      "text": "What runs through your mind and body when you know I am watching you experience intense pleasure?",
+      "category": "visual",
+      "heat": 5,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 201
+    },
+    {
+      "id": "h5_245",
+      "text": "What physical insecurity fades for you when we are having passionate sex?",
+      "category": "emotional",
+      "heat": 5,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 201
+    },
+    {
+      "id": "h5_246",
+      "text": "How does raw, unfiltered sex with me affect your confidence or emotional security outside the bedroom?",
+      "category": "emotional",
+      "heat": 5,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 201
     }
   ]
 }

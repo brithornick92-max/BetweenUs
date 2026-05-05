@@ -27,12 +27,12 @@ import {
   saveSharedDailyPromptSelection,
 } from '../services/content/ContentCoupleService';
 import { DataLayer } from '../services/localfirst';
-import { buildPremiumPromptLibrary } from '../services/WeeklyContentSetService';
+import { CONTENT_TYPES } from '../services/WeeklyContentSetService';
 import { resolveWeeklyContentAnchorDate } from '../utils/contentSchedule';
 import { FALLBACK_PROMPT, getPromptById } from '../utils/contentLoader';
 import { getRestoredDeckItemIds } from '../utils/contentDeckRestores';
 import { getRecentlyCompletedPromptIds } from '../utils/promptHistory';
-import { filterItemsToFreeWeeklyDeck } from '../utils/freeWeeklyDeckAccess';
+import { buildStableWeeklySet } from '../utils/stableWeeklyContent';
 import { storage } from '../utils/storage';
 
 const ContentContext = createContext({});
@@ -273,30 +273,20 @@ export const ContentProvider = ({ children }) => {
         return restoredPromptIds.has(promptId) || !recentlyCompletedPromptIds.has(prompt?.id);
       });
 
-      if (!isPremium) {
-        const freeDeckPrompts = filterItemsToFreeWeeklyDeck(promptsData, {
-          contentType: 'prompts',
-          user,
-          userProfile,
-          userSettings: profile || options?.profileOverride || userProfile || {},
-          date: new Date(),
-        });
-        if (freeDeckPrompts.length > 0) {
-          promptsData = freeDeckPrompts;
-        }
-      } else {
-        promptsData = buildPremiumPromptLibrary(promptsData, {
-          userId: user.uid,
-          userSettings: {
-            ...(profile || options?.profileOverride || userProfile || {}),
-            maxHeat: effectiveHeat,
-          },
-          userCreatedAt: contentAnchorDate,
-          date: new Date(),
-        });
-      }
-
       promptsData = await filterVisiblePromptsForProfile(promptsData, profile);
+
+      const weeklySet = await buildStableWeeklySet(promptsData, {
+        contentType: CONTENT_TYPES.PROMPTS,
+        userId: user.uid,
+        isPremium,
+        userSettings: {
+          ...(profile || options?.profileOverride || userProfile || {}),
+          maxHeat: effectiveHeat,
+        },
+        userCreatedAt: contentAnchorDate,
+        date: new Date(),
+      });
+      promptsData = weeklySet.items || [];
 
       if (promptsData.length === 0) {
         throw new Error('No prompts available for your preferences');
@@ -403,9 +393,7 @@ export const ContentProvider = ({ children }) => {
         // Don't log as an error if it's just the expected free user limit
         const errorString = String(error?.message || error);
         if (
-          errorString.includes('free moment is used') ||
-          errorString.includes('weekly preview') ||
-          errorString.includes('weekly_preview_locked')
+          errorString.includes('free moment is used')
         ) {
           if (__DEV__) console.log("[ContentContext] Setting fallback daily prompt for free user.");
         } else if (errorString.includes('No prompts available for your preferences')) {

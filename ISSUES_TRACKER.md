@@ -4,19 +4,18 @@
 
 ### Issue #1: Double Content Filtering System Conflict
 - **Priority:** 🔴 CRITICAL
-- **Status:** ❌ OPEN
+- **Status:** ✅ RESOLVED 2026-05-05
 - **Effort:** 2-3 hours
 - **Risk:** Low (new system well-tested)
-- **Files:** PromptsScreen.js, ContentAccessService.js, WeeklyContentSetService.js
-- **Root Cause:** Two incompatible content filtering systems (global vs. personalized schedule)
-- **Impact:** Free users see wrong content counts, premium/free boundaries may fail
-- **Recommendation:** Remove old ContentAccessService filtering, use WeeklyContentSetService exclusively
+- **Files:** PromptsScreen.js, DateNightScreen.js, IntimacyPositionsScreen.jsx, WeeklyContentSetService.js, utils/stableWeeklyContent.js
+- **Root Cause:** Two incompatible content filtering systems were previously active.
+- **Resolution:** Live content paths now use the personalized weekly allocation model only.
 - **Acceptance Criteria:**
-  - [ ] No calls to `ContentAccessService.getAccessiblePrompts()` in screens
-  - [ ] PromptsScreen uses `buildWeeklySet()` exclusively
-  - [ ] Free users see correct "10 cards ready" count on week 0
-  - [ ] Free users see correct "5 new cards" count on week 1+
-  - [ ] Existing WeeklyContentSetService tests pass
+  - [x] No live content path applies a separate release gate before personalized allocation
+  - [x] Free users start with 20 prompts, 20 dates, and 5 sex positions
+  - [x] Premium users start with 100 prompts, 100 dates, and 10 sex positions
+  - [x] Boundary changes do not backfill additional cards in the same week
+  - [x] WeeklyContentSetService and stable allocation tests pass
 
 ---
 
@@ -44,18 +43,18 @@
 
 ### Issue #3: Content Release Schedule Ambiguity
 - **Priority:** 🟠 HIGH
-- **Status:** ❌ OPEN
+- **Status:** ✅ RESOLVED 2026-05-05
 - **Effort:** 4 hours
 - **Risk:** Medium (affects UX)
-- **Files:** CRITICAL_LOGIC_ISSUES.md, WeeklyContentScheduler.js, WeeklyContentSetService.js
-- **Root Cause:** Conflicting definitions of "week" (global vs. personalized)
-- **Impact:** Users may see unreleased content or miss available content
-- **Recommendation:** Once Issue #1 fixed, audit and document exact release schedule
+- **Files:** CRITICAL_LOGIC_ISSUES.md, docs/PERSONALIZED_CONTENT_MODEL.md, WeeklyContentSetService.js
+- **Root Cause:** The release schedule needed one documented personal-week anchor.
+- **Resolution:** The schedule is cumulative and anchored to signup for free users and premium start for premium users.
 - **Acceptance Criteria:**
-  - [ ] Document defines when free users transition from week 0 (10 items) to week 1+ (5 items/week)
-  - [ ] Define whether free rotations are cumulative or rolling
-  - [ ] Add test cases for release schedule transitions
-  - [ ] Release schedule behavior matches product requirements
+  - [x] Document defines when free users transition from week 0 to week 1+
+  - [x] Free rotations are cumulative
+  - [x] Premium rotations are cumulative from premium start
+  - [x] Test cases cover release schedule transitions
+  - [x] Release schedule behavior matches product requirements
 
 ---
 

@@ -52,7 +52,7 @@ import {
   canOpenFreeDateDetail,
   trackFreeDateDetailUsage,
 } from '../utils/freePromptAnswerQuota';
-import { isItemInFreeWeeklyDeck } from '../utils/freeWeeklyDeckAccess';
+import { isItemInStableFreeWeeklyDeck } from '../utils/freeWeeklyDeckAccess';
 
 const AUTO_LOG_THRESHOLD_SECONDS = 300; // 5 minutes
 
@@ -124,7 +124,7 @@ export default function DateNightDetailScreen({ route, navigation }) {
         });
         if (!active) return;
 
-        const isWeeklyDate = isItemInFreeWeeklyDeck(resolvedDate.id, weeklyEligibleDates, {
+        const isWeeklyDate = await isItemInStableFreeWeeklyDeck(resolvedDate.id, weeklyEligibleDates, {
           contentType: CONTENT_TYPES.DATES,
           userId,
           user,

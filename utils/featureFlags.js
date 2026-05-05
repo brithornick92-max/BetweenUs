@@ -10,7 +10,6 @@
 // Every feature guard must use one of these identifiers.
 export const PremiumFeature = Object.freeze({
   UNLIMITED_PROMPTS: 'unlimitedPrompts',
-  HEAT_LEVELS_4_5: 'heatLevels4to5',
   UNLIMITED_DATE_IDEAS: 'unlimitedDateIdeas',
   SURPRISE_ME: 'surpriseMe',
   UNLIMITED_JOURNAL_HISTORY: 'unlimitedJournalHistory',
@@ -42,9 +41,9 @@ export const GuardBehavior = Object.freeze({
 export const FREE_LIMITS = Object.freeze({
   PROMPTS_PER_DAY: Infinity,    // Weekly deck + weekly answer quota drive free access, not daily locks
   DATE_IDEAS_PER_DAY: Infinity, // Weekly deck + weekly detail quota drive free access, not daily locks
-  PREVIEW_PROMPTS_TOTAL: 12,    // A fixed welcome pack of preview prompts
-  VISIBLE_PROMPTS_PER_WEEK: 5, // Free users add 5 prompts per week to a growing library
-  VISIBLE_DATE_IDEAS_PER_WEEK: 5, // Free users add 5 dates per week to a growing library
+  PREVIEW_PROMPTS_TOTAL: 0,     // Legacy preview packs are disabled; weekly decks drive free access
+  VISIBLE_PROMPTS_PER_WEEK: 5, // Free users add 5 prompts per week after a 20-prompt starter library
+  VISIBLE_DATE_IDEAS_PER_WEEK: 5, // Free users add 5 dates per week after a 20-date starter library
   VISIBLE_POSITIONS_PER_WEEK: 1, // Free users add 1 sex position per week to a growing library
   FULL_DATE_FLOWS_PER_WEEK: Infinity, // Planning stays usable on the free tier
   JOURNAL_ENTRIES_VISIBLE: Infinity, // Notes stay usable on the free tier
@@ -55,9 +54,9 @@ export const FREE_LIMITS = Object.freeze({
   PROMPT_RESPONSES_ENABLED: true,
   CLOUD_SYNC_ENABLED: true,
   // Weekly access for free users
-  WEEK_0_PROMPTS: 5,
-  WEEK_0_DATES: 5,
-  WEEK_0_POSITIONS: 1,
+  WEEK_0_PROMPTS: 20,
+  WEEK_0_DATES: 20,
+  WEEK_0_POSITIONS: 5,
   WEEKLY_PROMPTS: 5,
   WEEKLY_DATES: 5,
   WEEKLY_POSITIONS: 1,
@@ -68,7 +67,7 @@ export const PREMIUM_LIMITS = Object.freeze({
   // Premium is no longer "all access" but a weekly drip model.
   // The actual number of items will be determined by the user's
   // subscription duration (e.g., `weeksSubscribed`).
-  PROMPTS_PER_DAY: 10, // A high but not infinite number for daily interaction
+  PROMPTS_PER_DAY: Infinity,
   PREVIEW_PROMPTS_TOTAL: 0, // No concept of "previews" for premium
   FULL_DATE_FLOWS_PER_WEEK: Infinity,
   JOURNAL_ENTRIES_VISIBLE: Infinity,
@@ -87,95 +86,6 @@ export const PREMIUM_LIMITS = Object.freeze({
   WEEKLY_DATES: 15,
   WEEKLY_POSITIONS: 3,
 });
-
-// ─── Fixed Preview Prompts for Free Users ────────────────────────────────────
-// Hand-picked preview prompts across all heat levels to build habit before gating.
-export const FREE_PREVIEW_PROMPTS = Object.freeze([
-  {
-    id: 'free_preview_h1',
-    text: "What's one small thing I do that makes you feel truly loved?",
-    category: 'emotional',
-    heat: 1,
-    isPreview: true,
-  },
-  {
-    id: 'free_preview_h2',
-    text: "If we could relive one date from our relationship, which would you pick and why?",
-    category: 'romance',
-    heat: 2,
-    isPreview: true,
-  },
-  {
-    id: 'free_preview_h3',
-    text: "What's something you've always wanted to try together but haven't brought up yet?",
-    category: 'physical',
-    heat: 3,
-    isPreview: true,
-  },
-  {
-    id: 'free_preview_h1b',
-    text: "What's a moment from this week where you felt most connected to me?",
-    category: 'emotional',
-    heat: 1,
-    isPreview: true,
-  },
-  {
-    id: 'free_preview_h1c',
-    text: "What's one dream you haven't told me about yet?",
-    category: 'emotional',
-    heat: 1,
-    isPreview: true,
-  },
-  {
-    id: 'free_preview_h2b',
-    text: "What song makes you think of us — and why?",
-    category: 'romance',
-    heat: 2,
-    isPreview: true,
-  },
-  {
-    id: 'free_preview_h2c',
-    text: "Describe your perfect lazy Sunday with me.",
-    category: 'romance',
-    heat: 2,
-    isPreview: true,
-  },
-  {
-    id: 'free_preview_h1d',
-    text: "What's something I said once that you still think about?",
-    category: 'emotional',
-    heat: 1,
-    isPreview: true,
-  },
-  {
-    id: 'free_preview_h2d',
-    text: "If we had no responsibilities for 48 hours, what would we do?",
-    category: 'romance',
-    heat: 2,
-    isPreview: true,
-  },
-  {
-    id: 'free_preview_h3b',
-    text: "What's a new experience you'd love for us to share this month?",
-    category: 'physical',
-    heat: 3,
-    isPreview: true,
-  },
-  {
-    id: 'free_preview_h4',
-    text: "What's a more daring version of closeness you'd want to explore with clear boundaries?",
-    category: 'sensual',
-    heat: 4,
-    isPreview: true,
-  },
-  {
-    id: 'free_preview_h5',
-    text: "What's one explicit desire you'd only want us to explore if we both felt fully safe and enthusiastic?",
-    category: 'intimacy',
-    heat: 5,
-    isPreview: true,
-  },
-]);
 
 // ─── Usage Event Types ──────────────────────────────────────────────────────────
 // Canonical event types written to both local cache and Supabase.
@@ -198,23 +108,15 @@ export const PremiumSource = Object.freeze({
 export const FEATURE_META = Object.freeze({
   [PremiumFeature.UNLIMITED_PROMPTS]: {
     name: 'Growing Prompt Library',
-    description: 'Free starts with 5 prompts and adds 5 more each week. Premium starts with 100 prompts and adds 15 more each week.',
+    description: 'Free starts with 20 prompts and adds 5 more each week. Premium starts with 100 prompts and adds 15 more each week.',
     icon: 'flame-outline',
     category: 'content',
     guardBehavior: GuardBehavior.LIMITED,
     emotionalValue: 'Keep leaving small pieces of your heart for each other',
   },
-  [PremiumFeature.HEAT_LEVELS_4_5]: {
-    name: 'Unlock All 5 Heat Levels',
-    description: 'Explore our full catalog of prompts and date ideas, from soft and romantic to steamy and adventurous.',
-    icon: 'flame-outline',
-    category: 'content',
-    guardBehavior: GuardBehavior.LIMITED,
-    emotionalValue: 'Keep desire playful, private, chosen together, and refreshed',
-  },
   [PremiumFeature.UNLIMITED_DATE_IDEAS]: {
     name: 'Endless Date Inspiration',
-    description: 'Free starts with 5 date ideas and adds 5 more each week. Premium starts with 100 dates and adds 15 more each week.',
+    description: 'Free starts with 20 date ideas and adds 5 more each week. Premium starts with 100 date ideas and adds 15 more each week.',
     icon: 'flower-outline',
     category: 'content',
     guardBehavior: GuardBehavior.LIMITED,
@@ -226,7 +128,7 @@ export const FEATURE_META = Object.freeze({
     icon: 'dice-outline',
     category: 'content',
     guardBehavior: GuardBehavior.BLOCK,
-    emotionalValue: 'Make intimacy easier to start',
+    emotionalValue: 'Make sex easier to start',
   },
   [PremiumFeature.UNLIMITED_JOURNAL_HISTORY]: {
     name: 'Full Keepsake Archive',
@@ -269,8 +171,8 @@ export const FEATURE_META = Object.freeze({
     emotionalValue: 'Keep the ritual fresh without making it feel like work',
   },
   [PremiumFeature.VIBE_SIGNAL]: {
-    name: 'Love Signals',
-    description: 'Send low-friction notes, photos, moods, and thinking-of-you moments',
+    name: 'Vibe Signal Screen',
+    description: 'Premium access to real-time mood and heartbeat-style signals for linked partners.',
     icon: 'radio-outline',
     category: 'connection',
     guardBehavior: GuardBehavior.BLOCK,
@@ -339,6 +241,7 @@ export const FEATURE_META = Object.freeze({
 export const PAYWALL_FEATURE_IDS = Object.freeze([
   PremiumFeature.UNLIMITED_PROMPTS,
   PremiumFeature.UNLIMITED_DATE_IDEAS,
+  PremiumFeature.VIBE_SIGNAL,
   PremiumFeature.UNLIMITED_JOURNAL_HISTORY,
 ]);
 
@@ -347,7 +250,6 @@ const LEGACY_PREMIUM_FEATURE_ALIASES = Object.freeze({
   DATE_NIGHT_BROWSE: PremiumFeature.UNLIMITED_DATE_IDEAS,
   DATE_NIGHT_DETAILS: PremiumFeature.UNLIMITED_DATE_IDEAS,
   UNLIMITED_DATE_IDEAS: PremiumFeature.UNLIMITED_DATE_IDEAS,
-  heatLevels4to5: PremiumFeature.HEAT_LEVELS_4_5,
   vaultAndBiometric: PremiumFeature.VAULT_AND_BIOMETRIC,
 });
 

@@ -120,7 +120,7 @@ describe('WeeklyContentSetService', () => {
     });
   });
 
-  it('builds free prompt welcome-week libraries with 5 usable cards and no locked previews', () => {
+  it('builds free prompt welcome-week libraries with 20 usable cards and no locked previews', () => {
     const result = buildWeeklySet(makePromptCatalog(6), {
       contentType: CONTENT_TYPES.PROMPTS,
       userId: 'free-user',
@@ -129,11 +129,11 @@ describe('WeeklyContentSetService', () => {
       date: TEST_DATE,
     });
 
-    expect(result.freeUnlockedLimit).toBe(5);
+    expect(result.freeUnlockedLimit).toBe(20);
     expect(result.freeLockedPreviewLimit).toBe(0);
-    expect(result.unlocked).toHaveLength(5);
+    expect(result.unlocked).toHaveLength(20);
     expect(result.lockedPreviews).toHaveLength(0);
-    expect(result.items).toHaveLength(5);
+    expect(result.items).toHaveLength(20);
     expect(result.items.every((item) => item.requiresPremium === false)).toBe(true);
   });
 
@@ -148,11 +148,11 @@ describe('WeeklyContentSetService', () => {
     });
 
     expect(result.weekNumber).toBeGreaterThan(0);
-    expect(result.freeUnlockedLimit).toBe(25);
-    expect(result.unlocked).toHaveLength(25);
+    expect(result.freeUnlockedLimit).toBe(40);
+    expect(result.unlocked).toHaveLength(40);
   });
 
-  it('builds free date welcome-week libraries with 5 usable cards and no locked previews', () => {
+  it('builds free date welcome-week libraries with 20 usable cards and no locked previews', () => {
     const result = buildWeeklySet(makeDateCatalog(), {
       contentType: CONTENT_TYPES.DATES,
       userId: 'free-user',
@@ -161,15 +161,15 @@ describe('WeeklyContentSetService', () => {
       date: TEST_DATE,
     });
 
-    expect(result.freeUnlockedLimit).toBe(5);
+    expect(result.freeUnlockedLimit).toBe(20);
     expect(result.freeLockedPreviewLimit).toBe(0);
-    expect(result.unlocked).toHaveLength(5);
+    expect(result.unlocked).toHaveLength(20);
     expect(result.lockedPreviews).toHaveLength(0);
-    expect(result.items).toHaveLength(5);
+    expect(result.items).toHaveLength(20);
   });
 
   it('grows the free date library by 5 cards each week', () => {
-    const result = buildWeeklySet(makeDateCatalog(24), {
+    const result = buildWeeklySet(makeDateCatalog(50), {
       contentType: CONTENT_TYPES.DATES,
       userId: 'free-user',
       isPremium: false,
@@ -179,8 +179,8 @@ describe('WeeklyContentSetService', () => {
     });
 
     expect(result.weekNumber).toBeGreaterThan(0);
-    expect(result.freeUnlockedLimit).toBe(25);
-    expect(result.unlocked).toHaveLength(24);
+    expect(result.freeUnlockedLimit).toBe(40);
+    expect(result.unlocked).toHaveLength(40);
   });
 
   it('builds free position welcome-week libraries and prioritizes soft accessible picks first', () => {
@@ -192,15 +192,25 @@ describe('WeeklyContentSetService', () => {
       date: TEST_DATE,
     });
 
-    expect(result.unlocked).toHaveLength(1);
+    expect(result.unlocked).toHaveLength(5);
     expect(result.lockedPreviews).toHaveLength(0);
-    expect(result.items).toHaveLength(1);
+    expect(result.items).toHaveLength(5);
     expect(result.unlocked[0].heat).toBe(1);
     expect(result.unlocked[0].accessibility).toBe('low-mobility');
   });
 
   it('grows the free position library by 1 card each week', () => {
-    const result = buildWeeklySet(positions, {
+    const positionCatalog = Array.from({ length: 12 }, (_, index) =>
+      makePosition(
+        `free-ip${index + 1}`,
+        (index % 5) + 1,
+        ['deep-connection', 'playful-energy', 'exploratory', 'trust-vulnerability', 'sensual-rhythm'][index % 5],
+        ['low-mobility', 'standard', 'active'][index % 3],
+        `Free position ${index + 1}`
+      )
+    );
+
+    const result = buildWeeklySet(positionCatalog, {
       contentType: CONTENT_TYPES.POSITIONS,
       userId: 'free-user',
       isPremium: false,
@@ -210,8 +220,8 @@ describe('WeeklyContentSetService', () => {
     });
 
     expect(result.weekNumber).toBeGreaterThan(0);
-    expect(result.freeUnlockedLimit).toBe(5);
-    expect(result.unlocked).toHaveLength(5);
+    expect(result.freeUnlockedLimit).toBe(9);
+    expect(result.unlocked).toHaveLength(9);
   });
 
   it('builds premium date libraries that start large and keep growing weekly', () => {
@@ -255,9 +265,11 @@ describe('WeeklyContentSetService', () => {
   });
 
   it('keeps upgrade copy aligned with the new growth model', () => {
-    expect(UPGRADE_COPY.prompts.body).toContain('5 prompts');
-    expect(UPGRADE_COPY.dates.body).toContain('5 date ideas');
-    expect(UPGRADE_COPY.positions.body).toContain('1 sex position');
+    expect(UPGRADE_COPY.prompts.body).toContain('adds 5 more each week');
+    expect(UPGRADE_COPY.dates.body).toContain('adds 5 more each week');
+    expect(UPGRADE_COPY.prompts.body).toContain('20 prompts');
+    expect(UPGRADE_COPY.dates.body).toContain('20 date ideas');
+    expect(UPGRADE_COPY.positions.body).toContain('5 sex positions');
   });
 
   it('respects maxHeat when building weekly sets', () => {
@@ -290,6 +302,30 @@ describe('WeeklyContentSetService', () => {
     });
 
     expect(second.items.map((item) => item.id)).toEqual(first.items.map((item) => item.id));
+  });
+
+  it('keeps earlier free cards when the cumulative prompt library grows', () => {
+    const catalog = makePromptCatalog(10);
+    const baseOptions = {
+      contentType: CONTENT_TYPES.PROMPTS,
+      userId: 'growing-free-user',
+      isPremium: false,
+      userSettings: { maxHeat: 5 },
+      userCreatedAt: '2026-04-30T12:00:00.000Z',
+    };
+    const signupWeek = buildWeeklySet(catalog, {
+      ...baseOptions,
+      date: new Date('2026-05-03T12:00:00.000Z'),
+    });
+    const nextWeek = buildWeeklySet(catalog, {
+      ...baseOptions,
+      date: new Date('2026-05-07T12:00:00.000Z'),
+    });
+    const nextWeekIds = new Set(nextWeek.items.map((item) => item.id));
+
+    expect(signupWeek.items).toHaveLength(20);
+    expect(nextWeek.items).toHaveLength(25);
+    expect(signupWeek.items.every((item) => nextWeekIds.has(item.id))).toBe(true);
   });
 
   it('computes week numbers from the shared weekly start date', () => {

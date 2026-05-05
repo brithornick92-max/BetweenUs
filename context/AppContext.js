@@ -5,7 +5,6 @@ import { storage, STORAGE_KEYS, vibeStorage, settingsStorage, userStorage } from
 import { useEntitlements } from './EntitlementsContext';
 import { updateWidgetPartnerName } from '../services/widgetData';
 import { NicknameEngine } from '../services/PolishEngine';
-import WeeklyContentScheduler from '../services/WeeklyContentScheduler';
 import { getVerifiedCoupleState, unlinkCouple } from '../services/couple/CouplePresenceService';
 
 const initialState = {
@@ -167,9 +166,6 @@ export function AppProvider({ children }) {
     };
 
     const init = async () => {
-      // Initialize content scheduler in background (non-blocking)
-      WeeklyContentScheduler.init().catch(() => {});
-      
       let userId = await userStorage.getUserId();
       if (!userId) {
         userId = Crypto.randomUUID();

@@ -33,13 +33,14 @@ import { useTheme } from "../context/ThemeContext";
 import { useEntitlements } from "../context/EntitlementsContext";
 import { useAuth } from "../context/AuthContext";
 import * as PreferenceEngine from "../services/PreferenceEngine";
-import { CONTENT_TYPES, buildPremiumPromptLibrary, buildWeeklySet } from "../services/WeeklyContentSetService";
+import { CONTENT_TYPES } from "../services/WeeklyContentSetService";
 import PromptCardDeck from "../components/PromptCardDeck";
 import { SoftBoundaries } from "../services/PolishEngine";
 import { DataLayer } from "../services/localfirst";
 import { FALLBACK_PROMPT } from "../utils/contentLoader";
 import { getRestoredDeckItemIds } from "../utils/contentDeckRestores";
 import { resolveWeeklyContentAnchorDate } from "../utils/contentSchedule";
+import { buildStableWeeklySet } from "../utils/stableWeeklyContent";
 import { getRecentlyCompletedPromptIds } from "../utils/promptHistory";
 import { promptStorage, savedPromptStorage } from "../utils/storage";
 import { LinearGradient } from 'expo-linear-gradient';
@@ -322,8 +323,9 @@ export default function PromptsScreen({ navigation }) {
         return restoredPromptIds.has(promptId) || !recentlyCompletedPromptIds.has(prompt?.id);
       });
 
-      // Build the user's visible prompt library for their current tier.
-      const weeklySet = buildWeeklySet(activeBoundaryEligible, {
+      // Build this user's stable weekly allocation. Boundary changes filter this
+      // allocation, but they do not backfill extra cards until the next week.
+      const weeklySet = await buildStableWeeklySet(activeBoundaryEligible, {
         contentType: CONTENT_TYPES.PROMPTS,
         userId: user?.uid || user?.id || 'anonymous',
         isPremium,
@@ -335,14 +337,7 @@ export default function PromptsScreen({ navigation }) {
       setWeeklyPromptSet(weeklySet);
 
       const promptPool = isPremium
-        ? buildPremiumPromptLibrary(activeBoundaryEligible, {
-            userId: user?.uid || user?.id || 'anonymous',
-            userSettings: contentProfile
-              ? { ...contentProfile, maxHeat: resolveExplicitMaxHeat(contentProfile) }
-              : userProfile || {},
-            userCreatedAt: contentAnchorDate,
-            date: new Date(),
-          })
+        ? weeklySet.items || []
         : activeBoundaryEligible;
 
       setPrompts(promptPool);

@@ -645,7 +645,7 @@ export const PrivateLanguageVault = {
 
 const THIS_OR_THAT_PROMPTS = [
   { id: 'tt1', optionA: 'Stay in', optionB: 'Go out' },
-  { id: 'tt2', optionA: 'Morning intimacy', optionB: 'Night intimacy', heat: 4 },
+  { id: 'tt2', optionA: 'Morning sex', optionB: 'Night sex', heat: 4 },
   { id: 'tt3', optionA: 'Beach', optionB: 'Mountains' },
   { id: 'tt4', optionA: 'Talk all night', optionB: 'Fall asleep together' },
   { id: 'tt5', optionA: 'Cook together', optionB: 'Order in' },

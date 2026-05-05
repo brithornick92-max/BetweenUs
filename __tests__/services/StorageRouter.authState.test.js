@@ -24,13 +24,6 @@ jest.mock('../../services/supabase/CoupleService', () => ({
   default: {},
 }));
 
-jest.mock('../../services/WeeklyContentScheduler', () => ({
-  __esModule: true,
-  default: {
-    filterAvailable: jest.fn((items) => items),
-  },
-}));
-
 jest.mock('../../utils/storage', () => ({
   cloudSyncStorage: {
     getSyncStatus: jest.fn().mockResolvedValue({}),

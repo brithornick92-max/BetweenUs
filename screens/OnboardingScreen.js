@@ -554,7 +554,7 @@ export default function OnboardingScreen({ navigation }) {
     { id: 'deeper', icon: 'heart-outline', label: 'Keep choosing each other' },
     { id: 'communicate', icon: 'chatbubbles-outline', label: 'Feel close on busy days' },
     { id: 'fun', icon: 'happy-outline', label: 'Have more fun together' },
-    { id: 'intimacy', icon: 'flame-outline', label: 'Keep intimacy alive' },
+    { id: 'intimacy', icon: 'flame-outline', label: 'Keep sex alive' },
     { id: 'grow', icon: 'leaf-outline', label: 'Build our private story' },
   ];
 

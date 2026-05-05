@@ -27,7 +27,7 @@ for (const item of data.items) {
 
 data.meta.totalPositions = data.items.length;
 data.meta.releaseSchedule =
-  '10 positions at launch (releaseWeek 0), then 1 new position per week through week 190. Full library screens can show all accessible positions for premium users.';
+  'Free starts with 5 sex positions and adds 1 each personal week. Premium starts with 10 sex positions from premium start and adds 3 each premium week.';
 
 fs.writeFileSync(file, JSON.stringify(data, null, 2) + '\n');
 

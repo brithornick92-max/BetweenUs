@@ -136,13 +136,14 @@ jest.mock('../../utils/promptHistory', () => ({
   getRecentlyCompletedPromptIds: jest.fn(() => new Set()),
 }));
 
-jest.mock('../../utils/freeWeeklyDeckAccess', () => ({
-  filterItemsToFreeWeeklyDeck: jest.fn((items) => items),
+jest.mock('../../utils/stableWeeklyContent', () => ({
+  buildStableWeeklySet: jest.fn(async (items) => ({ items })),
 }));
 
 jest.mock('../../utils/storage', () => ({
   STORAGE_KEYS: {
     CONTENT_DECK_RESTORES: 'contentDeckRestores',
+    WEEKLY_CONTENT_ALLOCATIONS: 'weeklyContentAllocations',
   },
   storage: {
     get: (...args) => mockStorageGet(...args),

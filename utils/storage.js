@@ -48,6 +48,7 @@ export const STORAGE_KEYS = {
   PREMIUM_SELF_STARTED_AT: key("premiumSelfStartedAt"),
   SAVED_PROMPTS_FOR_LATER: key("savedPromptsForLater"),
   CONTENT_DECK_RESTORES: key("contentDeckRestores"),
+  WEEKLY_CONTENT_ALLOCATIONS: key("weeklyContentAllocations"),
   MEMORIES: key("memories"),
   RITUAL_HISTORY: key("ritualHistory"),
   RITUAL_SYNC_QUEUE: key("ritualSyncQueue"),

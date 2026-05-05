@@ -81,7 +81,7 @@ const HEAT_ICONS = {
 };
 
 const HEAT_LABELS = {
-  1: "Emotional intimacy",
+  1: "Emotional closeness",
   2: "Flirty romance",
   3: "Sensual connection",
   4: "Steamy desire",

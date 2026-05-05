@@ -48,7 +48,7 @@ import {
   resolvePromptUsageUserId,
   trackFreePromptAnswerUsage,
 } from "../utils/freePromptAnswerQuota";
-import { isItemInFreeWeeklyDeck } from "../utils/freeWeeklyDeckAccess";
+import { isItemInStableFreeWeeklyDeck } from "../utils/freeWeeklyDeckAccess";
 
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 const MAX_LEN = 1000;
@@ -173,7 +173,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
         const weeklyEligiblePrompts = loadAllBundledPrompts().filter((item) =>
           PreferenceEngine.getPromptVisibilityState(item, profile).visible
         );
-        const isWeeklyPrompt = isItemInFreeWeeklyDeck(resolvedPrompt.id, weeklyEligiblePrompts, {
+        const isWeeklyPrompt = await isItemInStableFreeWeeklyDeck(resolvedPrompt.id, weeklyEligiblePrompts, {
           contentType: CONTENT_TYPES.PROMPTS,
           user,
           userProfile,

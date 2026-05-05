@@ -37,7 +37,7 @@ import { getPartnerDisplayName } from '../utils/profileNames';
 import DateCardFront, { HEAT_ICONS } from '../components/DateCardFront';
 import DateCardBack from '../components/DateCardBack';
 import { SoftBoundaries } from '../services/PolishEngine';
-import { CONTENT_TYPES, buildWeeklySet } from '../services/WeeklyContentSetService';
+import { CONTENT_TYPES } from '../services/WeeklyContentSetService';
 import {
   getDateShortlist,
   addDateToShortlist,
@@ -56,6 +56,7 @@ import {
 } from '../utils/freePromptAnswerQuota';
 import { resolveWeeklyContentAnchorDate } from '../utils/contentSchedule';
 import { getRestoredDeckItemIds } from '../utils/contentDeckRestores';
+import { buildStableWeeklySet } from '../utils/stableWeeklyContent';
 
 const { width, height } = Dimensions.get('window');
 const CARD_W = width - 40;
@@ -457,6 +458,12 @@ export default function DateNightScreen({ navigation }) {
   const shortlistBusyRef = useRef(new Set());
   const [shuffledDeck, setShuffledDeck] = useState(null);
   const emptyShuffleAnim = useSharedValue(0);
+  const contentAnchorDate = useMemo(() => resolveWeeklyContentAnchorDate({
+    isPremium,
+    premiumStartedAt,
+    user,
+    userProfile,
+  }), [isPremium, premiumStartedAt, user, userProfile]);
 
   // Defer heavy work until the tab transition animation finishes.
   // Reload on focus so season, tone, energy, and boundaries changes take effect.
@@ -495,8 +502,8 @@ export default function DateNightScreen({ navigation }) {
           restoredDateIds = restoredIdsResult.value;
         }
 
-        // Apply boundaries to filter dates. Free libraries intentionally keep
-        // completed dates visible so users can return to them later.
+        // Apply boundaries and keep completed dates hidden unless the user
+        // explicitly restored them to the deck.
         const boundaryEligible = dates.filter(d => {
           if (!d) return false;
           const heat = d.heat || 1;
@@ -514,8 +521,9 @@ export default function DateNightScreen({ navigation }) {
 
         setAllDates(activeBoundaryEligible);
 
-        // Build the user's visible cumulative library from boundary-filtered dates.
-        const weeklySet = buildWeeklySet(activeBoundaryEligible, {
+        // Build this user's stable weekly allocation. Boundary changes filter this
+        // allocation, but they do not backfill extra cards until the next week.
+        const weeklySet = await buildStableWeeklySet(activeBoundaryEligible, {
           contentType: CONTENT_TYPES.DATES,
           userId: userId || 'anonymous',
           isPremium,
@@ -599,12 +607,6 @@ export default function DateNightScreen({ navigation }) {
   const deckDone = deckIndex >= deck.length && deck.length > 0;
   const freeDeckDone = !isPremium && deckDone;
   const toneCopy = TONE_DATE_COPY[contentProfile?.tone || 'warm'] || TONE_DATE_COPY.warm;
-  const contentAnchorDate = useMemo(() => resolveWeeklyContentAnchorDate({
-    isPremium,
-    premiumStartedAt,
-    user,
-    userProfile,
-  }), [isPremium, premiumStartedAt, user, userProfile]);
 
   const handleSwipeRight = useCallback((date) => {
     if (date?.isLockedPreview || date?.requiresPremium) {

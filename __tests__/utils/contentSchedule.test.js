@@ -16,7 +16,7 @@ describe('contentSchedule', () => {
     })).toBe('2026-05-08T14:00:00.000Z');
   });
 
-  it('falls back to signup time when premium start is unavailable', () => {
+  it('does not use signup time as the premium anchor when premium start is unavailable', () => {
     expect(getSignupAnchorDate({
       userProfile: { createdAt: '2026-05-05T18:42:00.000Z' },
     })).toBe('2026-05-05T18:42:00.000Z');
@@ -25,6 +25,6 @@ describe('contentSchedule', () => {
       isPremium: true,
       premiumStartedAt: null,
       userProfile: { createdAt: '2026-05-05T18:42:00.000Z' },
-    })).toBe('2026-05-05T18:42:00.000Z');
+    })).toBe(null);
   });
 });

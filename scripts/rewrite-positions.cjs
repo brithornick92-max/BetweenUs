@@ -118,7 +118,8 @@ data.items = data.items.map(pos => {
 // Update meta
 delete data.meta.inclusivity;
 delete data.meta.variants;
-data.meta.description = "Intimacy building positions for all couples. Premium-only with weekly releases.";
+data.meta.description = "Sex positions for couples with free and premium weekly libraries.";
+data.meta.releaseSchedule = "Free starts with 5 sex positions and adds 1 each personal week. Premium starts with 10 sex positions from premium start and adds 3 each premium week.";
 
 fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
 console.log('Done. Positions rewritten:', data.items.length);

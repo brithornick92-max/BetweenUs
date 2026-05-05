@@ -7,7 +7,6 @@ import {
   GuardBehavior,
   FREE_LIMITS,
   PREMIUM_LIMITS,
-  FREE_PREVIEW_PROMPTS,
   FEATURE_META,
   PAYWALL_FEATURE_IDS,
   getLimitsForTier,
@@ -22,9 +21,9 @@ import {
 // ─── Enums ───────────────────────────────────────────────────────────────────
 
 describe('PremiumFeature enum', () => {
-  it('contains all 17 features', () => {
+  it('contains all 16 active features', () => {
     const features = Object.keys(PremiumFeature);
-    expect(features.length).toBe(17);
+    expect(features.length).toBe(16);
   });
 
   it('is frozen (immutable)', () => {
@@ -38,7 +37,6 @@ describe('PremiumFeature enum', () => {
 
   it('includes critical features', () => {
     expect(PremiumFeature.UNLIMITED_PROMPTS).toBe('unlimitedPrompts');
-    expect(PremiumFeature.HEAT_LEVELS_4_5).toBe('heatLevels4to5');
     expect(PremiumFeature.CLOUD_SYNC).toBe('cloudSync');
     expect(PremiumFeature.PARTNER_LINKING).toBe('partnerLinking');
   });
@@ -73,8 +71,8 @@ describe('FREE_LIMITS', () => {
     expect(FREE_LIMITS.FULL_DATE_FLOWS_PER_WEEK).toBe(Infinity);
   });
 
-  it('has 12 preview prompts to build habit before gating', () => {
-    expect(FREE_LIMITS.PREVIEW_PROMPTS_TOTAL).toBe(12);
+  it('does not use the old fixed preview prompt pack', () => {
+    expect(FREE_LIMITS.PREVIEW_PROMPTS_TOTAL).toBe(0);
   });
 
   it('allows free previews across all heat levels', () => {
@@ -85,6 +83,9 @@ describe('FREE_LIMITS', () => {
     expect(FREE_LIMITS.VISIBLE_PROMPTS_PER_WEEK).toBe(5);
     expect(FREE_LIMITS.VISIBLE_DATE_IDEAS_PER_WEEK).toBe(5);
     expect(FREE_LIMITS.VISIBLE_POSITIONS_PER_WEEK).toBe(1);
+    expect(FREE_LIMITS.WEEK_0_PROMPTS).toBe(20);
+    expect(FREE_LIMITS.WEEK_0_DATES).toBe(20);
+    expect(FREE_LIMITS.WEEK_0_POSITIONS).toBe(5);
   });
 
   it('keeps the core app experience available on free', () => {
@@ -104,8 +105,8 @@ describe('FREE_LIMITS', () => {
 });
 
 describe('PREMIUM_LIMITS', () => {
-  it('allows unlimited prompts', () => {
-    expect(PREMIUM_LIMITS.PROMPTS_PER_DAY).toBe(10);
+  it('allows unlimited daily prompt interaction', () => {
+    expect(PREMIUM_LIMITS.PROMPTS_PER_DAY).toBe(Infinity);
   });
 
   it('unlocks all 5 heat levels', () => {
@@ -117,36 +118,6 @@ describe('PREMIUM_LIMITS', () => {
     expect(PREMIUM_LIMITS.CALENDAR_ENABLED).toBe(true);
     expect(PREMIUM_LIMITS.PARTNER_LINKING_ENABLED).toBe(true);
     expect(PREMIUM_LIMITS.CLOUD_SYNC_ENABLED).toBe(true);
-  });
-});
-
-// ─── Free Preview Prompts ────────────────────────────────────────────────────
-
-describe('FREE_PREVIEW_PROMPTS', () => {
-  it('contains exactly 12 prompts', () => {
-    expect(FREE_PREVIEW_PROMPTS.length).toBe(12);
-  });
-
-  it('covers all heat levels', () => {
-    const heats = new Set(FREE_PREVIEW_PROMPTS.map(p => p.heat));
-    expect([...heats].sort()).toEqual([1, 2, 3, 4, 5]);
-  });
-
-  it('all have isPreview: true', () => {
-    FREE_PREVIEW_PROMPTS.forEach(p => {
-      expect(p.isPreview).toBe(true);
-    });
-  });
-
-  it('all have required fields', () => {
-    FREE_PREVIEW_PROMPTS.forEach(p => {
-      expect(p.id).toBeDefined();
-      expect(p.text).toBeDefined();
-      expect(typeof p.text).toBe('string');
-      expect(p.text.length).toBeGreaterThan(10);
-      expect(p.category).toBeDefined();
-      expect(p.heat).toBeDefined();
-    });
   });
 });
 
@@ -203,7 +174,6 @@ describe('getLimitsForTier', () => {
 describe('getGuardBehavior', () => {
   it('returns correct behavior for known features', () => {
     expect(getGuardBehavior(PremiumFeature.UNLIMITED_PROMPTS)).toBe(GuardBehavior.LIMITED);
-    expect(getGuardBehavior(PremiumFeature.HEAT_LEVELS_4_5)).toBe(GuardBehavior.LIMITED);
     expect(getGuardBehavior(PremiumFeature.SURPRISE_ME)).toBe(GuardBehavior.BLOCK);
     expect(getGuardBehavior(PremiumFeature.UNLIMITED_JOURNAL_HISTORY)).toBe(GuardBehavior.BLUR);
   });

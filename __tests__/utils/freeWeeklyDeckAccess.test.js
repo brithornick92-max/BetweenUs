@@ -1,9 +1,20 @@
 import { CONTENT_TYPES } from '../../services/WeeklyContentSetService';
 import {
-  filterItemsToFreeWeeklyDeck,
-  getFreeWeeklyDeck,
-  isItemInFreeWeeklyDeck,
+  getStableFreeWeeklyDeck,
+  getStableFreeWeeklyDeckItemIds,
+  isItemInStableFreeWeeklyDeck,
 } from '../../utils/freeWeeklyDeckAccess';
+import { storage } from '../../utils/storage';
+
+jest.mock('../../utils/storage', () => ({
+  STORAGE_KEYS: {
+    WEEKLY_CONTENT_ALLOCATIONS: 'weeklyContentAllocations',
+  },
+  storage: {
+    get: jest.fn(async () => ({})),
+    set: jest.fn(async () => {}),
+  },
+}));
 
 const makePrompt = (id, heat = 1) => ({
   id,
@@ -22,9 +33,18 @@ const makeDate = (id, heat = 1) => ({
 });
 
 describe('freeWeeklyDeckAccess', () => {
-  it('builds a 5-card free prompt library in signup week', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    const store = {};
+    storage.get.mockImplementation(async (key, fallback) => store[key] ?? fallback);
+    storage.set.mockImplementation(async (key, value) => {
+      store[key] = value;
+    });
+  });
+
+  it('builds a 20-card free prompt library in signup week', async () => {
     const prompts = Array.from({ length: 24 }, (_, index) => makePrompt(`prompt-${index + 1}`));
-    const deck = getFreeWeeklyDeck(prompts, {
+    const deck = await getStableFreeWeeklyDeck(prompts, {
       contentType: CONTENT_TYPES.PROMPTS,
       userId: 'user-1',
       userProfile: { created_at: '2026-04-30T12:00:00.000Z' },
@@ -32,14 +52,14 @@ describe('freeWeeklyDeckAccess', () => {
       date: new Date('2026-05-03T12:00:00.000Z'),
     });
 
-    expect(deck).toHaveLength(5);
+    expect(deck).toHaveLength(20);
     expect(deck.every((item) => item.requiresPremium === false)).toBe(true);
     expect(deck.every((item) => item.isLockedPreview === false)).toBe(true);
   });
 
-  it('grows the free prompt library to 25 cards after four weeks', () => {
-    const prompts = Array.from({ length: 40 }, (_, index) => makePrompt(`prompt-${index + 1}`));
-    const deck = getFreeWeeklyDeck(prompts, {
+  it('grows the free prompt library to 40 cards after four weeks', async () => {
+    const prompts = Array.from({ length: 50 }, (_, index) => makePrompt(`prompt-${index + 1}`));
+    const deck = await getStableFreeWeeklyDeck(prompts, {
       contentType: CONTENT_TYPES.PROMPTS,
       userId: 'user-1',
       userProfile: { created_at: '2026-04-01T12:00:00.000Z' },
@@ -47,20 +67,20 @@ describe('freeWeeklyDeckAccess', () => {
       date: new Date('2026-04-30T12:00:00.000Z'),
     });
 
-    expect(deck).toHaveLength(25);
+    expect(deck).toHaveLength(40);
   });
 
-  it('uses a cumulative 5-card-to-growing-library shape for free dates', () => {
-    const dates = Array.from({ length: 24 }, (_, index) => makeDate(`date-${index + 1}`));
+  it('uses a cumulative 20-card-to-growing-library shape for free dates', async () => {
+    const dates = Array.from({ length: 50 }, (_, index) => makeDate(`date-${index + 1}`));
 
-    const welcomeDeck = getFreeWeeklyDeck(dates, {
+    const welcomeDeck = await getStableFreeWeeklyDeck(dates, {
       contentType: CONTENT_TYPES.DATES,
       userId: 'user-1',
       userProfile: { created_at: '2026-04-30T12:00:00.000Z' },
       userSettings: { maxHeat: 5 },
       date: new Date('2026-05-03T12:00:00.000Z'),
     });
-    const ongoingDeck = getFreeWeeklyDeck(dates, {
+    const ongoingDeck = await getStableFreeWeeklyDeck(dates, {
       contentType: CONTENT_TYPES.DATES,
       userId: 'user-1',
       userProfile: { created_at: '2026-04-01T12:00:00.000Z' },
@@ -68,11 +88,11 @@ describe('freeWeeklyDeckAccess', () => {
       date: new Date('2026-04-30T12:00:00.000Z'),
     });
 
-    expect(welcomeDeck).toHaveLength(5);
-    expect(ongoingDeck).toHaveLength(24);
+    expect(welcomeDeck).toHaveLength(20);
+    expect(ongoingDeck).toHaveLength(40);
   });
 
-  it('grows the free sex-position library to 5 items after four weeks', () => {
+  it('grows the free sex-position library to 9 items after four weeks', async () => {
     const positions = Array.from({ length: 12 }, (_, index) => ({
       id: `position-${index + 1}`,
       heat: 1,
@@ -81,7 +101,7 @@ describe('freeWeeklyDeckAccess', () => {
       shortSummary: `Summary ${index + 1}`,
     }));
 
-    const deck = getFreeWeeklyDeck(positions, {
+    const deck = await getStableFreeWeeklyDeck(positions, {
       contentType: CONTENT_TYPES.POSITIONS,
       userId: 'user-1',
       userProfile: { created_at: '2026-04-01T12:00:00.000Z' },
@@ -89,11 +109,11 @@ describe('freeWeeklyDeckAccess', () => {
       date: new Date('2026-04-30T12:00:00.000Z'),
     });
 
-    expect(deck).toHaveLength(5);
+    expect(deck).toHaveLength(9);
   });
 
-  it('identifies whether an item belongs to the current free prompt library', () => {
-    const prompts = Array.from({ length: 40 }, (_, index) => makePrompt(`prompt-${index + 1}`));
+  it('identifies whether an item belongs to the current free prompt library', async () => {
+    const prompts = Array.from({ length: 50 }, (_, index) => makePrompt(`prompt-${index + 1}`));
     const options = {
       contentType: CONTENT_TYPES.PROMPTS,
       userId: 'user-1',
@@ -101,15 +121,15 @@ describe('freeWeeklyDeckAccess', () => {
       userSettings: { maxHeat: 5 },
       date: new Date('2026-04-30T12:00:00.000Z'),
     };
-    const deck = getFreeWeeklyDeck(prompts, options);
+    const deck = await getStableFreeWeeklyDeck(prompts, options);
     const deckId = deck[0].id;
     const outsideId = prompts.find((prompt) => !deck.some((item) => item.id === prompt.id)).id;
 
-    expect(isItemInFreeWeeklyDeck(deckId, prompts, options)).toBe(true);
-    expect(isItemInFreeWeeklyDeck(outsideId, prompts, options)).toBe(false);
+    expect(await isItemInStableFreeWeeklyDeck(deckId, prompts, options)).toBe(true);
+    expect(await isItemInStableFreeWeeklyDeck(outsideId, prompts, options)).toBe(false);
   });
 
-  it('filters a prompt pool down to the current free prompt library', () => {
+  it('returns stable item ids for the current free prompt library', async () => {
     const prompts = Array.from({ length: 40 }, (_, index) => makePrompt(`prompt-${index + 1}`));
     const options = {
       contentType: CONTENT_TYPES.PROMPTS,
@@ -119,10 +139,10 @@ describe('freeWeeklyDeckAccess', () => {
       date: new Date('2026-04-30T12:00:00.000Z'),
     };
 
-    const deck = getFreeWeeklyDeck(prompts, options);
-    const filtered = filterItemsToFreeWeeklyDeck(prompts, options);
+    const deck = await getStableFreeWeeklyDeck(prompts, options);
+    const itemIds = await getStableFreeWeeklyDeckItemIds(prompts, options);
 
-    expect(filtered).toHaveLength(deck.length);
-    expect(filtered.map((item) => item.id).sort()).toEqual(deck.map((item) => item.id).sort());
+    expect(itemIds.size).toBe(deck.length);
+    expect([...itemIds].sort()).toEqual(deck.map((item) => item.id).sort());
   });
 });

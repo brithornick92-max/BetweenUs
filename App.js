@@ -40,7 +40,6 @@ import { addNotificationResponseListener } from "./utils/notifications";
 import SupabaseAuthService from "./services/supabase/SupabaseAuthService";
 import StorageRouter from "./services/storage/StorageRouter";
 import { cloudSyncStorage, storage, STORAGE_KEYS } from "./utils/storage";
-import WeeklyContentScheduler from "./services/WeeklyContentScheduler";
 import ExpoUpdateService from "./services/ExpoUpdateService";
 
 // Keep splash visible until fonts + init complete
@@ -248,11 +247,6 @@ function AppContent() {
   const backgroundTimeRef = useRef(null);
 
   const LOCK_GRACE_PERIOD = 5 * 60 * 1000;
-
-  // Temporary dev helper: reset cache to Week 0.
-  useEffect(() => {
-    WeeklyContentScheduler._devResetToWeek(0);
-  }, []);
 
   useEffect(() => {
     if (state.appLockEnabled && appStateVisible === "active") {

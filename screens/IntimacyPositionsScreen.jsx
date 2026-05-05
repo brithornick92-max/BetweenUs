@@ -22,8 +22,7 @@ import { useEntitlements } from '../context/EntitlementsContext';
 import { useAuth } from '../context/AuthContext';
 import { getPartnerDisplayName } from '../utils/profileNames';
 import contentAccessService from '../services/ContentAccessService';
-import WeeklyContentScheduler from '../services/WeeklyContentScheduler';
-import { CONTENT_TYPES, buildWeeklySet } from '../services/WeeklyContentSetService';
+import { CONTENT_TYPES } from '../services/WeeklyContentSetService';
 import * as PreferenceEngine from '../services/PreferenceEngine';
 
 // Utilities & Components
@@ -43,6 +42,7 @@ import {
 import { resolveWeeklyContentAnchorDate } from '../utils/contentSchedule';
 import { getIntimacyMatchState } from '../utils/coupleMatches';
 import { getRestoredDeckItemIds } from '../utils/contentDeckRestores';
+import { buildStableWeeklySet } from '../utils/stableWeeklyContent';
 
 const systemFont = Platform.select({ ios: "System", android: "Roboto" });
 let lastSelectedPositionId = null;
@@ -110,14 +110,10 @@ export default function IntimacyPositionsScreen() {
   const intimacyForLine = `For ${myLabel} and ${partnerLabel}.`;
 
   const positionCatalog = useMemo(
-    () => {
-      const currentWeek = WeeklyContentScheduler.getCurrentWeek();
-      return positionsData.items.filter((p) => 
-        p.id.startsWith('ip') && 
-        !p.id.includes('-q') &&
-        (p.releaseWeek == null || p.releaseWeek <= currentWeek)
-      );
-    },
+    () => positionsData.items.filter((p) =>
+      p.id.startsWith('ip') &&
+      !p.id.includes('-q')
+    ),
     []
   );
   const availablePositions = useMemo(() => {
@@ -182,7 +178,7 @@ export default function IntimacyPositionsScreen() {
       const positionId = String(position?.id || '');
       return restoredPositionIds.has(positionId) || !tried?.[positionId];
     });
-    const weeklySet = buildWeeklySet(accessiblePositions, {
+    const weeklySet = await buildStableWeeklySet(accessiblePositions, {
       contentType: CONTENT_TYPES.POSITIONS,
       userId: userProfile?.id || userProfile?.user_id || userProfile?.uid || userProfile?.sub || 'anonymous',
       isPremium: isPremiumEffective,
@@ -448,7 +444,7 @@ export default function IntimacyPositionsScreen() {
       navigation={navigation}
       headerTitle="Sex Positions"
       headerSubtitle="SEX POSITIONS"
-      headerDescription={isPremiumEffective ? "Starts with 10 positions and grows by 3 each week." : "Starts with 1 position and adds 1 more each week."}
+      headerDescription={isPremiumEffective ? "Starts with 10 sex positions and grows by 3 each week." : "Starts with 5 sex positions and adds 1 more each week."}
       scroll={false}
       onBack={handleBack}
       bodyStyle={{ paddingHorizontal: 0 }} // Remove scaffold padding for edge-to-edge

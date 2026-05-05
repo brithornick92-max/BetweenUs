@@ -45,7 +45,7 @@ const GOAL_LABELS = {
   deeper: 'Keep choosing each other',
   communicate: 'Feel close on busy days',
   fun: 'Have more fun together',
-  intimacy: 'Keep intimacy alive',
+  intimacy: 'Keep sex alive',
   grow: 'Build your private story',
 };
 
