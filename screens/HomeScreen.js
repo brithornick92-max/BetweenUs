@@ -1098,10 +1098,6 @@ export default function HomeScreen({ navigation }) {
                 </Text>
               </View>
 
-              <Text style={styles.memoryLanePrompt}>
-                {throwback.promptText || 'A past moment together'}
-              </Text>
-
               <Text style={styles.memoryLaneAnswer}>
                 "{throwback.answer}"
               </Text>
@@ -1525,22 +1521,13 @@ const createStyles = (t, isDark) => StyleSheet.create({
     textTransform: 'uppercase',
     color: t.primary,
   },
-  memoryLanePrompt: {
-    fontFamily: systemFont,
-    fontSize: 20,
-    lineHeight: 28,
-    fontWeight: '700',
-    letterSpacing: -0.3,
-    color: t.text,
-    marginBottom: SPACING.sm,
-  },
   memoryLaneAnswer: {
     fontFamily: systemFont,
-    fontSize: 17,
-    lineHeight: 26,
+    fontSize: 19,
+    lineHeight: 28,
     fontWeight: '400',
-    color: t.subtext,
-    marginBottom: SPACING.md,
+    color: t.text,
+    marginBottom: SPACING.lg,
     textAlign: 'center',
     alignSelf: 'center',
   },
