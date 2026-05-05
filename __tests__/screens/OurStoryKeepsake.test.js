@@ -110,10 +110,10 @@ describe('OurStory Keepsake entry building', () => {
     expect(entries.some((entry) => entry.sourceId === 'favorite-position-memory-1')).toBe(true);
 
     expect(KEEPSAKE_CATEGORY_COLORS).toEqual({
-      position: '#D2121A',
-      prompt: '#4F7DF3',
-      date: '#2FA36B',
-      memory: '#8A5CF6',
+      position: '#B91F2D',
+      prompt: '#3E63C9',
+      date: '#2D7A59',
+      memory: '#7152C7',
     });
     expect(entries.find((entry) => entry.kind === 'prompt').accent).toBe(KEEPSAKE_CATEGORY_COLORS.prompt);
     expect(entries.find((entry) => entry.kind === 'snapshot').accent).toBe(KEEPSAKE_CATEGORY_COLORS.memory);

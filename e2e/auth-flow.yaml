@@ -21,9 +21,11 @@ appId: com.brittany.betweenus
 - waitForAnimationToEnd
 
 # Intro screen should appear before account friction for new users
-- assertVisible: "Built for two, not a feed."
+- assertVisible:
+    text: ".*Built for two, not a feed.*"
 - assertVisible: "Account required for pairing"
-- assertVisible: "not used for marketing emails"
+- assertVisible:
+    text: ".*not used for marketing emails.*"
 
 # Continue into the sign-in form
 - tapOn: "Sign In"

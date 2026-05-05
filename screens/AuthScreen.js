@@ -251,7 +251,7 @@ export default function AuthScreen() {
 
                 <Text style={styles.groupLabel}>HOW IT WORKS</Text>
                 <View style={[styles.groupCard, { backgroundColor: t.surface, borderColor: t.border }]}>
-                  {INTRO_POINTS.map((item) => (
+                  {INTRO_POINTS.map((item, index) => (
                     <View key={item.title}>
                       <View style={styles.listRow}>
                         <View style={[styles.iconWrap, { backgroundColor: isDark ? 'rgba(210, 18, 26, 0.18)' : 'rgba(210, 18, 26, 0.08)' }]}>
@@ -262,7 +262,7 @@ export default function AuthScreen() {
                           <Text style={styles.rowBody}>{item.body}</Text>
                         </View>
                       </View>
-                      {item !== INTRO_POINTS[INTRO_POINTS.length - 1] && (
+                      {index < INTRO_POINTS.length - 1 && (
                         <View style={[styles.rowDivider, { backgroundColor: t.border }]} />
                       )}
                     </View>
@@ -580,6 +580,13 @@ const createStyles = (t, isDark) => StyleSheet.create({
     paddingVertical: SPACING.xxxl,
   },
 
+  onboardingScrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: SPACING.xl,
+    paddingTop: Platform.OS === "android" ? 60 : 40,
+    paddingBottom: 48,
+  },
+
   header: {
     paddingHorizontal: SPACING.xl,
     paddingTop: SPACING.xl,
@@ -631,67 +638,84 @@ const createStyles = (t, isDark) => StyleSheet.create({
     width: "100%",
   },
 
-  intro: {
-    width: "100%",
+  screenHeader: {
+    paddingBottom: SPACING.xl,
   },
 
-  introTitle: {
+  screenEyebrow: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 30,
-    lineHeight: 36,
+    fontSize: 12,
     fontWeight: "800",
-    color: t.text,
+    textTransform: "uppercase",
     letterSpacing: 0,
-    textAlign: "center",
     marginBottom: SPACING.sm,
   },
 
-  introBody: {
+  screenTitle: {
     fontFamily: SYSTEM_FONT,
-    fontSize: 16,
-    lineHeight: 23,
+    fontSize: 36,
+    lineHeight: 42,
+    fontWeight: "900",
+    color: t.text,
+    letterSpacing: 0,
+  },
+
+  screenDescription: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 15,
+    lineHeight: 21,
     color: t.subtext,
-    textAlign: "center",
-    fontWeight: "500",
+    fontWeight: "600",
+    marginTop: SPACING.sm,
+  },
+
+  groupLabel: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 13,
+    fontWeight: "800",
+    color: t.subtext,
+    textTransform: "uppercase",
+    letterSpacing: 0,
+    marginBottom: SPACING.sm,
+    paddingLeft: SPACING.xs,
+  },
+
+  groupCard: {
+    borderWidth: 1,
+    borderRadius: 20,
     marginBottom: SPACING.xl,
+    overflow: "hidden",
   },
 
-  introList: {
-    gap: 12,
-    marginBottom: SPACING.lg,
-  },
-
-  introRow: {
+  listRow: {
     flexDirection: "row",
     alignItems: "flex-start",
-    borderWidth: 1,
-    borderRadius: 18,
     padding: SPACING.lg,
+    gap: 16,
   },
 
-  introIcon: {
-    width: 38,
-    height: 38,
-    borderRadius: 12,
+  iconWrap: {
+    width: 34,
+    height: 34,
+    borderRadius: 8,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: SPACING.md,
   },
 
-  introCopy: {
+  rowText: {
     flex: 1,
   },
 
-  introPointTitle: {
+  rowTitle: {
     fontFamily: SYSTEM_FONT,
     fontSize: 16,
     color: t.text,
     fontWeight: "700",
     letterSpacing: 0,
-    marginBottom: 4,
+    marginBottom: 3,
   },
 
-  introPointBody: {
+  rowBody: {
     fontFamily: SYSTEM_FONT,
     fontSize: 14,
     lineHeight: 20,
@@ -699,23 +723,9 @@ const createStyles = (t, isDark) => StyleSheet.create({
     fontWeight: "500",
   },
 
-  privacyNote: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-    borderWidth: 1,
-    borderRadius: 16,
-    padding: SPACING.md,
-    marginBottom: SPACING.md,
-    gap: 10,
-  },
-
-  privacyText: {
-    flex: 1,
-    fontFamily: SYSTEM_FONT,
-    fontSize: 13,
-    lineHeight: 19,
-    color: t.subtext,
-    fontWeight: "600",
+  rowDivider: {
+    height: StyleSheet.hairlineWidth,
+    marginLeft: 66,
   },
 
   introSignInButton: {
@@ -739,6 +749,10 @@ const createStyles = (t, isDark) => StyleSheet.create({
     fontSize: 14,
     color: t.subtext,
     fontWeight: "700",
+  },
+
+  onboardingPrimaryButton: {
+    marginTop: 0,
   },
 
   inputContainer: {
