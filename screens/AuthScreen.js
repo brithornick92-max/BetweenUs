@@ -372,7 +372,7 @@ export default function AuthScreen() {
                   <Text style={styles.subtitle}>{headerSubtitle}</Text>
                 </View>
 
-                {!recoveryEmail && (
+                {isSignUp && !recoveryEmail && (
                   <TouchableOpacity
                     style={styles.backToIntroButton}
                     onPress={returnToIntro}

@@ -25,6 +25,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { BlurView } from 'expo-blur';
+import { randomUUID } from 'expo-crypto';
 import Icon from '../components/Icon';
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -68,10 +69,49 @@ const REMINDER_OPTIONS = [
   { label: '1d before',  mins: 1440 },
 ];
 
+const COMPOSER_EVENT_TYPES = ['general', 'dateNight', 'loveNote', 'ritual'];
+
+export function combineCalendarDateTime(dateValue, timeValue) {
+  const date = new Date(dateValue);
+  const time = new Date(timeValue);
+
+  date.setHours(time.getHours(), time.getMinutes(), 0, 0);
+  return date;
+}
+
+export function buildCalendarEventPayload({
+  editingEvent = null,
+  form,
+  pickerDate,
+  pickerTime,
+  notificationId = null,
+  eventId = null,
+}) {
+  const combined = combineCalendarDateTime(pickerDate, pickerTime);
+  const resolvedEventType = form?.eventType || (form?.isDateNight ? 'dateNight' : 'general');
+
+  return {
+    ...(editingEvent || {}),
+    ...(form || {}),
+    id: editingEvent?.id || eventId || randomUUID(),
+    title: String(form?.title || '').trim(),
+    notify: !!form?.notify,
+    whenTs: combined.getTime(),
+    notificationId,
+    eventType: resolvedEventType,
+    isDateNight: resolvedEventType === 'dateNight' || !!form?.isDateNight,
+  };
+}
+
 // ─── PremiumCalendar ──────────────────────────────────────────────────────────
 
 function PremiumCalendar({ selectedDate, onDateSelect, events, relationshipStartDate, styles, colors, isDark }) {
   const [currentMonth, setCurrentMonth] = useState(new Date());
+
+  useEffect(() => {
+    if (!selectedDate) return;
+    setCurrentMonth(new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1));
+  }, [selectedDate]);
 
   const getDaysInMonth = (date) => {
     const year = date.getFullYear();
@@ -121,7 +161,7 @@ function PremiumCalendar({ selectedDate, onDateSelect, events, relationshipStart
             style={[styles.navButton, { backgroundColor: colors.surfaceSecondary }]}
             activeOpacity={0.7}
           >
-            <Icon name="close-outline" size={20} color={colors.text} />
+            <Icon name="chevron-back" size={20} color={colors.text} />
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => navigateMonth(1)}
@@ -448,10 +488,11 @@ export default function CalendarScreen({ navigation, route }) {
     if (isSaving) return;
     if (!form.title.trim()) return Alert.alert('Required', 'Please name your event.');
     setIsSaving(true);
+    let scheduledNotificationId = null;
 
     try {
-      const combined = new Date(pickerDate);
-      combined.setHours(pickerTime.getHours(), pickerTime.getMinutes(), 0, 0);
+      const eventId = editingEvent?.id || randomUUID();
+      const combined = combineCalendarDateTime(pickerDate, pickerTime);
       const whenTs = combined.getTime();
 
       let notificationId = editingEvent?.notificationId || null;
@@ -483,13 +524,15 @@ export default function CalendarScreen({ navigation, route }) {
                 data: {
                   route: 'calendar',
                   type: 'calendar_event_reminder',
-                  eventId: editingEvent?.id || null,
+                  eventId,
                   title: form.title.trim(),
                 },
               });
               if (!notificationId) {
                 effectiveNotify = false;
                 notificationIssue = 'This event was saved, but the alert could not be scheduled on this device.';
+              } else if (notificationId !== editingEvent?.notificationId) {
+                scheduledNotificationId = notificationId;
               }
             } else {
               effectiveNotify = false;
@@ -507,14 +550,18 @@ export default function CalendarScreen({ navigation, route }) {
       }
 
       const payload = {
-        ...(editingEvent || {}),
-        ...form,
-        title: form.title.trim(),
+        ...buildCalendarEventPayload({
+          editingEvent,
+          form: {
+            ...form,
+            notify: effectiveNotify,
+          },
+          pickerDate,
+          pickerTime,
+          notificationId,
+          eventId,
+        }),
         notify: effectiveNotify,
-        whenTs,
-        notificationId,
-        eventType: form.eventType,
-        isDateNight: form.eventType === 'dateNight' || form.isDateNight,
       };
 
       if (editingEvent) {
@@ -533,7 +580,15 @@ export default function CalendarScreen({ navigation, route }) {
       if (notificationIssue) {
         Alert.alert('Calendar Alert', notificationIssue);
       }
-    } catch (_err) {
+    } catch (err) {
+      if (scheduledNotificationId) {
+        try {
+          await cancelNotification(scheduledNotificationId);
+        } catch (notifErr) {
+          CrashReporting.captureException(notifErr, { source: 'calendar_notification_rollback' });
+        }
+      }
+      CrashReporting.captureException(err, { source: 'calendar_save' });
       Alert.alert('Error', 'Something went wrong saving your event. Please try again.');
     } finally {
       setIsSaving(false);
@@ -675,6 +730,48 @@ export default function CalendarScreen({ navigation, route }) {
                       value={form.title}
                       onChangeText={v => setForm(p => ({ ...p, title: v }))}
                     />
+                  </View>
+
+                  {/* Event Type */}
+                  <View style={styles.inputGroup}>
+                    <Text style={[styles.inputLabel, { color: t.primary }]}>TYPE</Text>
+                    <View style={styles.typeGrid}>
+                      {COMPOSER_EVENT_TYPES.map((typeKey) => {
+                        const type = EVENT_TYPES[typeKey];
+                        const isActive = form.eventType === typeKey;
+
+                        return (
+                          <TouchableOpacity
+                            key={typeKey}
+                            style={[
+                              styles.typeChip,
+                              { borderColor: t.border, backgroundColor: t.surfaceSecondary },
+                              isActive && { backgroundColor: type.color, borderColor: type.color },
+                            ]}
+                            activeOpacity={0.78}
+                            onPress={() => {
+                              selection();
+                              setForm((prev) => ({
+                                ...prev,
+                                eventType: typeKey,
+                                isDateNight: typeKey === 'dateNight',
+                              }));
+                            }}
+                            accessibilityRole="button"
+                            accessibilityState={{ selected: isActive }}
+                          >
+                            <Icon
+                              name={type.icon}
+                              size={14}
+                              color={isActive ? '#FFF' : type.color}
+                            />
+                            <Text style={[styles.typeChipText, { color: isActive ? '#FFF' : t.text }]}>
+                              {type.label}
+                            </Text>
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </View>
                   </View>
 
                   {/* Date & Time pickers */}
@@ -954,6 +1051,9 @@ const createStyles = (t, isDark) => StyleSheet.create({
 
   typeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   typeChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
     paddingHorizontal: 16,
     height:            40,
     borderRadius:      20,

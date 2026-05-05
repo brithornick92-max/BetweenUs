@@ -48,7 +48,7 @@ import { getMyDisplayName, getPartnerDisplayName } from '../utils/profileNames';
 import { FALLBACK_PROMPT, getPromptById } from '../utils/contentLoader';
 import {
   canShowPartnerPromptQuote,
-  choosePartnerPromptQuote,
+  chooseDailyPartnerPromptQuote,
   getPartnerPromptQuoteCandidateCount,
 } from '../utils/partnerPromptQuote';
 
@@ -404,7 +404,7 @@ export default function HomeScreen({ navigation }) {
           return;
         }
 
-        const quote = choosePartnerPromptQuote(shared || [], {
+        const quote = await chooseDailyPartnerPromptQuote(shared || [], {
           relationshipStartDate: userProfile?.relationshipStartDate || state?.userProfile?.relationshipStartDate || null,
         });
 
@@ -515,20 +515,23 @@ export default function HomeScreen({ navigation }) {
             .on(
               'postgres_changes',
               {
-                event: 'INSERT',
+                event: '*',
                 schema: 'public',
                 table: 'couple_data',
                 filter: `couple_id=eq.${state.coupleId}`,
               },
               (payload) => {
-                const row = payload.new;
+                const row = payload.new || payload.old;
+                const currentUserId = user?.uid || user?.id;
+
                 if (row?.data_type !== 'prompt_answer') return;
-                if (row?.created_by === user?.uid) return;
+                if (currentUserId && row?.created_by === currentUserId) return;
+                if (row?.value?.promptId !== prompt.id || row?.value?.dateKey !== todayKey) return;
 
                 DataLayer.getPromptAnswerForToday(prompt.id, todayKey)
                   .then((row) => {
-                    if (cancelled || !row) return;
-                    if (row?.partnerAnswer) setPartnerAnswer(row.partnerAnswer);
+                    if (cancelled) return;
+                    setPartnerAnswer(row?.partnerAnswer || '');
                     setIsRevealed(!!(row?.isRevealed || row?.is_revealed));
                   })
                   .catch(() => {});
@@ -561,7 +564,7 @@ export default function HomeScreen({ navigation }) {
           channelRef = null;
         }
       };
-    }, [state?.coupleId, prompt?.id, promptReady, todayKey, user?.uid])
+    }, [state?.coupleId, prompt?.id, promptReady, todayKey, user?.id, user?.uid])
   );
 
   const bothAnswered = !!myAnswer.trim() && !!partnerAnswer.trim();

@@ -34,7 +34,7 @@ Between Us uses a **personalized content release calendar** where each user gets
 - **3 new positions** every week
 
 #### **Eventually**
-- **749 total prompts** in the current live catalog
+- **748 total prompts** in the current live catalog
 - **707 total dates** in the current live catalog
 - **200 total sex positions** in the current live catalog
 

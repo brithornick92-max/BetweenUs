@@ -26,6 +26,11 @@ import Constants from 'expo-constants';
 import Icon from '../components/Icon';
 import { withAlpha, SYSTEM_FONT } from '../utils/theme';
 import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
+import {
+  buildExportPayload,
+  gatherExportData,
+  isShareCancellation,
+} from '../utils/exportDataArchive';
 
 
 // ─── Sub-component ───────────────────────────────────────────────────────────
@@ -69,62 +74,6 @@ const ExportDataScreen = ({ navigation }) => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [includeAccountDetails, setIncludeAccountDetails] = useState(false);
 
-  /**
-   * Gather all user data from the active DataLayer.
-   * Returns plaintext so the export is human-readable.
-   */
-  const gatherAllData = async () => {
-    const keepAllRows = (rows) => rows || [];
-
-    // Fetch from each data type via DataLayer.
-    const loadErrors = [];
-    const safeLoad = (fn, label) => fn.catch(e => { loadErrors.push(label); return []; });
-
-    const [journalEntries, promptAnswers, memoryRows, rituals, checkIns, vibes, calendarEvents, myDates] =
-      await Promise.all([
-        safeLoad(DataLayer.getJournalEntries({ limit: 10000 }), 'Journal'),
-        safeLoad(DataLayer.getPromptAnswers({ limit: 10000 }), 'Prompts'),
-        safeLoad(DataLayer.getMemories({ limit: 10000 }), 'Memories'),
-        safeLoad(DataLayer.getRituals({ limit: 10000 }), 'Rituals'),
-        safeLoad(DataLayer.getCheckIns({ limit: 10000 }), 'Check-ins'),
-        safeLoad(DataLayer.getVibes({ limit: 10000 }), 'Vibes'),
-        safeLoad(DataLayer.getCalendarEvents({ limit: 10000 }), 'Calendar'),
-        safeLoad(DataLayer.getDatePlans({ limit: 10000 }), 'Dates'),
-      ]);
-
-    if (loadErrors.length > 0) {
-      Alert.alert(
-        'Partial Export',
-        `Some data could not be loaded: ${loadErrors.join(', ')}. The export will continue without those sections.`,
-      );
-    }
-
-    // Strip legacy local columns and internal sync metadata from output.
-    const sanitize = (rows) => (rows || []).map(r => {
-      if (!r) return r;
-      const clean = { ...r };
-      // Remove legacy local columns (user already has the plaintext fields)
-      for (const key of Object.keys(clean)) {
-        if (['sync_status', 'sync_version', 'sync_source'].includes(key)) {
-          delete clean[key];
-        }
-      }
-      delete clean.locked;
-      return clean;
-    });
-
-    return {
-      journalEntries: sanitize(keepAllRows(journalEntries)),
-      promptAnswers: sanitize(keepAllRows(promptAnswers)),
-      memories: sanitize(keepAllRows(memoryRows)),
-      rituals: sanitize(rituals),
-      checkIns: sanitize(checkIns),
-      vibes: sanitize(vibes),
-      calendarEvents: sanitize(calendarEvents),
-      myDates: sanitize(myDates),
-    };
-  };
-
   const exportData = async (options = {}) => {
     let fileUri = null;
     try {
@@ -132,32 +81,22 @@ const ExportDataScreen = ({ navigation }) => {
 
       const includeAccount = !!options.includeAccountDetails;
 
-      // Gather all data from DataLayer
-      const allData = await gatherAllData();
-
-      const exportPayload = {
-        exportDate: new Date().toISOString(),
-        appVersion: Constants.expoConfig?.version || Constants.manifest?.version || '1.0.0',
-        user: includeAccount
-          ? {
-              email: user?.email,
-              displayName: userProfile?.displayName,
-              relationshipStartDate: userProfile?.relationshipStartDate,
-              createdAt: userProfile?.createdAt,
-            }
-          : null,
-        ...allData,
-        totals: {
-          journalEntries: allData.journalEntries.length,
-          promptAnswers: allData.promptAnswers.length,
-          memories: allData.memories.length,
-          rituals: allData.rituals.length,
-          checkIns: allData.checkIns.length,
-          vibes: allData.vibes.length,
-          calendarEvents: allData.calendarEvents.length,
-          myDates: allData.myDates.length,
+      const allData = await gatherExportData(DataLayer, {
+        onPartialError: (loadErrors) => {
+          Alert.alert(
+            'Partial Export',
+            `Some data could not be loaded: ${loadErrors.join(', ')}. The export will continue without those sections.`,
+          );
         },
-      };
+      });
+
+      const exportPayload = buildExportPayload({
+        allData,
+        includeAccountDetails: includeAccount,
+        user,
+        userProfile,
+        appVersion: Constants.expoConfig?.version || Constants.manifest?.version || '1.0.0',
+      });
 
       // Convert to JSON
       const jsonData = JSON.stringify(exportPayload, null, 2);
@@ -184,8 +123,8 @@ const ExportDataScreen = ({ navigation }) => {
         });
 
         Alert.alert(
-          'Export Successful',
-          'Your export was created and shared. The temporary file has been removed from this device.',
+          'Export Created',
+          'Your export was created. The temporary file has been removed from this device after the share sheet closed.',
           [{ text: 'OK' }]
         );
       } else {
@@ -196,6 +135,10 @@ const ExportDataScreen = ({ navigation }) => {
         );
       }
     } catch (error) {
+      if (isShareCancellation(error)) {
+        return;
+      }
+
       if (__DEV__) console.error('Export error:', error?.message ?? error);
       Alert.alert(
         'Export Failed',
@@ -225,9 +168,9 @@ const ExportDataScreen = ({ navigation }) => {
           <Text style={[styles.cardTitle, { color: t.text }]}>Archive Contents</Text>
           <View style={styles.list}>
             <FeatureRow icon="book-outline" text="All Journal Entries" color={t.primary} textColor={t.text} />
-            <FeatureRow icon="chatbubbles-outline" text="Reflection & Prompt Answers" color={t.primary} textColor={t.text} />
-            <FeatureRow icon="calendar-outline" text="Check-ins, Vibes & Date Night Plans" color={t.primary} textColor={t.text} />
-            <FeatureRow icon="person-outline" text="Account & Relationship Preferences" color={t.primary} textColor={t.text} />
+            <FeatureRow icon="chatbubbles-outline" text="Reflection, Prompt Answers & Love Notes" color={t.primary} textColor={t.text} />
+            <FeatureRow icon="calendar-outline" text="Check-ins, Vibes, Calendar & Date Plans" color={t.primary} textColor={t.text} />
+            <FeatureRow icon="person-outline" text="Optional Account Metadata" color={t.primary} textColor={t.text} />
           </View>
         </View>
 
@@ -257,7 +200,7 @@ const ExportDataScreen = ({ navigation }) => {
           <Text style={[styles.statLabel, { color: t.subtext }]}>Captured Memories</Text>
         </View>
         <Text style={[styles.cardText, { color: t.subtext, textAlign: 'center', marginBottom: 32, paddingHorizontal: 16 }]}>
-          Journal entries, prompt responses, check-ins, vibes, calendar events, and date-night plans will also be included.
+          Journal entries, prompt responses, memories, love notes, check-ins, vibes, calendar events, and date plans will also be included.
         </Text>
 
         {/* Export Button */}

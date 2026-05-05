@@ -1,4 +1,5 @@
 import { getDailyContentDateKey } from './dailyContentDate';
+import { storage, STORAGE_KEYS } from './storage';
 
 function parseDateKey(value) {
   if (!value || typeof value !== 'string') return null;
@@ -36,6 +37,37 @@ function pickRandom(items, random = Math.random) {
   return items[index];
 }
 
+function getQuoteIdentity(row) {
+  const promptId = String(row?.prompt_id || '');
+  const dateKey = String(row?.date_key || '');
+  return promptId && dateKey ? `${dateKey}:${promptId}` : null;
+}
+
+function getQuoteCandidatePools(candidates, { now, relationshipStartDate }) {
+  const startDate = parseDateKey(relationshipStartDate) || (relationshipStartDate ? new Date(relationshipStartDate) : null);
+  const hasOneYearOfHistory = isAtLeastOneYearOld(startDate, now)
+    || candidates.some((row) => isAtLeastOneYearOld(row.date, now));
+
+  const onThisDayCandidates = hasOneYearOfHistory
+    ? candidates.filter((row) => sameMonthDay(row.date, now))
+    : [];
+
+  return {
+    pool: onThisDayCandidates.length ? onThisDayCandidates : candidates,
+    onThisDayCandidates,
+  };
+}
+
+function formatPartnerPromptQuote(selected, onThisDayCandidates) {
+  if (!selected) return null;
+
+  return {
+    ...selected,
+    answer: selected.partnerAnswer,
+    isOnThisDay: onThisDayCandidates.includes(selected),
+  };
+}
+
 function normalizePartnerQuoteRows(rows = [], now = new Date()) {
   const todayKey = getDailyContentDateKey(now);
 
@@ -65,22 +97,54 @@ export function choosePartnerPromptQuote(rows = [], {
 
   if (!candidates.length) return null;
 
-  const startDate = parseDateKey(relationshipStartDate) || (relationshipStartDate ? new Date(relationshipStartDate) : null);
-  const hasOneYearOfHistory = isAtLeastOneYearOld(startDate, now)
-    || candidates.some((row) => isAtLeastOneYearOld(row.date, now));
+  const { pool, onThisDayCandidates } = getQuoteCandidatePools(candidates, {
+    now,
+    relationshipStartDate,
+  });
+  const selected = pickRandom(pool, random);
 
-  const onThisDayCandidates = hasOneYearOfHistory
-    ? candidates.filter((row) => sameMonthDay(row.date, now))
-    : [];
+  return formatPartnerPromptQuote(selected, onThisDayCandidates);
+}
 
-  const selected = pickRandom(onThisDayCandidates.length ? onThisDayCandidates : candidates, random);
-  if (!selected) return null;
+export async function chooseDailyPartnerPromptQuote(rows = [], {
+  now = new Date(),
+  relationshipStartDate = null,
+  random = Math.random,
+} = {}) {
+  const candidates = normalizePartnerQuoteRows(rows, now);
 
-  return {
-    ...selected,
-    answer: selected.partnerAnswer,
-    isOnThisDay: onThisDayCandidates.includes(selected),
-  };
+  if (!candidates.length) return null;
+
+  const dailyKey = getDailyContentDateKey(now);
+  const { pool, onThisDayCandidates } = getQuoteCandidatePools(candidates, {
+    now,
+    relationshipStartDate,
+  });
+  const cache = await storage.get(STORAGE_KEYS.PARTNER_PROMPT_DAILY_QUOTE, {});
+  const cachedIdentity = cache?.[dailyKey]?.identity || null;
+  const cachedCandidate = cachedIdentity
+    ? candidates.find((row) => getQuoteIdentity(row) === cachedIdentity)
+    : null;
+
+  if (cachedCandidate) {
+    return formatPartnerPromptQuote(cachedCandidate, onThisDayCandidates);
+  }
+
+  const selected = pickRandom(pool, random);
+  const identity = getQuoteIdentity(selected);
+
+  if (selected && identity) {
+    await storage.set(STORAGE_KEYS.PARTNER_PROMPT_DAILY_QUOTE, {
+      [dailyKey]: {
+        identity,
+        dateKey: selected.date_key,
+        promptId: selected.prompt_id,
+        selectedAt: new Date().toISOString(),
+      },
+    });
+  }
+
+  return formatPartnerPromptQuote(selected, onThisDayCandidates);
 }
 
 export function canShowPartnerPromptQuote({

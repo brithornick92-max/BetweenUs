@@ -11,24 +11,44 @@ import Animated, {
 } from 'react-native-reanimated';
 import Icon from './Icon';
 import { impact, notification, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
-import { MomentSignalSender } from '../services/ConnectionEngine';
+import { HEARTBEAT_SIGNAL, MomentSignalSender } from '../services/ConnectionEngine';
 import { supabase } from '../config/supabase';
 import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
 import { useTogetherPresence } from '../hooks/useTogetherPresence';
 import { useAppContext } from '../context/AppContext';
 import { SPACING, withAlpha } from '../utils/theme';
 import { normalizeVibeSignal } from '../utils/vibeSignals';
 
 const INCOMING_LABEL_DURATION = 3000;
+const SIGNAL_DEDUPE_WINDOW_MS = 10000;
+const SIGNAL_DEDUPE_MAX_AGE_MS = 30000;
 
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
 
-export default function LiveVibeSync({ partnerLabel = 'Partner', selectedVibe, style, onViewportStabilize }) {
+const getHeartbeatSignalFingerprint = (signal) => {
+  const sender = signal?.sender_id || signal?.sender;
+  const sentAt = signal?.sent_at || signal?.ts;
+  if (!sender || !sentAt) return null;
+
+  const vibeId = signal?.vibe_id || signal?.id || signal?.vibe_label || signal?.vibe_type || 'vibe';
+  return `${sender}:${sentAt}:${vibeId}`;
+};
+
+export default function LiveVibeSync({
+  partnerLabel = 'Partner',
+  selectedVibe,
+  style,
+  onViewportStabilize,
+  onHeartbeatSent,
+  onHeartbeatReceived,
+}) {
   const { colors, isDark } = useTheme();
+  const { user } = useAuth();
   const { isTogetherNow } = useTogetherPresence();
   const { state: appState } = useAppContext();
   const coupleId = appState?.coupleId || null;
-  const userId = appState?.userId || null;
+  const userId = user?.id || user?.uid || appState?.userId || null;
   const hapticTimerRef = useRef(null);
 
   const [isSending, setIsSending] = useState(false);
@@ -38,7 +58,7 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', selectedVibe, s
   const incomingLabelTimerRef = useRef(null);
   const unsubSignalsRef = useRef(null);
   const broadcastChannelRef = useRef(null);
-  const recentBroadcastRef = useRef(null);
+  const recentSignalFingerprintsRef = useRef(new Map());
   const incomingHapticTimerRef = useRef(null);
 
   const scale = useSharedValue(1);
@@ -65,6 +85,22 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', selectedVibe, s
   const incomingTheme = incomingVibe || activeVibe;
 
   triggerIncomingRef.current = (signal = null) => {
+    const fingerprint = getHeartbeatSignalFingerprint(signal);
+    if (fingerprint) {
+      const now = Date.now();
+      const previousSeenAt = recentSignalFingerprintsRef.current.get(fingerprint);
+      if (previousSeenAt && (now - previousSeenAt) < SIGNAL_DEDUPE_WINDOW_MS) {
+        return;
+      }
+      recentSignalFingerprintsRef.current.set(fingerprint, now);
+
+      for (const [key, seenAt] of recentSignalFingerprintsRef.current.entries()) {
+        if ((now - seenAt) > SIGNAL_DEDUPE_MAX_AGE_MS) {
+          recentSignalFingerprintsRef.current.delete(key);
+        }
+      }
+    }
+
     const receivedVibe = normalizeVibeSignal({
       id: signal?.vibe_id || signal?.id,
       name: signal?.vibe_name || signal?.name,
@@ -103,6 +139,7 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', selectedVibe, s
 
     // Show label briefly
     setIncomingVibe(receivedVibe);
+    onHeartbeatReceived?.(receivedVibe, signal);
     if (incomingLabelTimerRef.current) clearTimeout(incomingLabelTimerRef.current);
     incomingLabelTimerRef.current = setTimeout(() => setIncomingVibe(null), INCOMING_LABEL_DURATION);
   };
@@ -122,7 +159,6 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', selectedVibe, s
 
     channel
       .on('broadcast', { event: 'heartbeat' }, ({ payload }) => {
-        recentBroadcastRef.current = Date.now();
         triggerIncomingRef.current?.(payload?.vibe);
       })
       .on('presence', { event: 'sync' }, checkPartner)
@@ -171,10 +207,6 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', selectedVibe, s
   // Subscribe to partner heartbeats via postgres_changes (fallback for when broadcast misses)
   useEffect(() => {
     unsubSignalsRef.current = MomentSignalSender.subscribeToSignals((signal) => {
-      // If we already received this via broadcast within the last 4s, skip the duplicate
-      if (recentBroadcastRef.current && (Date.now() - recentBroadcastRef.current) < 4000) {
-        return;
-      }
       triggerIncomingRef.current?.(signal);
     }, { coupleId, userId });
 
@@ -235,15 +267,6 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', selectedVibe, s
 
     triggerPulseAnimation();
 
-    // Broadcast instantly for partners on the same screen
-    try {
-      broadcastChannelRef.current?.send({
-        type: 'broadcast',
-        event: 'heartbeat',
-        payload: { sender: userId, ts: Date.now(), vibe: activeVibe },
-      });
-    } catch { /* non-critical */ }
-
     try {
       const result = await MomentSignalSender.sendHeartbeat(activeVibe);
 
@@ -256,7 +279,7 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', selectedVibe, s
         const isAuth = e.includes('JWT') || e.includes('token') || e.includes('expired') || e.includes('auth') || e.includes('session') || e.includes('Sign in') || code === 'PGRST302';
         const isNetwork = e.includes('fetch') || e.includes('network') || e.includes('Network') || e.includes('timeout') || e.includes('ECONNREFUSED') || e.includes('Failed to fetch') || e.includes('Abort');
         const isNotLinked = e.includes('Link') || e.includes('couple') || e.includes('partner');
-        const isCooldown = false;
+        const isCooldown = !!result.cooldown;
         const isNotConfigured = e.includes('configured') || e.includes('Sync is not') || e.includes('not configured');
 
         const friendlyError = isCooldown
@@ -288,7 +311,32 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', selectedVibe, s
         return;
       }
 
+      const sentAt = new Date(result.timestamp).toISOString();
+      const senderId = result.senderId || userId;
+      const heartbeatSignal = {
+        moment_type: HEARTBEAT_SIGNAL.id,
+        sender_id: senderId,
+        sent_at: sentAt,
+        vibe_id: activeVibe.id,
+        vibe_type: activeVibe.label,
+        vibe_label: activeVibe.label,
+        vibe_name: activeVibe.name,
+        vibe_color: activeVibe.color,
+        vibe_icon: activeVibe.icon,
+        vibe_emoji: activeVibe.emoji,
+      };
+
+      // Broadcast only after the canonical heartbeat write succeeds.
+      try {
+        broadcastChannelRef.current?.send({
+          type: 'broadcast',
+          event: 'heartbeat',
+          payload: { sender: senderId, ts: result.timestamp, vibe: heartbeatSignal },
+        });
+      } catch { /* non-critical */ }
+
       notification(NotificationFeedbackType.Success);
+      onHeartbeatSent?.(activeVibe, result);
       setStatus({
         tone: result.remote ? 'success' : 'pending',
         title: `${activeVibe.name} heartbeat sent`,
@@ -300,9 +348,9 @@ export default function LiveVibeSync({ partnerLabel = 'Partner', selectedVibe, s
     } catch {
       notification(NotificationFeedbackType.Error);
       setStatus({
-        tone: 'pending',
-        title: `Saved for ${partnerLabel}`,
-        subtitle: 'Pulse will sync when the connection returns.',
+        tone: 'error',
+        title: 'Could not send right now',
+        subtitle: 'Check your connection and try again.',
       });
       scheduleViewportStabilize();
     } finally {

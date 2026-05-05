@@ -80,11 +80,10 @@
 - How do you like it when I take the more dominant role?
 - Describe how you feel when I kiss you slowly and tenderly.
 - How has our intimate relationship helped you love yourself more?
-- How does it feel when we use toys that affirm your gender?
+- How does it feel when we use toys that help you feel comfortable, desired, and fully yourself?
 - How has being intimate with me changed how you see your own body?
 - What's something about our physical connection that feels uniquely ours?
 - What's something intimate you've learned about yourself through me?
-- What feels best when we're both wearing our accessories?
 - What's the most vulnerable you've felt with me and loved it?
 - What's your favorite position when we both want something gentle and close?
 - Describe how you feel when I trace your body with gentle affection.

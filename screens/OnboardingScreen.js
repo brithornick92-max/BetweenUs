@@ -215,15 +215,16 @@ export default function OnboardingScreen({ navigation }) {
   }, [anniversaryDate]);
 
   const freePlanFeatures = useMemo(() => ([
-    `Free users start with ${FREE_LIMITS.WEEK_0_PROMPTS} prompts, ${FREE_LIMITS.WEEK_0_DATES} date ideas, and ${FREE_LIMITS.WEEK_0_POSITIONS} sex positions`,
-    `Free users add ${FREE_LIMITS.WEEKLY_PROMPTS} prompts, ${FREE_LIMITS.WEEKLY_DATES} date ideas, and ${FREE_LIMITS.WEEKLY_POSITIONS} sex position each week`,
-    'All 5 heat levels, partner linking, shared notes, calendar, app lock, and recaps',
-    'Keepsake collects the last 30 days of your shared story',
+    `Starts with ${FREE_LIMITS.WEEK_0_PROMPTS} prompts, ${FREE_LIMITS.WEEK_0_DATES} date ideas, and ${FREE_LIMITS.WEEK_0_POSITIONS} sex positions`,
+    `Adds ${FREE_LIMITS.WEEKLY_PROMPTS} prompts, ${FREE_LIMITS.WEEKLY_DATES} date ideas, and ${FREE_LIMITS.WEEKLY_POSITIONS} sex position each week`,
+    'Includes all 5 heat levels, partner linking, shared notes, calendar, app lock, and recaps',
+    'Keepsake collects the last 30 days for free users',
   ]), []);
 
   const premiumPlanFeatures = useMemo(() => ([
-    `Premium users start with ${PREMIUM_LIMITS.WEEK_0_PROMPTS} prompts, ${PREMIUM_LIMITS.WEEK_0_DATES} date ideas, and ${PREMIUM_LIMITS.WEEK_0_POSITIONS} sex positions`,
-    `Premium users add ${PREMIUM_LIMITS.WEEKLY_PROMPTS} prompts, ${PREMIUM_LIMITS.WEEKLY_DATES} date ideas, and ${PREMIUM_LIMITS.WEEKLY_POSITIONS} sex positions each week`,
+    'Everything in the free plan',
+    `Starts with ${PREMIUM_LIMITS.WEEK_0_PROMPTS} prompts, ${PREMIUM_LIMITS.WEEK_0_DATES} date ideas, and ${PREMIUM_LIMITS.WEEK_0_POSITIONS} sex positions`,
+    `Adds ${PREMIUM_LIMITS.WEEKLY_PROMPTS} prompts, ${PREMIUM_LIMITS.WEEKLY_DATES} date ideas, and ${PREMIUM_LIMITS.WEEKLY_POSITIONS} sex positions each week`,
     'Full Keepsake archive beyond the free 30-day window',
     'Vibe Signal, plus shared premium access for linked partners after sync',
   ]), []);
@@ -451,15 +452,15 @@ export default function OnboardingScreen({ navigation }) {
         </ReAnimated.View>
 
         <ReAnimated.View entering={FadeInDown.delay(175).duration(600).springify()}>
-          <Text style={styles.groupLabel}>WHAT'S INCLUDED</Text>
+          <Text style={styles.groupLabel}>FREE VS PREMIUM</Text>
           {renderPlanSection({
-            title: 'Free includes',
+            title: 'Free plan',
             subtitle: 'The core couple experience',
             icon: 'heart-outline',
             items: freePlanFeatures,
           })}
           {renderPlanSection({
-            title: 'Premium adds',
+            title: 'Premium plan',
             subtitle: 'Everything in free, plus a larger growing library',
             icon: 'sparkles-outline',
             items: premiumPlanFeatures,

@@ -5,7 +5,6 @@
 - Share your top 5 favorite words, phrases, or forms of dirty talk that you enjoy or fantasize about hearing during sex.
 - What does an orgasm feel like for you? Describe it.
 - How would you feel about me using a vibrator on you?
-- Which intimate accessory would you want us to experiment with together?
 - What shared toy experience would feel exciting and connected?
 - What's the most intimate thing you want to record us doing together?
 - We're alone after a workout, flushed and breathless, and you keep finding reasons to put your hands on me. Describe how the tension builds as you guide me closer, linger a little longer, and turn the moment into something far more intense.
@@ -134,7 +133,6 @@
 - I'm posing for you in a private sketch session. Describe how your eyes move over me, how your attention makes the room feel electric, and what happens when the distance between artist and muse disappears.
 - How would you like me to pleasure you while you touch yourself?
 - You're a vampire who's been watching me for centuries and today you finally reveal yourself. Describe the seduction — how you mesmerize me, how your lips trace my neck, and the explicit encounter that unfolds when I willingly submit to your dark desire.
-- Share how you want me to pleasure you with intimate accessories.
 - How do you want me to make you climax again and again?
 - What would an ideal turn-taking toy experience look like for us?
 - Describe how you would want my fingers and mouth to pleasure you.

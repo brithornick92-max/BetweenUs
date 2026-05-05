@@ -99,10 +99,8 @@ export default function DeleteAccountScreen({ navigation }) {
       navigation={navigation}
       headerTitle="Delete Account"
       heroIcon="warning-outline"
-      heroTitle="Delete Account"
       heroSubtitle="This action is permanent and cannot be undone."
       heroTint={t.danger}
-      heroTitleColor={t.danger}
       keyboardAvoiding
     >
           {/* ─── What Will Be Deleted (Danger Card) ─── */}
@@ -113,7 +111,7 @@ export default function DeleteAccountScreen({ navigation }) {
               'All journal entries (cannot be recovered)',
               'All prompt responses',
               'Account information and preferences',
-              'Partner connection (your partner will be notified)',
+              'Partner connection and future shared syncing',
               'In-app premium entitlement for this account',
               'All date night plans'
             ].map((item, idx) => (

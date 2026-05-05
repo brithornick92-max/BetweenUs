@@ -1,3 +1,5 @@
+const fs = require('fs');
+const path = require('path');
 const promptsCatalog = require('../../content/prompts.json');
 
 const LEGACY_HEAT_PREFIX_MISMATCH_IDS = [
@@ -93,6 +95,41 @@ const LEGACY_HEAT_PREFIX_MISMATCH_IDS = [
 const items = promptsCatalog.items || [];
 const categories = promptsCatalog?.meta?.categories || {};
 const durations = promptsCatalog?.meta?.relationshipDurations || {};
+const INCLUSIVE_PROMPT_BANNED_PATTERNS = [
+  /\bLGBTQ?\b/i,
+  /\bqueer\b/i,
+  /\bgay\b/i,
+  /\blesbian\b/i,
+  /\bbisexual\b/i,
+  /\btrans\b/i,
+  /\bsame-sex\b/i,
+  /\bgender-?affirm(?:ing)?\b/i,
+  /\baffirm your gender\b/i,
+  /\bhusband\b/i,
+  /\bwife\b/i,
+  /\bboyfriend\b/i,
+  /\bgirlfriend\b/i,
+  /\bmen\b/i,
+  /\bwomen\b/i,
+  /\bmale\b/i,
+  /\bfemale\b/i,
+  /\bpenis\b/i,
+  /\bvagina\b/i,
+  /\bcock\b/i,
+  /\bpussy\b/i,
+  /\bscissoring\b/i,
+  /\bstrap-?on\b/i,
+  /\bdildo\b/i,
+  /\baccessor(?:y|ies)\b/i,
+];
+
+const PROMPT_SOURCE_FILES = [
+  'level-1-prompts.md',
+  'level-2-prompts.md',
+  'level-3-prompts.md',
+  'level-4-prompts.md',
+  'level-5-prompts.md',
+];
 
 describe('prompts catalog integrity', () => {
 
@@ -189,5 +226,31 @@ describe('prompts catalog integrity', () => {
       .map((prompt) => prompt.id);
 
     expect(violatingIds).toEqual([]);
+  });
+
+  it('keeps prompt wording partner-neutral and not LGBT-specific', () => {
+    const violatingIds = items
+      .filter((prompt) => INCLUSIVE_PROMPT_BANNED_PATTERNS.some((pattern) => pattern.test(prompt.text || '')))
+      .map((prompt) => prompt.id);
+
+    expect(violatingIds).toEqual([]);
+  });
+
+  it('keeps source prompt files partner-neutral and not LGBT-specific', () => {
+    const violations = [];
+
+    PROMPT_SOURCE_FILES.forEach((filename) => {
+      const sourcePath = path.join(process.cwd(), 'content', filename);
+      const lines = fs.readFileSync(sourcePath, 'utf8').split('\n');
+
+      lines.forEach((line, index) => {
+        if (!line.trim().startsWith('- ')) return;
+        if (INCLUSIVE_PROMPT_BANNED_PATTERNS.some((pattern) => pattern.test(line))) {
+          violations.push(`${filename}:${index + 1}`);
+        }
+      });
+    });
+
+    expect(violations).toEqual([]);
   });
 });

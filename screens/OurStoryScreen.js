@@ -163,6 +163,10 @@ function isNoDeletableRowError(error) {
   return String(error?.message || '').includes('No deletable row found');
 }
 
+function canManageKeepsakeRow(row) {
+  return row?.isOwn !== false;
+}
+
 async function resolveRowMedia(row) {
   const directUri = row.mediaUri || row.photo_uri || row.photoUri || null;
   const directMimeType = row.mediaType || row.mime_type || row.mimeType || null;
@@ -643,6 +647,7 @@ function buildPromptItem(row, media = null, myName = 'You', partnerName = 'Partn
     : (row.is_revealed && row.partnerAnswer
       ? `${myName}: ${row.answer || ''}\n\n${partnerName}: ${row.partnerAnswer}`.trim()
       : (row.answer || ''));
+  const canManage = canManageKeepsakeRow(row);
 
   return {
     id: `prompt:${row.id}`,
@@ -660,7 +665,8 @@ function buildPromptItem(row, media = null, myName = 'You', partnerName = 'Partn
     sortAt: row.created_at || row.date_key,
     media,
     editable: false,
-    deletable: true,
+    deletable: canManage,
+    hideable: !canManage,
     isOwn: row.isOwn,
   };
 }
@@ -668,6 +674,7 @@ function buildPromptItem(row, media = null, myName = 'You', partnerName = 'Partn
 function buildMemoryItem(row, media = null) {
   const memoryType = MEMORY_TYPE_META[row.type] || MEMORY_TYPE_META.moment;
   const isIntimacyFavorite = row.type === 'intimacy_favorite';
+  const canManage = canManageKeepsakeRow(row);
 
   return {
     id: `memory:${row.id}`,
@@ -688,8 +695,9 @@ function buildMemoryItem(row, media = null) {
     snapshotIndex: getSnapshotIndex(row),
     media,
     row,
-    editable: true,
-    deletable: true,
+    editable: canManage,
+    deletable: canManage,
+    hideable: !canManage,
     isOwn: row.isOwn,
   };
 }
@@ -698,6 +706,7 @@ function buildSnapshotItem(groupId, items) {
   const sortedItems = [...items].sort((a, b) => a.snapshotIndex - b.snapshotIndex);
   const first = sortedItems[0];
   const body = first?.body || '';
+  const canManage = sortedItems.some((item) => item.isOwn !== false);
 
   const mediaItems = sortedItems
     .filter((item) => item.media?.uri)
@@ -730,9 +739,10 @@ function buildSnapshotItem(groupId, items) {
     sortAt: first?.sortAt || null,
     mediaItems,
     rawItems: sortedItems,
-    editable: true,
-    deletable: true,
-    isOwn: sortedItems.some((item) => item.isOwn !== false),
+    editable: canManage,
+    deletable: canManage,
+    hideable: !canManage,
+    isOwn: canManage,
   };
 }
 
@@ -774,6 +784,7 @@ function groupMemoryItems(memoryItems) {
 function buildDateItem(row) {
   const details = buildDateDetails(row, 'Date night');
   const body = buildDateKeepsakeLine(row, details);
+  const canManage = canManageKeepsakeRow(row);
 
   return {
     id: `date:${row.id}`,
@@ -790,7 +801,8 @@ function buildDateItem(row) {
     sortAt: row.addedAt,
     memoryId: row.memoryId || null,
     editable: false,
-    deletable: !!row.memoryId,
+    deletable: canManage && !!row.memoryId,
+    hideable: !canManage,
     isOwn: row.isOwn,
   };
 }
@@ -817,7 +829,8 @@ function buildDateItemFromMemoryRow(row) {
         isOwn: row?.isOwn,
       }),
       memoryId: row?.id || null,
-      deletable: !!row?.id,
+      deletable: row?.isOwn !== false && !!row?.id,
+      hideable: row?.isOwn === false,
     };
   }
 
@@ -843,6 +856,7 @@ function buildSavedDateItem(row) {
   if (!dateId) return null;
   const details = buildDateDetails(row, 'Saved for later');
   const body = buildSavedDateKeepsakeLine(row, details);
+  const canManage = canManageKeepsakeRow(row);
 
   return {
     id: `date-saved:${dateId}`,
@@ -857,7 +871,8 @@ function buildSavedDateItem(row) {
     dateLabel: formatDateLabel(row?.created_at || row?.addedAt || row?.savedAt),
     sortAt: row?.created_at || row?.addedAt || row?.savedAt,
     editable: false,
-    deletable: !!row?.memoryId,
+    deletable: canManage && !!row?.memoryId,
+    hideable: !canManage,
     isOwn: row?.isOwn,
   };
 }
@@ -866,6 +881,7 @@ function buildPositionTriedItem(row) {
   const label = row.commonName ? `${row.commonName}: ${row.title}` : row.title;
   const details = buildPositionDetails(row, 'Sex position marked as tried');
   const body = buildPositionKeepsakeLine(row, details);
+  const canManage = canManageKeepsakeRow(row);
 
   return {
     id: `position-tried:${row.positionId}`,
@@ -882,7 +898,8 @@ function buildPositionTriedItem(row) {
     sortAt: row.triedAt,
     memoryId: row.memoryId || null,
     editable: false,
-    deletable: !!row.memoryId,
+    deletable: canManage && !!row.memoryId,
+    hideable: !canManage,
     isOwn: row.isOwn,
   };
 }
@@ -908,6 +925,7 @@ function buildPositionFavoriteItemFromMemoryRow(row) {
     heat: payload?.heat ?? null,
     rating: payload?.rating ?? null,
   }, details);
+  const canManage = canManageKeepsakeRow(row);
 
   return {
     id: `position-favorite-memory:${row.id}`,
@@ -923,7 +941,8 @@ function buildPositionFavoriteItemFromMemoryRow(row) {
     sortAt: row.created_at || row.date,
     memoryId: row.id || null,
     editable: false,
-    deletable: !!row.id,
+    deletable: canManage && !!row.id,
+    hideable: !canManage,
     isOwn: row.isOwn,
   };
 }
@@ -1355,6 +1374,10 @@ export default function OurStoryScreen() {
       ? DataLayer.getCurrentUserId()
       : null;
 
+    if (item?.isOwn === false) {
+      throw new Error('No deletable row found for this account.');
+    }
+
     if (item.kind === 'snapshot') {
       const ownRawItems = (item.rawItems || [])
         .filter((rawItem) => rawItem?.sourceId)
@@ -1539,7 +1562,7 @@ export default function OurStoryScreen() {
 
   const handleLongPressItem = useCallback((item) => {
     const restoreTarget = getRestoreTarget(item);
-    if (!restoreTarget && !item?.editable && !item?.deletable) return;
+    if (!restoreTarget && !item?.editable && !item?.deletable && !item?.hideable) return;
 
     impact(ImpactFeedbackStyle.Medium);
 
@@ -1566,13 +1589,17 @@ export default function OurStoryScreen() {
           style: 'destructive',
           onPress: () => confirmDeleteItem(item),
         } : null,
+        item.hideable ? {
+          text: 'Hide From Keepsake',
+          onPress: () => hideKeepsakeItem(item),
+        } : null,
         {
           text: 'Cancel',
           style: 'cancel',
         },
       ].filter(Boolean)
     );
-  }, [canEditOccurrence, confirmDeleteItem, getDeleteCopy, getRestoreTarget, handleEditItem, openOccurrenceEditor]);
+  }, [canEditOccurrence, confirmDeleteItem, getDeleteCopy, getRestoreTarget, handleEditItem, hideKeepsakeItem, openOccurrenceEditor]);
 
   const renderSnapshotTile = (media, index, mediaItems, tileStyle, options = {}) => {
     const isVideo = media.kind === 'video' || media.mimeType?.startsWith('video/');

@@ -11,6 +11,7 @@ import {
   StatusBar,
 } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from '../components/Icon';
 import CloseScreenHeader, { CLOSE_HEADER_STYLES } from '../components/CloseScreenHeader';
@@ -26,9 +27,9 @@ import { getMyDisplayName, getPartnerDisplayName } from '../utils/profileNames';
 import Button from "../components/Button";
 
 export default function RevealScreen({ route, navigation }) {
-  const { prompt, userAnswer, partnerAnswer: initialPartnerAnswer, bothAnswered } = route?.params || {};
+  const { prompt, userAnswer, partnerAnswer: initialPartnerAnswer } = route?.params || {};
   const { state } = useAppContext();
-  const { userProfile } = useAuth();
+  const { user, userProfile } = useAuth();
   const { colors, isDark } = useTheme();
 
   // Safety check
@@ -43,8 +44,8 @@ export default function RevealScreen({ route, navigation }) {
   const [isRevealed, setIsRevealed] = useState(!!userAnswer?.isRevealed);
 
   // Handle partner states
-  const hasPartnerAnswer = !!initialPartnerAnswer;
-  const [partnerAnswer] = useState(() => initialPartnerAnswer || null);
+  const [partnerAnswer, setPartnerAnswer] = useState(() => initialPartnerAnswer || null);
+  const hasPartnerAnswer = !!partnerAnswer;
 
   // High-End Animation Refs
   const revealAnim = useRef(new Animated.Value(0)).current;
@@ -105,6 +106,9 @@ export default function RevealScreen({ route, navigation }) {
     try {
       // Mark as revealed in the active DataLayer.
       const row = await DataLayer.getPromptAnswerForToday(prompt.id, prompt.dateKey);
+      if (row?.partnerAnswer) {
+        setPartnerAnswer(row.partnerAnswer);
+      }
       if (row?.id) {
         await DataLayer.revealPromptAnswer(row.id);
       }
@@ -123,13 +127,103 @@ export default function RevealScreen({ route, navigation }) {
     }
   };
 
+  useEffect(() => {
+    if (initialPartnerAnswer) {
+      setPartnerAnswer(initialPartnerAnswer);
+    }
+  }, [initialPartnerAnswer]);
+
+  const refreshRevealState = useCallback(async () => {
+    if (!prompt?.id) return;
+
+    const row = await DataLayer.getPromptAnswerForToday(prompt.id, prompt.dateKey);
+
+    if (row) {
+      setPartnerAnswer(row.partnerAnswer || null);
+    }
+
+    if (row?.isRevealed || row?.is_revealed) {
+      triggerRevealLogic(false);
+    }
+  }, [prompt?.dateKey, prompt?.id, triggerRevealLogic]);
+
+  useFocusEffect(
+    useCallback(() => {
+      refreshRevealState().catch(() => {});
+      return undefined;
+    }, [refreshRevealState])
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!state?.coupleId || !prompt?.id) return undefined;
+
+      let channelRef = null;
+      let cancelled = false;
+
+      const setup = async () => {
+        try {
+          const { supabase } = require('../config/supabase');
+          if (!supabase || cancelled) return;
+
+          const channel = supabase
+            .channel(`prompt_reveal_${state.coupleId}_${prompt.id}`)
+            .on(
+              'postgres_changes',
+              {
+                event: '*',
+                schema: 'public',
+                table: 'couple_data',
+                filter: `couple_id=eq.${state.coupleId}`,
+              },
+              (payload) => {
+                const row = payload.new || payload.old;
+                const currentUserId = user?.uid || user?.id;
+
+                if (row?.data_type !== 'prompt_answer') return;
+                if (currentUserId && row?.created_by === currentUserId) return;
+                if (row?.value?.promptId !== prompt.id || row?.value?.dateKey !== prompt.dateKey) return;
+
+                refreshRevealState().catch(() => {});
+              }
+            )
+            .subscribe();
+
+          if (cancelled) {
+            supabase.removeChannel(channel);
+            return;
+          }
+
+          channelRef = channel;
+        } catch {
+          // Focus refresh still keeps reveal state accurate without realtime.
+        }
+      };
+
+      setup();
+
+      return () => {
+        cancelled = true;
+
+        if (channelRef) {
+          try {
+            const { supabase } = require('../config/supabase');
+            supabase?.removeChannel(channelRef);
+          } catch {}
+
+          channelRef = null;
+        }
+      };
+    }, [prompt?.dateKey, prompt?.id, refreshRevealState, state?.coupleId, user?.id, user?.uid])
+  );
+
   if (!prompt || !prompt.text) return null;
 
   const partnerName = getPartnerDisplayName(userProfile, state?.userProfile, 'your partner');
   const myName = getMyDisplayName(userProfile, state?.userProfile, 'You');
   const revealStage = isRevealed
     ? 'revealed'
-    : hasPartnerAnswer && bothAnswered !== false
+    : hasPartnerAnswer
       ? 'ready_to_reveal'
       : 'waiting_for_partner';
   const revealCopy = {

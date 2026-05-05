@@ -20,6 +20,23 @@ const CouplesQuizModule = require('../../screens/CouplesQuizScreen');
 const CouplesQuizScreen = CouplesQuizModule.default;
 const { getDailyQuestion, getQuizCacheKeys } = CouplesQuizModule;
 const { getDailyContentDateKey } = require('../../utils/dailyContentDate');
+const { Text } = require('react-native');
+
+function flattenText(children) {
+  if (Array.isArray(children)) {
+    return children.map(flattenText).join('');
+  }
+  if (children === null || children === undefined) return '';
+  if (typeof children === 'string' || typeof children === 'number') return String(children);
+  return '';
+}
+
+function getRenderedText(root) {
+  return root
+    .findAllByType(Text)
+    .map((node) => flattenText(node.props.children))
+    .filter(Boolean);
+}
 
 describe('CouplesQuizScreen', () => {
   let tree;
@@ -185,5 +202,34 @@ describe('CouplesQuizScreen', () => {
     expect(mockStorageRemove).toHaveBeenCalledWith(scopedKeys.question);
     expect(mockStorageRemove).toHaveBeenCalledWith(scopedKeys.answer);
     expect(findTouchablesByText(tree.root, 'Lock In My Answer')[0]).toBeTruthy();
+  });
+
+  it('labels the reveal as reciprocal guesses, not partner self-answers', async () => {
+    mockGetSharedPromptAnswers.mockImplementation(({ dateKey, promptId }) => Promise.resolve([
+      {
+        id: 'answer-1',
+        prompt_id: promptId,
+        date_key: dateKey,
+        answer: 'They would choose coffee and a walk.',
+        partnerAnswer: 'You would choose dinner and dancing.',
+      },
+    ]));
+
+    const navigation = createNavigation();
+    tree = await renderScreen(CouplesQuizScreen, { navigation });
+    await flushEffects();
+
+    const [revealButton] = findTouchablesByText(tree.root, 'Reveal Both Answers');
+    expect(revealButton).toBeTruthy();
+
+    await renderer.act(async () => {
+      revealButton.props.onPress();
+    });
+
+    const renderedText = getRenderedText(tree.root);
+    expect(renderedText).toContain('You guessed about your partner');
+    expect(renderedText).toContain('your partner guessed about you');
+    expect(renderedText).toContain('Compare the guesses and fill in the real answers together.');
+    expect(renderedText).not.toContain('your partner said');
   });
 });

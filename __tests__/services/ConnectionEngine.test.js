@@ -159,4 +159,100 @@ describe('MomentSignalSender', () => {
       value: expect.objectContaining({ moment_type: 'thinking' }),
     }));
   });
+
+  it('resolves direct realtime subscriber ids before filtering own signals', async () => {
+    const authUserId = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+    const partnerUserId = 'b1b2c3d4-e5f6-7890-abcd-ef1234567890';
+    let handleChange = null;
+    const channel = {
+      on: jest.fn((event, _filter, callback) => {
+        if (event === 'postgres_changes') handleChange = callback;
+        return channel;
+      }),
+      subscribe: jest.fn(() => channel),
+    };
+    const removeChannel = jest.fn();
+    const onSignal = jest.fn();
+    const { MomentSignalSender } = loadConnectionEngine({
+      supabase: {
+        auth: {
+          getUser: jest.fn().mockResolvedValue({
+            data: { user: { id: authUserId } },
+            error: null,
+          }),
+        },
+        channel: jest.fn(() => channel),
+        removeChannel,
+      },
+      TABLES: { COUPLE_DATA: 'couple_data' },
+    });
+
+    const unsubscribe = MomentSignalSender.subscribeToSignals(onSignal, {
+      coupleId: 'couple-1',
+      userId: 'local-device-user',
+    });
+
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(handleChange).toEqual(expect.any(Function));
+
+    handleChange({
+      new: {
+        data_type: 'moment_signal',
+        created_by: authUserId,
+        value: { moment_type: 'heartbeat' },
+      },
+    });
+    expect(onSignal).not.toHaveBeenCalled();
+
+    handleChange({
+      new: {
+        data_type: 'moment_signal',
+        created_by: partnerUserId,
+        value: { moment_type: 'heartbeat' },
+      },
+    });
+    expect(onSignal).toHaveBeenCalledWith({ moment_type: 'heartbeat' });
+
+    unsubscribe();
+    expect(removeChannel).toHaveBeenCalledWith(channel);
+  });
+
+  it('resolves cached local ids before fetching received signals', async () => {
+    const authUserId = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+    const query = {
+      select: jest.fn(() => query),
+      eq: jest.fn(() => query),
+      neq: jest.fn(() => query),
+      order: jest.fn(() => query),
+      limit: jest.fn(() => Promise.resolve({
+        data: [{ value: { moment_type: 'heartbeat' }, created_at: '2026-05-05T12:00:00.000Z' }],
+        error: null,
+      })),
+    };
+    const from = jest.fn(() => query);
+    const { MomentSignalSender, AsyncStorage } = loadConnectionEngine({
+      supabase: {
+        auth: {
+          getUser: jest.fn().mockResolvedValue({
+            data: { user: { id: authUserId } },
+            error: null,
+          }),
+        },
+        from,
+      },
+      TABLES: { COUPLE_DATA: 'couple_data' },
+    });
+    mockContext(AsyncStorage, {
+      userId: 'local-device-user',
+      coupleId: 'couple-1',
+    });
+
+    const result = await MomentSignalSender.getReceivedSignals();
+
+    expect(from).toHaveBeenCalledWith('couple_data');
+    expect(query.neq).toHaveBeenCalledWith('created_by', authUserId);
+    expect(result).toEqual([{ moment_type: 'heartbeat' }]);
+  });
 });

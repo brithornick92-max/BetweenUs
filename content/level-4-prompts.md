@@ -132,7 +132,6 @@
 - What's the most exotic or unusual location you imagine being intimate in?
 - Which sexy movie scene would you want to act out, and what makes it appealing?
 - Which playful role or dynamic interests you most?
-- Tell me about an intimate accessory you'd be curious to bring into our bedroom.
 - What would make a beach fantasy exciting for you, and what boundaries would matter?
 - What's a playful fantasy that excites you? Tell me more.
 - What's a character or role you'd enjoy playing in bed? What happens next?

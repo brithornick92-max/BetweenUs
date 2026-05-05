@@ -800,15 +800,17 @@ async function mapMemoryRow(row) {
 function mapCalendarRow(row) {
   if (!row) return null;
 
+  const isDateNight = row.event_type === 'dateNight'
+    || row.event_type === 'date_night'
+    || !!row.metadata?.isDateNight;
+
   return {
     id: row.id,
     title: row.title || '',
     location: row.location || '',
     notes: row.description || '',
-    eventType: row.event_type || 'general',
-    isDateNight: row.event_type === 'dateNight'
-      || row.event_type === 'date_night'
-      || !!row.metadata?.isDateNight,
+    eventType: isDateNight ? 'dateNight' : (row.event_type || 'general'),
+    isDateNight,
     whenTs: new Date(row.event_date).getTime(),
     notify: !!row.metadata?.notify,
     notifyMins: Number(row.metadata?.notifyMins ?? 60) || 60,
@@ -949,14 +951,15 @@ function makeOfflineVibeRow(id, value, base = {}) {
 
 function makeOfflineCalendarRow(id, event, base = {}) {
   const ts = Date.now();
+  const isDateNight = !!(event?.isDateNight || event?.eventType === 'dateNight' || event?.eventType === 'date_night');
 
   return {
     id,
     title: event?.title || '',
     location: event?.location || '',
     notes: event?.notes || '',
-    eventType: event?.eventType || 'general',
-    isDateNight: !!(event?.isDateNight || event?.eventType === 'dateNight'),
+    eventType: isDateNight ? 'dateNight' : (event?.eventType || 'general'),
+    isDateNight,
     whenTs: event?.whenTs,
     notify: !!event?.notify,
     notifyMins: Number(event?.notifyMins ?? 60) || 60,
@@ -1206,6 +1209,13 @@ const SupabaseDataLayer = {
         const patch = buildOfflinePatch();
         const existing = await this.getJournalEntry(id);
         const hasPatch = (key) => hasOwn(patch, key);
+        const shouldPreservePendingLocalMedia =
+          !hasPatch('mediaPath')
+          && !hasPatch('photoUri')
+          && existing?.sync_status === 'pending'
+          && !!existing?.mediaUri
+          && !existing?.mediaRef
+          && !existing?.photo_uri;
 
         const mapped = makeOfflineJournalRow(id, {
           title: patch.title ?? existing?.title ?? '',
@@ -1215,6 +1225,9 @@ const SupabaseDataLayer = {
           photoUri: hasPatch('photoUri') ? patch.photoUri : (existing?.photo_uri ?? null),
           mediaPath: hasPatch('mediaPath') ? patch.mediaPath : (existing?.mediaRef ?? null),
           mimeType: hasPatch('mimeType') ? patch.mimeType : (existing?.mediaType ?? null),
+          localMediaUri: hasPatch('localMediaUri')
+            ? patch.localMediaUri
+            : (shouldPreservePendingLocalMedia ? existing.mediaUri : null),
         }, existing || {});
 
         await enqueueOfflineMutation({
@@ -2292,12 +2305,31 @@ const SupabaseDataLayer = {
       },
     });
 
+    const relatedDatePlanIds = new Set();
+    const sourceEventIds = [...new Set([id, targetId].filter(Boolean))];
     const cachedPlans = await loadCache(CACHE_SCOPES.datePlans);
 
+    cachedPlans
+      .filter((plan) => sourceEventIds.includes(plan?.sourceEventId))
+      .forEach((plan) => {
+        if (plan?.id) relatedDatePlanIds.add(plan.id);
+      });
+
+    for (const sourceEventId of sourceEventIds) {
+      const remotePlans = await cdQuery('date_plan', {
+        limit: 50,
+        filter: (q) => q.eq('value->>sourceEventId', sourceEventId),
+      }).catch(() => []);
+
+      if (Array.isArray(remotePlans)) {
+        remotePlans.forEach((plan) => {
+          if (plan?.id) relatedDatePlanIds.add(plan.id);
+        });
+      }
+    }
+
     await Promise.all(
-      cachedPlans
-        .filter((plan) => plan?.sourceEventId === id || plan?.sourceEventId === targetId)
-        .map((plan) => this.deleteDatePlan(plan.id))
+      [...relatedDatePlanIds].map((planId) => this.deleteDatePlan(planId))
     );
   },
 
@@ -2386,11 +2418,13 @@ const SupabaseDataLayer = {
       steps: event?.notes ? [event.notes] : ['Plan the vibe.', 'Enjoy the moment.'],
     };
 
-    if (Array.isArray(existing) && existing[0]) {
-      await cdUpdate(existing[0].id, plan);
-    } else {
-      await cdInsert('date_plan', makeId('dp'), plan);
-    }
+    const row = Array.isArray(existing) && existing[0]
+      ? await cdUpdate(existing[0].id, plan)
+      : await cdInsert('date_plan', makeId('dp'), plan);
+
+    const mapped = mapDatePlanRow(row);
+    if (mapped) await upsertCacheRow(CACHE_SCOPES.datePlans, mapped);
+    return mapped;
   },
 
   // ─── Date Plans ──────────────────────────────────────────────────────────

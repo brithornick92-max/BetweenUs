@@ -536,6 +536,36 @@ describe('SupabaseDataLayer memory snapshots', () => {
       }),
     ]));
 
+    await SupabaseDataLayer.updateJournalEntry(saved.id, {
+      mediaUri: 'file:///updated-journal-video.mp4',
+      mimeType: 'video/mp4',
+    });
+    rows = await SupabaseDataLayer.getJournalEntries({ limit: 500, visibility: 'shared' });
+
+    expect(rows).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: saved.id,
+        photo_uri: null,
+        mediaUri: 'file:///updated-journal-video.mp4',
+        mediaType: 'video/mp4',
+        mediaKind: 'video',
+      }),
+    ]));
+    expect(JSON.stringify(Array.from(mockStorageState.values()))).toContain('"localMediaUri":"file:///updated-journal-video.mp4"');
+
+    await SupabaseDataLayer.updateJournalEntry(saved.id, { title: 'Updated again' });
+    rows = await SupabaseDataLayer.getJournalEntries({ limit: 500, visibility: 'shared' });
+
+    expect(rows).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: saved.id,
+        title: 'Updated again',
+        mediaUri: 'file:///updated-journal-video.mp4',
+        mediaType: 'video/mp4',
+        mediaKind: 'video',
+      }),
+    ]));
+
     await SupabaseDataLayer.updateJournalEntry(saved.id, { imageUri: null, mediaUri: null });
     rows = await SupabaseDataLayer.getJournalEntries({ limit: 500, visibility: 'shared' });
 
@@ -676,6 +706,30 @@ describe('SupabaseDataLayer memory snapshots', () => {
         locationType: 'out',
         steps: ['Try the new place.'],
       }),
+    }));
+    expect(JSON.stringify(Array.from(mockStorageState.values()))).toContain('"sourceEventId":"calendar-date-1"');
+  });
+
+  it('normalizes metadata date-night calendar events to the dateNight event type', async () => {
+    await SupabaseDataLayer.init({
+      userId: 'user-1',
+      coupleId: 'couple-1',
+      isPremium: true,
+    });
+
+    const saved = await SupabaseDataLayer.createCalendarEvent({
+      id: 'calendar-date-2',
+      title: 'Movie night',
+      whenTs: Date.parse('2026-05-02T23:00:00.000Z'),
+      eventType: 'general',
+      isDateNight: true,
+      location: 'home',
+    });
+
+    expect(saved).toEqual(expect.objectContaining({
+      id: 'calendar-date-2',
+      eventType: 'dateNight',
+      isDateNight: true,
     }));
   });
 });

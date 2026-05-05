@@ -3,8 +3,8 @@
  *
  * The "about your partner" mechanic:
  *  1. You see a question about your partner ("What would [name] order on a first date?")
- *  2. You write your guess — your answer is hidden until they answer about themselves
- *  3. Once both have answered, the reveal shows how close you were
+ *  2. You write your guess — your answer is hidden until they lock in their guess about you
+ *  3. Once both have answered, the reveal shows both guesses so you can compare and talk
  *
  * Uses the same bilateral hidden-until-both pattern as today's prompts so
  * the infrastructure (DataLayer, PartnerNotifications) is already there.
@@ -31,6 +31,7 @@ import Animated, {
   withSpring,
   interpolate,
 } from 'react-native-reanimated';
+import { useFocusEffect } from '@react-navigation/native';
 import Icon from '../components/Icon';
 import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
 import { impact, notification, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
@@ -181,7 +182,7 @@ export default function CouplesQuizScreen({ navigation }) {
   const accentColor = t.primary;
 
   const [myAnswer, setMyAnswer] = useState('');
-  const [partnerAnswer, setPartnerAnswer] = useState('');
+  const [partnerGuess, setPartnerGuess] = useState('');
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [partnerHasSubmitted, setPartnerHasSubmitted] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -209,7 +210,7 @@ export default function CouplesQuizScreen({ navigation }) {
     async function load() {
       setIsLoading(true);
       setMyAnswer('');
-      setPartnerAnswer('');
+      setPartnerGuess('');
       setHasSubmitted(false);
       setPartnerHasSubmitted(false);
       setIsRevealed(false);
@@ -246,7 +247,7 @@ export default function CouplesQuizScreen({ navigation }) {
             }
 
             if (mine.partnerAnswer) {
-              setPartnerAnswer(mine.partnerAnswer);
+              setPartnerGuess(mine.partnerAnswer);
               setPartnerHasSubmitted(true);
             }
           }
@@ -279,6 +280,94 @@ export default function CouplesQuizScreen({ navigation }) {
     };
   }, [todayKey, question.id, quizPromptId, quizCacheKeys]);
 
+  const refreshPartnerGuess = useCallback(async () => {
+    if (!hasSubmitted) return;
+
+    const sharedRows = await DataLayer.getSharedPromptAnswers?.({
+      dateKey: todayKey,
+      promptId: quizPromptId,
+    });
+
+    const matchingSharedRow = (sharedRows || []).find((row) =>
+      isMatchingPromptAnswer(row, quizPromptId, todayKey)
+    );
+
+    setPartnerGuess(matchingSharedRow?.partnerAnswer || '');
+    setPartnerHasSubmitted(!!matchingSharedRow?.partnerAnswer);
+  }, [hasSubmitted, quizPromptId, todayKey]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!hasSubmitted) return undefined;
+
+      refreshPartnerGuess().catch(() => {});
+      return undefined;
+    }, [hasSubmitted, refreshPartnerGuess])
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!state?.coupleId || !hasSubmitted) return undefined;
+
+      let channelRef = null;
+      let cancelled = false;
+
+      const setup = async () => {
+        try {
+          const { supabase } = require('../config/supabase');
+          if (!supabase || cancelled) return;
+
+          const channel = supabase
+            .channel(`daily_quiz_${state.coupleId}`)
+            .on(
+              'postgres_changes',
+              {
+                event: '*',
+                schema: 'public',
+                table: 'couple_data',
+                filter: `couple_id=eq.${state.coupleId}`,
+              },
+              (payload) => {
+                const row = payload.new || payload.old;
+                const currentUserId = user?.uid || user?.id;
+
+                if (row?.data_type !== 'prompt_answer') return;
+                if (currentUserId && row?.created_by === currentUserId) return;
+                if (row?.value?.promptId !== quizPromptId || row?.value?.dateKey !== todayKey) return;
+
+                refreshPartnerGuess().catch(() => {});
+              }
+            )
+            .subscribe();
+
+          if (cancelled) {
+            supabase.removeChannel(channel);
+            return;
+          }
+
+          channelRef = channel;
+        } catch {
+          // Focus refresh keeps the screen accurate even if realtime is unavailable.
+        }
+      };
+
+      setup();
+
+      return () => {
+        cancelled = true;
+
+        if (channelRef) {
+          try {
+            const { supabase } = require('../config/supabase');
+            supabase?.removeChannel(channelRef);
+          } catch {}
+
+          channelRef = null;
+        }
+      };
+    }, [hasSubmitted, quizPromptId, refreshPartnerGuess, state?.coupleId, todayKey, user?.id, user?.uid])
+  );
+
   const handleSubmit = useCallback(async () => {
     const trimmed = myAnswer.trim();
     if (!trimmed) return;
@@ -310,7 +399,7 @@ export default function CouplesQuizScreen({ navigation }) {
         );
 
         if (matchingSharedRow?.partnerAnswer) {
-          setPartnerAnswer(matchingSharedRow.partnerAnswer);
+          setPartnerGuess(matchingSharedRow.partnerAnswer);
           setPartnerHasSubmitted(true);
         }
 
@@ -346,7 +435,7 @@ export default function CouplesQuizScreen({ navigation }) {
     setMyAnswer('');
     setAnswerId(null);
     setHasSubmitted(false);
-    setPartnerAnswer('');
+    setPartnerGuess('');
     setPartnerHasSubmitted(false);
     setIsRevealed(false);
     revealScale.value = 0;
@@ -355,7 +444,7 @@ export default function CouplesQuizScreen({ navigation }) {
   const handleEditAnswer = useCallback(() => {
     impact(ImpactFeedbackStyle.Light);
     setHasSubmitted(false);
-    setPartnerAnswer('');
+    setPartnerGuess('');
     setPartnerHasSubmitted(false);
     setIsRevealed(false);
     revealScale.value = 0;
@@ -396,7 +485,7 @@ export default function CouplesQuizScreen({ navigation }) {
     if (!partnerHasSubmitted) {
       Alert.alert(
         `Waiting for ${partnerName}`,
-        `${partnerName} hasn't answered yet. Answers reveal when you've both weighed in — that's what makes it fun.`,
+        `${partnerName} hasn't locked in their guess yet. Answers reveal when you've both weighed in — that's what makes it fun.`,
         [{ text: 'Got it' }]
       );
       return;
@@ -481,7 +570,7 @@ export default function CouplesQuizScreen({ navigation }) {
                     {myAnswer.trim() && <Icon name="lock-closed-outline" size={16} color={isDark ? '#000000' : '#FFFFFF'} />}
                   </TouchableOpacity>
                   <Text style={[styles.helperText, { color: t.subtext }]}>
-                    {partnerName}'s answer is hidden until you both submit
+                    {partnerName}'s guess is hidden until you both submit
                   </Text>
                 </View>
               )}
@@ -529,14 +618,14 @@ export default function CouplesQuizScreen({ navigation }) {
                       <View style={[styles.statusDot, { backgroundColor: partnerHasSubmitted ? '#34C759' : '#FF9F0A' }]} />
                       <Text style={styles.partnerStatusText}>
                         {partnerHasSubmitted
-                          ? `${partnerName} answered`
+                          ? `${partnerName} locked in their guess`
                           : `Waiting for ${partnerName}…`}
                       </Text>
                       {partnerHasSubmitted && <Icon name="checkmark-circle" size={18} color="#34C759" />}
                     </View>
                     {!partnerHasSubmitted && (
                       <Text style={styles.partnerStatusHint}>
-                        Their answer is locked — the reveal happens when you're both in.
+                        Your guess is locked — the reveal happens when {partnerName} is in.
                       </Text>
                     )}
                   </View>
@@ -573,17 +662,17 @@ export default function CouplesQuizScreen({ navigation }) {
 
                         <View style={styles.revealRow}>
                           <View style={[styles.revealCard, { borderColor: accentColor + '44' }]}>
-                            <Text style={styles.revealCardOwner}>You guessed</Text>
+                            <Text style={styles.revealCardOwner}>You guessed about {partnerName}</Text>
                             <Text style={styles.revealCardAnswer}>{myAnswer}</Text>
                           </View>
                           <View style={[styles.revealCard, { borderColor: t.primary + '44' }]}>
-                            <Text style={[styles.revealCardOwner, { color: t.primary }]}>{partnerName} said</Text>
-                            <Text style={styles.revealCardAnswer}>{partnerAnswer || '…'}</Text>
+                            <Text style={[styles.revealCardOwner, { color: t.primary }]}>{partnerName} guessed about you</Text>
+                            <Text style={styles.revealCardAnswer}>{partnerGuess || '…'}</Text>
                           </View>
                         </View>
 
                         <Text style={styles.revealCta}>
-                          How close were you? Talk about it today.
+                          Compare the guesses and fill in the real answers together.
                         </Text>
                       </View>
                     </Animated.View>

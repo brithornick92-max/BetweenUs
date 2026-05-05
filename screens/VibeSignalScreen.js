@@ -28,7 +28,8 @@ import { useTogetherPresence } from '../hooks/useTogetherPresence';
 import { PremiumFeature } from '../utils/featureFlags';
 import { SPACING, withAlpha } from '../utils/theme';
 import { vibeStorage } from '../utils/storage';
-import { getVibeSignalById, VIBE_SIGNALS } from '../utils/vibeSignals';
+import { getVibeSignalById, normalizeVibeSignal, VIBE_SIGNALS } from '../utils/vibeSignals';
+import { buildVibeFluxData, VIBE_HISTORY_DAYS, VIBE_HISTORY_SOURCE_HEARTBEAT } from '../utils/vibeSignalHistory';
 import { NicknameEngine } from '../services/PolishEngine';
 import { getPartnerDisplayName } from '../utils/profileNames';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -149,33 +150,31 @@ export default function VibeSignalScreen({ navigation }) {
 
   const loadFluxData = useCallback(() => {
     Promise.all([
-      vibeStorage.getRecentVibes(7),
-      vibeStorage.getRecentPartnerVibes(7),
+      vibeStorage.getRecentVibes(VIBE_HISTORY_DAYS, { source: VIBE_HISTORY_SOURCE_HEARTBEAT }),
+      vibeStorage.getRecentPartnerVibes(VIBE_HISTORY_DAYS, { source: VIBE_HISTORY_SOURCE_HEARTBEAT }),
     ]).then(([myVibes, partnerVibes]) => {
-      if ((!myVibes || myVibes.length === 0) && (!partnerVibes || partnerVibes.length === 0)) {
-        setFluxData(null);
-        return;
-      }
-      const orderedDays = [1, 2, 3, 4, 5, 6, 0]; // Mon–Sun
-      const countByDay = (vibes) => {
-        const buckets = [0, 0, 0, 0, 0, 0, 0];
-        for (const v of (vibes || [])) {
-          const dow = new Date(v.timestamp).getDay();
-          buckets[dow]++;
-        }
-        return orderedDays.map(d => buckets[d]);
-      };
-      setFluxData({ mine: countByDay(myVibes), partner: countByDay(partnerVibes) });
+      setFluxData(buildVibeFluxData(myVibes, partnerVibes));
     }).catch(() => setFluxData(null));
   }, []);
 
   const handleVibeSelect = useCallback((vibe) => {
     setActiveVibeId(vibe.id);
     impact(ImpactFeedbackStyle.Medium);
-    vibeStorage.addVibeEntry(vibe, state.userId)
+  }, []);
+
+  const recordSentHeartbeat = useCallback((vibe) => {
+    const normalizedVibe = normalizeVibeSignal(vibe);
+    vibeStorage.addVibeEntry(normalizedVibe, state.userId, { source: VIBE_HISTORY_SOURCE_HEARTBEAT })
       .then(() => loadFluxData())
       .catch(() => {});
   }, [state.userId, loadFluxData]);
+
+  const recordReceivedHeartbeat = useCallback((vibe) => {
+    const normalizedVibe = normalizeVibeSignal(vibe);
+    vibeStorage.addPartnerVibeEntry(normalizedVibe, { source: VIBE_HISTORY_SOURCE_HEARTBEAT })
+      .then(() => loadFluxData())
+      .catch(() => {});
+  }, [loadFluxData]);
 
   const restoreScrollPosition = useCallback(() => {
     scrollViewRef.current?.scrollTo({ x: 0, y: scrollOffsetRef.current, animated: false });
@@ -347,6 +346,8 @@ export default function VibeSignalScreen({ navigation }) {
             partnerLabel={partnerLabel}
             selectedVibe={activeVibe}
             onViewportStabilize={restoreScrollPosition}
+            onHeartbeatSent={recordSentHeartbeat}
+            onHeartbeatReceived={recordReceivedHeartbeat}
           />
 
         </Animated.View>

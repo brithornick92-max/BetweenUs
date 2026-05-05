@@ -205,7 +205,7 @@ export const MomentSignalSender = {
         // (notify_on_couple_data_insert) — no client-side call needed.
 
         await _setLastMomentSentAt(now);
-        return { sent: true, remote: true, type: momentType, timestamp: now };
+        return { sent: true, remote: true, type: momentType, timestamp: now, senderId: userId };
       } catch (err) {
         const errMsg = err.message || String(err) || 'Network or connection error';
         if (__DEV__) console.warn('[MomentSignal] Send failed:', errMsg);
@@ -265,7 +265,8 @@ export const MomentSignalSender = {
   async getReceivedSignals({ since, limit = 20 } = {}) {
     const sb = _getSupabase();
     const coupleId = await AsyncStorage.getItem(KEYS.MOMENT_COUPLE_ID);
-    const userId = await AsyncStorage.getItem(KEYS.MOMENT_USER_ID);
+    const storedUserId = await AsyncStorage.getItem(KEYS.MOMENT_USER_ID);
+    const userId = await _resolveSupabaseUserId(storedUserId);
     if (!sb || !coupleId || !userId || !_isValidUUID(userId)) return [];
 
     try {
@@ -322,7 +323,8 @@ export const MomentSignalSender = {
 
     const setup = async () => {
       const coupleId = directIds.coupleId || await AsyncStorage.getItem(KEYS.MOMENT_COUPLE_ID);
-      const userId = directIds.userId || await AsyncStorage.getItem(KEYS.MOMENT_USER_ID);
+      const storedUserId = directIds.userId || await AsyncStorage.getItem(KEYS.MOMENT_USER_ID);
+      const userId = await _resolveSupabaseUserId(storedUserId);
 
       if (!coupleId) {
         return;

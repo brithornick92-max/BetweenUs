@@ -4,7 +4,7 @@
     "app": "Between Us",
     "version": "3.3.0",
     "description": "Couples prompts with 5 heat levels, diverse categories, comfort controls, and relationship duration targeting",
-    "totalPrompts": 749,
+    "totalPrompts": 748,
     "heatLevels": {
       "1": {
         "name": "Emotional Connection",
@@ -2756,18 +2756,6 @@
     {
       "id": "h3_039",
       "text": "What part of the way we touch feels unlike anything else in your life?",
-      "category": "physical",
-      "heat": 3,
-      "relationshipDuration": [
-        "developing",
-        "established",
-        "mature"
-      ],
-      "releaseWeek": 83
-    },
-    {
-      "id": "h3_084",
-      "text": "What feels best when we're both wearing our accessories?",
       "category": "physical",
       "heat": 3,
       "relationshipDuration": [

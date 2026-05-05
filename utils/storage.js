@@ -47,6 +47,7 @@ export const STORAGE_KEYS = {
   PREMIUM_PROMPT_LIBRARY_STARTED_AT: key("premiumPromptLibraryStartedAt"),
   PREMIUM_SELF_STARTED_AT: key("premiumSelfStartedAt"),
   SAVED_PROMPTS_FOR_LATER: key("savedPromptsForLater"),
+  PARTNER_PROMPT_DAILY_QUOTE: key("partnerPromptDailyQuote"),
   CONTENT_DECK_RESTORES: key("contentDeckRestores"),
   WEEKLY_CONTENT_ALLOCATIONS: key("weeklyContentAllocations"),
   MEMORIES: key("memories"),
@@ -83,6 +84,14 @@ const ensureArray = (value) => (Array.isArray(value) ? value : []);
 const ensureObject = (value) => (
   value && typeof value === "object" && !Array.isArray(value) ? value : {}
 );
+const toTimestampMs = (value) => {
+  if (typeof value === "number" && Number.isFinite(value)) return value;
+  if (typeof value === "string" && value.trim()) {
+    const parsed = Date.parse(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  return null;
+};
 
 const dayKeyLocal = (date = new Date()) => {
   const d = date instanceof Date ? date : new Date(date);
@@ -429,26 +438,47 @@ export const ritualStorage = {
 
 export const vibeStorage = {
   getVibeHistory: () => storage.get(STORAGE_KEYS.VIBE_HISTORY, []),
-  async addVibeEntry(vibe, userId) {
+  async addVibeEntry(vibe, userId, options = {}) {
     const history = ensureArray(await storage.get(STORAGE_KEYS.VIBE_HISTORY, []));
-    const entry = { id: makeId("vibe"), vibe, userId, timestamp: Date.now(), synced: false };
+    const entry = {
+      id: makeId("vibe"),
+      vibe,
+      userId,
+      source: options.source || null,
+      timestamp: options.timestamp ?? Date.now(),
+      synced: false,
+    };
     await storage.set(STORAGE_KEYS.VIBE_HISTORY, [entry, ...history.slice(0, 99)]);
     return entry;
   },
-  async getRecentVibes(days = 7) {
+  async getRecentVibes(days = 7, options = {}) {
     const cutoff = Date.now() - (days * 24 * 60 * 60 * 1000);
-    return (await this.getVibeHistory()).filter((entry) => entry.timestamp > cutoff);
+    return (await this.getVibeHistory()).filter((entry) => {
+      const timestamp = toTimestampMs(entry?.timestamp);
+      if (timestamp === null || timestamp <= cutoff) return false;
+      return options.source ? entry?.source === options.source : true;
+    });
   },
-  async addPartnerVibeEntry(vibe) {
+  async addPartnerVibeEntry(vibe, options = {}) {
     const history = ensureArray(await storage.get(STORAGE_KEYS.PARTNER_VIBE_HISTORY, []));
-    const entry = { id: makeId("pvibe"), vibe, timestamp: Date.now(), isPartner: true };
+    const entry = {
+      id: makeId("pvibe"),
+      vibe,
+      source: options.source || null,
+      timestamp: options.timestamp ?? Date.now(),
+      isPartner: true,
+    };
     await storage.set(STORAGE_KEYS.PARTNER_VIBE_HISTORY, [entry, ...history.slice(0, 99)]);
     return entry;
   },
-  async getRecentPartnerVibes(days = 7) {
+  async getRecentPartnerVibes(days = 7, options = {}) {
     const cutoff = Date.now() - (days * 24 * 60 * 60 * 1000);
     const history = ensureArray(await storage.get(STORAGE_KEYS.PARTNER_VIBE_HISTORY, []));
-    return history.filter((entry) => entry.timestamp > cutoff);
+    return history.filter((entry) => {
+      const timestamp = toTimestampMs(entry?.timestamp);
+      if (timestamp === null || timestamp <= cutoff) return false;
+      return options.source ? entry?.source === options.source : true;
+    });
   },
 };
 

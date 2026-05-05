@@ -1,8 +1,29 @@
 const {
   canShowPartnerPromptQuote,
+  chooseDailyPartnerPromptQuote,
   choosePartnerPromptQuote,
   getPartnerPromptQuoteCandidateCount,
 } = require('../../utils/partnerPromptQuote');
+const AsyncStorage = require('@react-native-async-storage/async-storage');
+
+function installStorageMock(initial = {}) {
+  const store = new Map(Object.entries(initial));
+
+  AsyncStorage.getItem.mockImplementation(async (key) => store.get(key) ?? null);
+  AsyncStorage.setItem.mockImplementation(async (key, value) => {
+    store.set(key, value);
+  });
+  AsyncStorage.removeItem.mockImplementation(async (key) => {
+    store.delete(key);
+  });
+
+  return store;
+}
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  installStorageMock();
+});
 
 describe('choosePartnerPromptQuote', () => {
   const now = new Date(2026, 3, 30, 12);
@@ -127,6 +148,55 @@ describe('canShowPartnerPromptQuote', () => {
       answeredCount: 5,
       minDays: 5,
     })).toBe(false);
+  });
+});
+
+describe('chooseDailyPartnerPromptQuote', () => {
+  const rows = [
+    {
+      prompt_id: 'p1',
+      date_key: '2026-04-20',
+      partnerAnswer: 'First remembered answer.',
+    },
+    {
+      prompt_id: 'p2',
+      date_key: '2026-04-21',
+      partnerAnswer: 'Second remembered answer.',
+    },
+  ];
+
+  it('keeps the selected partner answer fixed for the current daily window', async () => {
+    const first = await chooseDailyPartnerPromptQuote(rows, {
+      now: new Date(2026, 4, 5, 12),
+      random: () => 0.9,
+    });
+    const second = await chooseDailyPartnerPromptQuote(rows, {
+      now: new Date(2026, 4, 5, 18),
+      random: () => 0,
+    });
+
+    expect(first.prompt_id).toBe('p2');
+    expect(second.prompt_id).toBe('p2');
+    expect(second.answer).toBe('Second remembered answer.');
+  });
+
+  it('uses the same daily quote before the 4am rollover', async () => {
+    const first = await chooseDailyPartnerPromptQuote(rows, {
+      now: new Date(2026, 4, 5, 23),
+      random: () => 0,
+    });
+    const beforeRollover = await chooseDailyPartnerPromptQuote(rows, {
+      now: new Date(2026, 4, 6, 3, 30),
+      random: () => 0.9,
+    });
+    const afterRollover = await chooseDailyPartnerPromptQuote(rows, {
+      now: new Date(2026, 4, 6, 4, 1),
+      random: () => 0.9,
+    });
+
+    expect(first.prompt_id).toBe('p1');
+    expect(beforeRollover.prompt_id).toBe('p1');
+    expect(afterRollover.prompt_id).toBe('p2');
   });
 });
 

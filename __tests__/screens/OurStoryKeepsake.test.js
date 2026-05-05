@@ -278,6 +278,58 @@ describe('OurStory Keepsake entry building', () => {
     ]);
   });
 
+  it('keeps partner-created keepsakes hide-only instead of editable or deletable', async () => {
+    const entries = await buildKeepsakeEntriesFromSources({
+      currentUserId: 'user-1',
+      keepsakeSettingsRaw: {
+        prompts: false,
+        memories: true,
+        dates: true,
+        positions: true,
+      },
+      sharedMemories: [
+        {
+          id: 'partner-memory-1',
+          user_id: 'user-2',
+          type: 'moment',
+          content: 'Partner saved moment',
+          created_at: '2026-04-28T12:00:00.000Z',
+        },
+        {
+          id: 'partner-date-memory-1',
+          user_id: 'user-2',
+          type: 'date_tried',
+          content: JSON.stringify({
+            kind: 'date_history',
+            dateId: 'd004',
+            title: 'Golden Hour Photos',
+          }),
+          created_at: '2026-04-28T12:01:00.000Z',
+        },
+        {
+          id: 'partner-position-memory-1',
+          user_id: 'user-2',
+          type: 'intimacy_tried',
+          content: JSON.stringify({
+            kind: 'intimacy_tried',
+            positionId: 'ip001',
+            title: 'Close Hold',
+          }),
+          created_at: '2026-04-28T12:02:00.000Z',
+        },
+      ],
+      resolveMedia: async () => null,
+    });
+
+    expect(entries).toHaveLength(3);
+    for (const entry of entries) {
+      expect(entry.isOwn).toBe(false);
+      expect(entry.editable).toBe(false);
+      expect(entry.deletable).toBe(false);
+      expect(entry.hideable).toBe(true);
+    }
+  });
+
   it('groups keepsakes by date with newest date first and no category priority', () => {
     const rows = buildDateGroupedKeepsakeList([
       {
