@@ -602,6 +602,22 @@ export default function HomeScreen({ navigation }) {
     },
   }[ritualState]), [partnerLabel, prompt.text, promptReady, ritualState]);
 
+  const quoteHero = !!throwback
+    && promptReady
+    && (ritualState === 'solo_unanswered' || ritualState === 'linked_unanswered');
+
+  const heroCopy = useMemo(() => {
+    if (!quoteHero) return ritualCopy;
+
+    return {
+      eyebrow: throwback?.isOnThisDay ? 'ON THIS DAY' : 'FROM YOUR PARTNER',
+      title: `"${throwback?.answer || ''}"`,
+      promptText: throwback?.promptText || 'A past moment together',
+      primaryLabel: "Answer today's question",
+      secondaryLabel: null,
+    };
+  }, [quoteHero, ritualCopy, throwback]);
+
   const handleInlineSave = useCallback(async () => {
     const finalText = inlineText.trim();
     if (!finalText || !prompt?.id || !user?.uid || savingInlineRef.current) return;
@@ -736,6 +752,19 @@ export default function HomeScreen({ navigation }) {
       return;
     }
 
+    if (quoteHero) {
+      navigation.navigate('PromptAnswer', {
+        prompt: {
+          id: prompt.id,
+          text: prompt.text,
+          dateKey: todayKey,
+          heat: prompt.heat,
+          category: prompt.category,
+        },
+      });
+      return;
+    }
+
     if (ritualState === 'answered_waiting') {
       try {
         const { default: PN } = await import('../services/PartnerNotifications');
@@ -802,10 +831,12 @@ export default function HomeScreen({ navigation }) {
     inlineText,
     handleInlineSave,
     ritualState,
+    quoteHero,
   ]);
 
   const primaryCTALabel = useMemo(() => {
     if (!promptReady) return 'Customize Content';
+    if (quoteHero) return heroCopy?.primaryLabel || "Answer today's question";
 
     if ((ritualState === 'solo_unanswered' || ritualState === 'linked_unanswered') && inlineText.trim()) {
       return isSavingInline ? 'Saving...' : 'Save my answer';
@@ -814,13 +845,14 @@ export default function HomeScreen({ navigation }) {
     if (ritualState === 'answered_waiting' && isNudgeSent) {
       return 'Sent';
     }
-    return ritualCopy?.primaryLabel || "Answer today's question";
-  }, [promptReady, ritualCopy, ritualState, inlineText, isSavingInline, isNudgeSent]);
+    return heroCopy?.primaryLabel || "Answer today's question";
+  }, [promptReady, quoteHero, heroCopy, ritualState, inlineText, isSavingInline, isNudgeSent]);
 
   const statusText = useMemo(() => {
+    if (quoteHero) return null;
     if (!promptReady) return null;
     return ritualCopy?.body || null;
-  }, [promptReady, ritualCopy]);
+  }, [promptReady, quoteHero, ritualCopy]);
 
   const handleSecondaryCTA = useCallback(() => {
     if (!promptReady) return;
@@ -940,16 +972,31 @@ export default function HomeScreen({ navigation }) {
             <View style={styles.heroCardWrap}>
               <View style={styles.eyebrowRow}>
                 <Icon name="star-outline" size={14} color={t.primary} />
-                <Text style={styles.eyebrow}>{ritualCopy?.eyebrow || 'TODAY'}</Text>
+                <Text style={styles.eyebrow}>{heroCopy?.eyebrow || 'TODAY'}</Text>
               </View>
 
               <Text style={styles.promptText}>
-                {promptReady ? ritualCopy?.title || prompt.text : ''}
+                {promptReady ? heroCopy?.title || prompt.text : ''}
               </Text>
 
               {!promptReady && <PromptCardSkeleton />}
 
-              {myAnswer ? (
+              {quoteHero ? (
+                <View style={styles.quoteContext}>
+                  <Text style={styles.quotePrompt}>
+                    {heroCopy.promptText}
+                  </Text>
+                  <Text style={styles.quoteMeta}>
+                    {throwback?.date_key
+                      ? `${partnerLabel} answered · ${new Date(`${throwback.date_key}T00:00:00`).toLocaleDateString('en-US', {
+                        month: 'long',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })}`
+                      : `${partnerLabel} answered`}
+                  </Text>
+                </View>
+              ) : myAnswer ? (
                 <View style={styles.answerBubble}>
                   <Text style={styles.answerText}>{myAnswer}</Text>
                 </View>
@@ -1022,15 +1069,15 @@ export default function HomeScreen({ navigation }) {
                 <Icon name="arrow-forward-outline" size={20} color={isDark ? '#000000' : '#FFFFFF'} />
               </TouchableOpacity>
 
-              {ritualCopy?.secondaryLabel ? (
+              {heroCopy?.secondaryLabel ? (
                 <TouchableOpacity
                   activeOpacity={0.75}
                   onPress={handleSecondaryCTA}
                   style={styles.secondaryCTA}
                   accessibilityRole="button"
-                  accessibilityLabel={ritualCopy.secondaryLabel}
+                  accessibilityLabel={heroCopy.secondaryLabel}
                 >
-                  <Text style={styles.secondaryCTALabel}>{ritualCopy.secondaryLabel}</Text>
+                  <Text style={styles.secondaryCTALabel}>{heroCopy.secondaryLabel}</Text>
                 </TouchableOpacity>
               ) : null}
             </View>
@@ -1089,7 +1136,7 @@ export default function HomeScreen({ navigation }) {
           <View style={{ height: homeLayout.spacing.gap }} />
 
           {/* ── Memory Lane Throwback ── */}
-          {throwback && (
+          {throwback && !quoteHero && (
             <View style={styles.memoryLaneCard}>
               <View style={styles.memoryLaneHeader}>
                 <Icon name="time-outline" size={16} color={t.primary} />
@@ -1306,6 +1353,31 @@ const createStyles = (t, isDark) => StyleSheet.create({
     lineHeight: 24,
     fontWeight: '400',
     color: t.text,
+  },
+  quoteContext: {
+    borderRadius: 20,
+    borderWidth: 1,
+    padding: SPACING.lg,
+    marginBottom: SPACING.xl,
+    backgroundColor: t.surfaceSecondary,
+    borderColor: t.border,
+  },
+  quotePrompt: {
+    fontFamily: systemFont,
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: '700',
+    color: t.subtext,
+    marginBottom: SPACING.sm,
+  },
+  quoteMeta: {
+    fontFamily: systemFont,
+    fontSize: 12,
+    lineHeight: 17,
+    fontWeight: '800',
+    letterSpacing: 0,
+    textTransform: 'uppercase',
+    color: t.primary,
   },
   partnerVisibilityRow: {
     flexDirection: 'row',
