@@ -4,7 +4,7 @@
     "app": "Between Us",
     "version": "3.3.0",
     "description": "Couples prompts with 5 heat levels, diverse categories, comfort controls, and relationship duration targeting",
-    "totalPrompts": 1042,
+    "totalPrompts": 1053,
     "heatLevels": {
       "1": {
         "name": "Emotional Connection",
@@ -5033,18 +5033,6 @@
         "mature"
       ],
       "releaseWeek": 83
-    },
-    {
-      "id": "h3_107",
-      "text": "What's the most vulnerable you've felt with me and loved it?",
-      "category": "emotional",
-      "heat": 3,
-      "relationshipDuration": [
-        "developing",
-        "established",
-        "mature"
-      ],
-      "releaseWeek": 84
     },
     {
       "id": "h3_086",
@@ -10139,16 +10127,6 @@
       "releaseWeek": 171
     },
     {
-      "id": "h1_228",
-      "text": "What childhood belief were you completely sure was true that makes you laugh now?",
-      "category": "memory",
-      "heat": 1,
-      "relationshipDuration": [
-        "universal"
-      ],
-      "releaseWeek": 172
-    },
-    {
       "id": "h1_229",
       "text": "What is your favorite memory from our first year together, and what detail still stands out?",
       "category": "memory",
@@ -10159,16 +10137,6 @@
         "long_term"
       ],
       "releaseWeek": 172
-    },
-    {
-      "id": "h1_230",
-      "text": "What quiet talent or strength of yours do I not get to see often enough?",
-      "category": "playful",
-      "heat": 1,
-      "relationshipDuration": [
-        "universal"
-      ],
-      "releaseWeek": 173
     },
     {
       "id": "h1_233",
@@ -10257,16 +10225,6 @@
     {
       "id": "h1_240",
       "text": "What moment has shaped who you are more than people realize?",
-      "category": "emotional",
-      "heat": 1,
-      "relationshipDuration": [
-        "universal"
-      ],
-      "releaseWeek": 175
-    },
-    {
-      "id": "h1_241",
-      "text": "What do you think happens to a person's energy, love, or consciousness after they die?",
       "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
@@ -10488,16 +10446,6 @@
       "releaseWeek": 179
     },
     {
-      "id": "h1_260",
-      "text": "Which social or cultural norm do you find yourself pushing back against lately?",
-      "category": "emotional",
-      "heat": 1,
-      "relationshipDuration": [
-        "universal"
-      ],
-      "releaseWeek": 179
-    },
-    {
       "id": "h1_261",
       "text": "How do you understand the difference between happiness and meaning in your own life?",
       "category": "emotional",
@@ -10541,16 +10489,6 @@
       "releaseWeek": 180
     },
     {
-      "id": "h1_265",
-      "text": "What complex subject do you want us to understand more deeply together?",
-      "category": "emotional",
-      "heat": 1,
-      "relationshipDuration": [
-        "universal"
-      ],
-      "releaseWeek": 180
-    },
-    {
       "id": "h1_266",
       "text": "How do we balance radical honesty with care for each other's feelings?",
       "category": "emotional",
@@ -10562,18 +10500,6 @@
         "long_term"
       ],
       "releaseWeek": 180
-    },
-    {
-      "id": "h1_267",
-      "text": "What legacy do you want us to leave for family and broader community?",
-      "category": "future",
-      "heat": 1,
-      "relationshipDuration": [
-        "established",
-        "mature",
-        "long_term"
-      ],
-      "releaseWeek": 181
     },
     {
       "id": "h1_269",
@@ -10641,34 +10567,8 @@
       "releaseWeek": 182
     },
     {
-      "id": "h1_274",
-      "text": "What major risk might elevate our life in the next five years?",
-      "category": "future",
-      "heat": 1,
-      "relationshipDuration": [
-        "developing",
-        "established",
-        "mature",
-        "long_term"
-      ],
-      "releaseWeek": 182
-    },
-    {
       "id": "h1_275",
       "text": "What traditions or rituals feel foundational to our shared culture?",
-      "category": "future",
-      "heat": 1,
-      "relationshipDuration": [
-        "developing",
-        "established",
-        "mature",
-        "long_term"
-      ],
-      "releaseWeek": 182
-    },
-    {
-      "id": "h1_276",
-      "text": "How should we use our time, energy, and money for causes we care about?",
       "category": "future",
       "heat": 1,
       "relationshipDuration": [
@@ -10797,21 +10697,8 @@
       "releaseWeek": 184
     },
     {
-      "id": "h1_286",
-      "text": "How does our home feel different when we're in sync versus distracted?",
-      "category": "emotional",
-      "heat": 1,
-      "relationshipDuration": [
-        "developing",
-        "established",
-        "mature",
-        "long_term"
-      ],
-      "releaseWeek": 184
-    },
-    {
       "id": "h1_287",
-      "text": "What part of your authentic self needs more room right now?",
+      "text": "What part of who you are needs more room right now?",
       "category": "emotional",
       "heat": 1,
       "relationshipDuration": [
@@ -11134,18 +11021,6 @@
       "releaseWeek": 190
     },
     {
-      "id": "h4_241",
-      "text": "If we had an empty luxury resort to ourselves for 24 hours, how would you want the day and night to unfold?",
-      "category": "location",
-      "heat": 4,
-      "relationshipDuration": [
-        "established",
-        "mature",
-        "long_term"
-      ],
-      "releaseWeek": 191
-    },
-    {
       "id": "h4_242",
       "text": "What fantasy scene have you imagined that you'd like us to act out together?",
       "category": "fantasy",
@@ -11161,18 +11036,6 @@
       "id": "h4_243",
       "text": "What boundaries are you curious to push together, and what would make that exploration feel safe?",
       "category": "kinky",
-      "heat": 4,
-      "relationshipDuration": [
-        "established",
-        "mature",
-        "long_term"
-      ],
-      "releaseWeek": 191
-    },
-    {
-      "id": "h4_244",
-      "text": "Tell me about a spicy dream about us that stayed with you after you woke up.",
-      "category": "fantasy",
       "heat": 4,
       "relationshipDuration": [
         "established",
@@ -11209,18 +11072,6 @@
       "id": "h4_248",
       "text": "What new sensations or dynamics are you curious about, and how would you want me to introduce them?",
       "category": "sensory",
-      "heat": 4,
-      "relationshipDuration": [
-        "established",
-        "mature",
-        "long_term"
-      ],
-      "releaseWeek": 192
-    },
-    {
-      "id": "h4_250",
-      "text": "How would you want me to surprise you with a new bedroom experience?",
-      "category": "fantasy",
       "heat": 4,
       "relationshipDuration": [
         "established",
@@ -11722,18 +11573,6 @@
       "releaseWeek": 201
     },
     {
-      "id": "h5_243",
-      "text": "What does zero-inhibition sexual freedom look like for you, and what environment would help you reach it?",
-      "category": "kinky",
-      "heat": 5,
-      "relationshipDuration": [
-        "established",
-        "mature",
-        "long_term"
-      ],
-      "releaseWeek": 201
-    },
-    {
       "id": "h5_244",
       "text": "What runs through your mind and body when you know I am watching you experience intense pleasure?",
       "category": "visual",
@@ -12068,6 +11907,306 @@
         "long_term"
       ],
       "releaseWeek": 206
+    },
+    {
+      "id": "h4_281",
+      "text": "How does the trust we have built in daily life change the way you let me touch and explore you during sex?",
+      "category": "emotional",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 207
+    },
+    {
+      "id": "h4_282",
+      "text": "When has my confidence or competence in an everyday situation made you suddenly want me?",
+      "category": "memory",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 207
+    },
+    {
+      "id": "h4_283",
+      "text": "How does feeling intellectually understood by me change the way you experience physical passion with me?",
+      "category": "emotional",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 207
+    },
+    {
+      "id": "h4_284",
+      "text": "When you are exhausted and ready to drop your guard, how do you want me to take control of your pleasure?",
+      "category": "kinky",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 207
+    },
+    {
+      "id": "h4_285",
+      "text": "What feels different between sex driven by overwhelming lust and sex driven by a need to feel emotionally tethered?",
+      "category": "emotional",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 207
+    },
+    {
+      "id": "h4_286",
+      "text": "What do you feel when our breathing or heartbeat settles into the same rhythm right after sex?",
+      "category": "sensory",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 208
+    },
+    {
+      "id": "h4_287",
+      "text": "When we are physically exposed together, what look from me makes you feel most cherished?",
+      "category": "visual",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 208
+    },
+    {
+      "id": "h4_288",
+      "text": "How do you want my touch to communicate safety and comfort, and how do you want it to communicate raw desire?",
+      "category": "physical",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 208
+    },
+    {
+      "id": "h3_265",
+      "text": "What subtle physical boundary or preference makes you feel deeply seen when I remember it?",
+      "category": "physical",
+      "heat": 3,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 208
+    },
+    {
+      "id": "h3_266",
+      "text": "How does the scent of my skin or the warmth of my body ground you after a chaotic day?",
+      "category": "sensory",
+      "heat": 3,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 208
+    },
+    {
+      "id": "h4_289",
+      "text": "When has letting go of an emotional fear led to a breakthrough in our sex life?",
+      "category": "memory",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 209
+    },
+    {
+      "id": "h5_247",
+      "text": "How do you process the vulnerability of consensually losing control while trusting me to catch you?",
+      "category": "kinky",
+      "heat": 5,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 209
+    },
+    {
+      "id": "h4_290",
+      "text": "What physical insecurity did you once hide but now feel safe letting me adore?",
+      "category": "emotional",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 209
+    },
+    {
+      "id": "h4_291",
+      "text": "How does your body respond to the contrast between my gentle reassurance and more demanding touch?",
+      "category": "physical",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 209
+    },
+    {
+      "id": "h4_292",
+      "text": "How does uninhibited sex with me give you a safe place to express emotions you usually suppress?",
+      "category": "emotional",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 209
+    },
+    {
+      "id": "h4_293",
+      "text": "What does the tension between us feel like when we are in a crowded room but locked onto each other?",
+      "category": "emotional",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 210
+    },
+    {
+      "id": "h4_294",
+      "text": "What does it do to you when I whisper something suggestive in a completely ordinary setting?",
+      "category": "sensory",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 210
+    },
+    {
+      "id": "h4_295",
+      "text": "What psychological buildup happens when we stretch foreplay across an entire evening?",
+      "category": "physical",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 210
+    },
+    {
+      "id": "h4_296",
+      "text": "How does knowing exactly how to turn me on make you feel powerful and connected to me?",
+      "category": "emotional",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 210
+    },
+    {
+      "id": "h4_297",
+      "text": "What feels thrilling about carrying a private sexual secret between us while we move through ordinary life?",
+      "category": "emotional",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 210
+    },
+    {
+      "id": "h4_298",
+      "text": "When has sex with me felt like mutual healing and emotional reset, not just physical release?",
+      "category": "memory",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 211
+    },
+    {
+      "id": "h3_267",
+      "text": "How do we keep long-term devotion fueling our physical spark instead of cooling it down?",
+      "category": "future",
+      "heat": 3,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 211
+    },
+    {
+      "id": "h3_268",
+      "text": "What parts of our shared history make the way we hold each other feel heavier than it did early on?",
+      "category": "memory",
+      "heat": 3,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 211
+    },
+    {
+      "id": "h4_299",
+      "text": "What emotional peace do you feel when we are lying bare, exhausted, and wrapped together in the dark?",
+      "category": "emotional",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 211
+    },
+    {
+      "id": "h4_300",
+      "text": "How do you understand the difference between simply having sex and the deeper physical devotion we keep building?",
+      "category": "emotional",
+      "heat": 4,
+      "relationshipDuration": [
+        "established",
+        "mature",
+        "long_term"
+      ],
+      "releaseWeek": 211
     }
   ]
 }

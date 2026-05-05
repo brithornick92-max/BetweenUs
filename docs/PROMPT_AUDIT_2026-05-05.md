@@ -4,9 +4,9 @@ Scope: `content/prompts.json` and prompt-focused audit rules in `scripts/audit-q
 
 ## Summary
 
-- Added 173 draft conversation prompts across the requested thriving-couples, sensual, explicit, and touch/connection sets.
-- Pruned 11 weaker or redundant recent additions so the catalog keeps the strongest 162 net-new prompts.
-- Prompt catalog now contains 1042 prompts.
+- Added 184 draft conversation prompts across the requested thriving-couples, sensual, explicit, and touch/connection sets.
+- Pruned 11 weaker or redundant recent additions so the catalog keeps the strongest 173 net-new prompts.
+- Prompt catalog now contains 1053 prompts.
 - New prompts span heat 1 through heat 5, with the largest additions in emotional, future, memory, physical, and consent-led kink categories.
 - Rewrote existing prompts that sounded cheesy, trivia-like, placeholder-based, or mechanically repetitive.
 - Expanded the quality audit to block lightweight romantic cliches, `[X]` placeholder prompts, repeated `Tell me more` suffixes, closed ranking questions, and sexual euphemisms that should use direct language.
