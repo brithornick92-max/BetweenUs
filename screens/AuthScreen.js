@@ -29,18 +29,36 @@ const SERIF_FONT = Platform.select({ ios: "Georgia", android: "serif" });
 const INTRO_POINTS = [
   {
     icon: "people-outline",
-    title: "Made for two people",
-    body: "Invite your partner into the same private space so prompts, date ideas, and saved moments stay shared.",
+    title: "Made for couples",
+    body: "Create one shared private space for you and your partner.",
   },
   {
-    icon: "sparkles-outline",
-    title: "Small ways back to each other",
-    body: "Answer gentle questions, plan time together, and keep the moments you want to remember.",
+    icon: "infinite-outline",
+    title: "Pair with your partner",
+    body: "Invite them when you are ready so prompts, plans, and memories stay connected between you.",
   },
   {
     icon: "lock-closed-outline",
     title: "Account required for pairing",
     body: "Sign-in keeps each person connected to the right partner and protects synced content across devices.",
+  },
+];
+
+const APP_PREVIEW_POINTS = [
+  {
+    icon: "chatbubbles-outline",
+    title: "Couple prompts",
+    body: "Answer thoughtful questions, reveal responses, and build a private rhythm of checking in.",
+  },
+  {
+    icon: "calendar-outline",
+    title: "Date ideas and plans",
+    body: "Find date-night ideas, save favorites, and keep track of the experiences you try together.",
+  },
+  {
+    icon: "images-outline",
+    title: "Memories and keepsakes",
+    body: "Save photos, notes, milestones, and little moments you want to come back to.",
   },
 ];
 
@@ -85,7 +103,7 @@ export default function AuthScreen() {
   const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
   const headerSubtitle = authVisible
     ? isSignUp ? "Where closeness deepens" : "Welcome back"
-    : "A private space for two";
+    : "A private app for couples";
   const scrollContentStyle = authVisible
     ? styles.scrollContent
     : styles.onboardingScrollContent;
@@ -245,7 +263,7 @@ export default function AuthScreen() {
                   <Text style={[styles.screenEyebrow, { color: t.primary }]}>BETWEEN US</Text>
                   <Text style={styles.screenTitle}>{headerSubtitle}</Text>
                   <Text style={styles.screenDescription}>
-                    Built for two, not a feed. Share prompts, date ideas, and little memories in one private place.
+                    Between Us is for couples who want a private place to connect, plan time together, and keep the moments that matter.
                   </Text>
                 </View>
 
@@ -263,6 +281,26 @@ export default function AuthScreen() {
                         </View>
                       </View>
                       {index < INTRO_POINTS.length - 1 && (
+                        <View style={[styles.rowDivider, { backgroundColor: t.border }]} />
+                      )}
+                    </View>
+                  ))}
+                </View>
+
+                <Text style={styles.groupLabel}>INSIDE THE APP</Text>
+                <View style={[styles.groupCard, { backgroundColor: t.surface, borderColor: t.border }]}>
+                  {APP_PREVIEW_POINTS.map((item, index) => (
+                    <View key={item.title}>
+                      <View style={styles.listRow}>
+                        <View style={[styles.iconWrap, { backgroundColor: isDark ? 'rgba(210, 18, 26, 0.18)' : 'rgba(210, 18, 26, 0.08)' }]}>
+                          <Icon name={item.icon} size={20} color={t.primary} />
+                        </View>
+                        <View style={styles.rowText}>
+                          <Text style={styles.rowTitle}>{item.title}</Text>
+                          <Text style={styles.rowBody}>{item.body}</Text>
+                        </View>
+                      </View>
+                      {index < APP_PREVIEW_POINTS.length - 1 && (
                         <View style={[styles.rowDivider, { backgroundColor: t.border }]} />
                       )}
                     </View>

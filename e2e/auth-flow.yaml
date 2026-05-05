@@ -22,8 +22,13 @@ appId: com.brittany.betweenus
 
 # Intro screen should appear before account friction for new users
 - assertVisible:
-    text: ".*Built for two, not a feed.*"
+    text: ".*private app for couples.*"
+- assertVisible: "Made for couples"
+- assertVisible: "INSIDE THE APP"
+- assertVisible: "Couple prompts"
 - assertVisible: "Account required for pairing"
+
+- scroll
 - assertVisible:
     text: ".*not used for marketing emails.*"
 
