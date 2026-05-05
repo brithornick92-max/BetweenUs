@@ -119,11 +119,20 @@ const seededScore = (item, seed) => {
  * @param {Date|string} currentDate - Current date (defaults to now)
  * @returns {number} Week number (0 = signup week, 1 = first week after, etc.)
  */
+const toLocalDayStart = (value) => {
+  const date = value instanceof Date ? new Date(value) : new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate());
+};
+
 const getUserWeekNumber = (userCreatedAt, currentDate = new Date()) => {
   if (!userCreatedAt) return 0; // Fallback for users without creation date
   
-  const signupDate = new Date(userCreatedAt);
-  const current = currentDate instanceof Date ? currentDate : new Date(currentDate);
+  const signupDate = toLocalDayStart(userCreatedAt);
+  const current = toLocalDayStart(currentDate);
+  if (!signupDate || !current) {
+    return 0;
+  }
   const diffMs = current.getTime() - signupDate.getTime();
   const weekMs = 7 * 24 * 60 * 60 * 1000;
 

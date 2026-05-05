@@ -40,6 +40,7 @@ import {
   toggleIntimacyFavorite,
   toggleIntimacyTried,
 } from '../utils/intimacyFavorites';
+import { resolveWeeklyContentAnchorDate } from '../utils/contentSchedule';
 import { getIntimacyMatchState } from '../utils/coupleMatches';
 import { getRestoredDeckItemIds } from '../utils/contentDeckRestores';
 
@@ -62,7 +63,7 @@ export function resolveSelectedPositionIndex(availablePositions, {
 
 export default function IntimacyPositionsScreen() {
   const { colors, isDark } = useTheme();
-  const { isPremiumEffective, showPaywall } = useEntitlements();
+  const { isPremiumEffective, premiumStartedAt, showPaywall } = useEntitlements();
   const { userProfile } = useAuth();
   const navigation = useNavigation();
   const { width } = useWindowDimensions();
@@ -127,6 +128,12 @@ export default function IntimacyPositionsScreen() {
     return positionAccess?.positions || [];
   }, [positionAccess, weeklyPositionSet]);
 
+  const contentAnchorDate = useMemo(() => resolveWeeklyContentAnchorDate({
+    isPremium: isPremiumEffective,
+    premiumStartedAt,
+    userProfile,
+  }), [isPremiumEffective, premiumStartedAt, userProfile]);
+
   useEffect(() => {
     availablePositionsRef.current = availablePositions;
   }, [availablePositions]);
@@ -180,12 +187,12 @@ export default function IntimacyPositionsScreen() {
       userId: userProfile?.id || userProfile?.user_id || userProfile?.uid || userProfile?.sub || 'anonymous',
       isPremium: isPremiumEffective,
       userSettings: profile || userProfile || {},
-      userCreatedAt: userProfile?.created_at || userProfile?.createdAt || userProfile?.created || userProfile?.creationTime,
+      userCreatedAt: contentAnchorDate,
       date: new Date(),
     });
 
     setWeeklyPositionSet(weeklySet);
-  }, [isPremiumEffective, positionCatalog, userProfile]);
+  }, [contentAnchorDate, isPremiumEffective, positionCatalog, userProfile]);
 
   useEffect(() => {
     let active = true;

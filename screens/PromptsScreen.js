@@ -39,6 +39,7 @@ import { SoftBoundaries } from "../services/PolishEngine";
 import { DataLayer } from "../services/localfirst";
 import { FALLBACK_PROMPT } from "../utils/contentLoader";
 import { getRestoredDeckItemIds } from "../utils/contentDeckRestores";
+import { resolveWeeklyContentAnchorDate } from "../utils/contentSchedule";
 import { getRecentlyCompletedPromptIds } from "../utils/promptHistory";
 import { promptStorage, savedPromptStorage } from "../utils/storage";
 import { LinearGradient } from 'expo-linear-gradient';
@@ -221,7 +222,7 @@ async function getLocalPromptAnswerRows() {
 export default function PromptsScreen({ navigation }) {
   const tabBarHeight = useBottomTabBarHeight();
   const { isDark } = useTheme();
-  const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
+  const { isPremiumEffective: isPremium, premiumStartedAt, showPaywall } = useEntitlements();
   const { user, userProfile } = useAuth();
 
   const [weeklyPromptSet, setWeeklyPromptSet] = useState(null);
@@ -283,6 +284,13 @@ export default function PromptsScreen({ navigation }) {
   );
 
   const toneCopy = TONE_PROMPT_COPY[selectedTone] || TONE_PROMPT_COPY.warm;
+  const contentAnchorDate = useMemo(() => resolveWeeklyContentAnchorDate({
+    isPremium,
+    premiumStartedAt,
+    user,
+    userProfile,
+  }), [isPremium, premiumStartedAt, user, userProfile]);
+
   const loadPrompts = useCallback(async () => {
     setLoading(true);
     try {
@@ -320,7 +328,7 @@ export default function PromptsScreen({ navigation }) {
         userId: user?.uid || user?.id || 'anonymous',
         isPremium,
         userSettings: contentProfile || userProfile || {},
-        userCreatedAt: userProfile?.created_at || userProfile?.createdAt || user?.metadata?.creationTime,
+        userCreatedAt: contentAnchorDate,
         date: new Date(),
       });
 
@@ -332,7 +340,7 @@ export default function PromptsScreen({ navigation }) {
             userSettings: contentProfile
               ? { ...contentProfile, maxHeat: resolveExplicitMaxHeat(contentProfile) }
               : userProfile || {},
-            userCreatedAt: userProfile?.created_at || userProfile?.createdAt || user?.metadata?.creationTime,
+            userCreatedAt: contentAnchorDate,
             date: new Date(),
           })
         : activeBoundaryEligible;
@@ -344,7 +352,7 @@ export default function PromptsScreen({ navigation }) {
     } finally {
       setLoading(false);
     }
-  }, [contentProfile, isPremium, user?.id, user?.metadata?.creationTime, user?.uid, userProfile, rawBoundaries]);
+  }, [contentAnchorDate, contentProfile, isPremium, user?.id, user?.uid, userProfile, rawBoundaries]);
 
   useEffect(() => {
     loadPrompts();

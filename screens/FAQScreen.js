@@ -46,7 +46,7 @@ const FAQ_DATA = [
       },
       {
         q: 'How much does it cost?',
-        a: `The free version includes the core couple experience: prompts, notes, date ideas, shared calendar, Keepsake, app lock, and recaps.\n\nFree starts with 5 prompts, 5 date ideas, and 1 sex position, and adds 5 prompts, 5 date ideas, and 1 sex position each week. Free Keepsake shows the last 30 days of your shared story.\n\nPremium starts with 100 prompts, 100 date ideas, and 10 sex positions, then adds 15 prompts, 15 date ideas, and 3 sex positions each week, plus the full Keepsake archive. One subscription covers both linked partners after entitlement sync completes.\n\n• Monthly: ${FALLBACK_PRICES.monthly}\n• Yearly: ${FALLBACK_PRICES.yearly}`,
+        a: `The free version includes the core couple experience: prompts, notes, date ideas, shared calendar, Keepsake, app lock, and recaps.\n\nFree starts with 5 prompts, 5 date ideas, and 1 sex position, and adds 5 prompts, 5 date ideas, and 1 sex position each week from your signup day. Free Keepsake shows the last 30 days of your shared story.\n\nPremium starts with 100 prompts, 100 date ideas, and 10 sex positions, then adds 15 prompts, 15 date ideas, and 3 sex positions each week from the day premium starts, plus the full Keepsake archive. One subscription covers both linked partners after entitlement sync completes.\n\n• Monthly: ${FALLBACK_PRICES.monthly}\n• Yearly: ${FALLBACK_PRICES.yearly}`,
       },
       {
         q: 'How do I get started?',
@@ -134,7 +134,7 @@ const FAQ_DATA = [
     questions: [
       {
         q: 'What\'s included in Premium?',
-        a: 'Premium starts with 100 prompts, 100 date ideas, and 10 sex positions, keeps adding 15 prompts, 15 date ideas, and 3 sex positions each week, and unlocks the full Keepsake archive beyond the last 30 days. The rest of the core experience stays available on free. One subscription covers both linked partners after entitlement sync completes.',
+        a: 'Premium starts with 100 prompts, 100 date ideas, and 10 sex positions, keeps adding 15 prompts, 15 date ideas, and 3 sex positions each week from the day premium starts, and unlocks the full Keepsake archive beyond the last 30 days. The rest of the core experience stays available on free. One subscription covers both linked partners after entitlement sync completes.',
       },
       {
         q: 'How do I subscribe?',

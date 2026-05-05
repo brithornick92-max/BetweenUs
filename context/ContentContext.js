@@ -27,6 +27,8 @@ import {
   saveSharedDailyPromptSelection,
 } from '../services/content/ContentCoupleService';
 import { DataLayer } from '../services/localfirst';
+import { buildPremiumPromptLibrary } from '../services/WeeklyContentSetService';
+import { resolveWeeklyContentAnchorDate } from '../utils/contentSchedule';
 import { FALLBACK_PROMPT, getPromptById } from '../utils/contentLoader';
 import { getRestoredDeckItemIds } from '../utils/contentDeckRestores';
 import { getRecentlyCompletedPromptIds } from '../utils/promptHistory';
@@ -71,7 +73,7 @@ export const useContent = () => {
 
 export const ContentProvider = ({ children }) => {
   const { user, userProfile, updateProfile } = useAuth();
-  const { isPremiumEffective: isPremium } = useEntitlements();
+  const { isPremiumEffective: isPremium, premiumStartedAt } = useEntitlements();
   const [prompts] = useState([]);
   const [dates] = useState([]);
   const [todayPrompt, setTodayPrompt] = useState(null);
@@ -199,6 +201,13 @@ export const ContentProvider = ({ children }) => {
     }
   }, [getRelationshipDuration]);
 
+  const contentAnchorDate = useMemo(() => resolveWeeklyContentAnchorDate({
+    isPremium,
+    premiumStartedAt,
+    user,
+    userProfile,
+  }), [isPremium, premiumStartedAt, user, userProfile]);
+
   // Load today's prompt — one fixed prompt per scope/day.
   // Caller-specific heat selection must not regenerate a second "today" prompt.
   // We keep the legacy parameter for compatibility with existing callers, but
@@ -241,14 +250,13 @@ export const ContentProvider = ({ children }) => {
       const filters = {
         maxHeatLevel: effectiveHeat,
         relationshipDuration: durationCategory,
-        limit: 100,
       };
 
       let promptsData = await StorageRouter.getPrompts(filters);
 
       if (promptsData.length === 0) {
         // Fallback: try without duration filter
-        promptsData = await StorageRouter.getPrompts({ maxHeatLevel: effectiveHeat, limit: 100 });
+        promptsData = await StorageRouter.getPrompts({ maxHeatLevel: effectiveHeat });
       }
 
       if (promptsData.length === 0) {
@@ -271,10 +279,21 @@ export const ContentProvider = ({ children }) => {
           user,
           userProfile,
           userSettings: profile || options?.profileOverride || userProfile || {},
+          date: new Date(),
         });
         if (freeDeckPrompts.length > 0) {
           promptsData = freeDeckPrompts;
         }
+      } else {
+        promptsData = buildPremiumPromptLibrary(promptsData, {
+          userId: user.uid,
+          userSettings: {
+            ...(profile || options?.profileOverride || userProfile || {}),
+            maxHeat: effectiveHeat,
+          },
+          userCreatedAt: contentAnchorDate,
+          date: new Date(),
+        });
       }
 
       promptsData = await filterVisiblePromptsForProfile(promptsData, profile);
@@ -407,6 +426,7 @@ export const ContentProvider = ({ children }) => {
         loadingPromptRef.current = false;
       }
   }, [
+    contentAnchorDate,
     ensureSupabaseSession,
     filterVisiblePromptsForProfile,
     getDurationCategory,

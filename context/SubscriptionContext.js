@@ -12,6 +12,26 @@ const DEV_FORCE_PREMIUM = __DEV__ && false;
 // Debounce/throttle constants to prevent cascading re-renders
 const STORAGE_SYNC_DEBOUNCE_MS = 5000;
 
+const normalizeIsoDate = (value) => {
+  if (!value) return null;
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date.toISOString();
+};
+
+const resolveEntitlementAnchorDate = (info) => {
+  const entitlement = RevenueCatService.getActiveEntitlement?.(info) ?? null;
+  return normalizeIsoDate(entitlement?.originalPurchaseDate)
+    || normalizeIsoDate(entitlement?.latestPurchaseDate)
+    || null;
+};
+
+const resolveTransitionAnchorDate = (info) => {
+  const entitlement = RevenueCatService.getActiveEntitlement?.(info) ?? null;
+  return normalizeIsoDate(entitlement?.latestPurchaseDate)
+    || normalizeIsoDate(entitlement?.originalPurchaseDate)
+    || null;
+};
+
 export const useSubscription = () => {
   const context = useContext(SubscriptionContext);
   if (!context) throw new Error("useSubscription must be used within SubscriptionProvider");
@@ -26,6 +46,7 @@ export const SubscriptionProvider = ({ children }) => {
   const [offerings, setOfferings] = useState(null);
   const [subscriptionDetails, setSubscriptionDetails] = useState(null);
   const [customerInfo, setCustomerInfo] = useState(null);
+  const [premiumStartedAt, setPremiumStartedAt] = useState(null);
   const [storedCoupleId, setStoredCoupleId] = useState(null);
 
   const listenerRef = useRef(null);
@@ -34,6 +55,8 @@ export const SubscriptionProvider = ({ children }) => {
   const premiumListenersRef = useRef(new Set());
   const storageSyncTimerRef = useRef(null);
   const lastStorageSyncRef = useRef({ timestamp: 0, config: null });
+  const previousPremiumRef = useRef(null);
+  const premiumStartedAtRef = useRef(null);
   const effectiveIsPremium = DEV_FORCE_PREMIUM || isPremium;
 
   useEffect(() => {
@@ -165,15 +188,46 @@ export const SubscriptionProvider = ({ children }) => {
     });
   }, []);
 
+  const syncPremiumStartedAt = useCallback(async (premium, info, { transitionedToPremium = false } = {}) => {
+    if (!premium) {
+      premiumStartedAtRef.current = null;
+      setPremiumStartedAt(null);
+      await storage.remove(STORAGE_KEYS.PREMIUM_SELF_STARTED_AT).catch(() => {});
+      return null;
+    }
+
+    let resolvedStart = transitionedToPremium
+      ? (resolveTransitionAnchorDate(info) || new Date().toISOString())
+      : premiumStartedAtRef.current;
+
+    if (!resolvedStart) {
+      resolvedStart = normalizeIsoDate(
+        await storage.get(STORAGE_KEYS.PREMIUM_SELF_STARTED_AT, null)
+      );
+    }
+
+    if (!resolvedStart) {
+      resolvedStart = resolveEntitlementAnchorDate(info) || new Date().toISOString();
+    }
+
+    premiumStartedAtRef.current = resolvedStart;
+    setPremiumStartedAt(resolvedStart);
+    await storage.set(STORAGE_KEYS.PREMIUM_SELF_STARTED_AT, resolvedStart).catch(() => {});
+    return resolvedStart;
+  }, []);
+
   const checkSubscriptionStatus = useCallback(async () => {
     try {
       const { isPremium: premium, customerInfo: info } = await RevenueCatService.getCustomerInfo();
       const resolvedPremium = DEV_FORCE_PREMIUM || premium;
+      const transitionedToPremium = previousPremiumRef.current === false && resolvedPremium === true;
       setIsPremium(premium);
       notifyPremiumListeners(resolvedPremium);
       setCustomerInfo(info);
       if (resolvedPremium) updateSubscriptionDetails(info);
       else setSubscriptionDetails(null);
+      await syncPremiumStartedAt(resolvedPremium, info, { transitionedToPremium });
+      previousPremiumRef.current = resolvedPremium;
 
       if (__DEV__) console.log("OK: Subscription status checked:", resolvedPremium ? "Premium" : "Free");
     } catch (error) {
@@ -183,8 +237,10 @@ export const SubscriptionProvider = ({ children }) => {
       if (!DEV_FORCE_PREMIUM) {
         setSubscriptionDetails(null);
       }
+      await syncPremiumStartedAt(false, null);
+      previousPremiumRef.current = false;
     }
-  }, [effectiveIsPremium, notifyPremiumListeners, updateSubscriptionDetails]);
+  }, [effectiveIsPremium, notifyPremiumListeners, syncPremiumStartedAt, updateSubscriptionDetails]);
 
   const loadOfferings = useCallback(async () => {
     try {
@@ -212,6 +268,10 @@ export const SubscriptionProvider = ({ children }) => {
         setOfferings(null);
         setSubscriptionDetails(null);
         setCustomerInfo(null);
+        premiumStartedAtRef.current = null;
+        setPremiumStartedAt(null);
+        previousPremiumRef.current = null;
+        storage.remove(STORAGE_KEYS.PREMIUM_SELF_STARTED_AT).catch(() => {});
         setIsLoading(false);
         return;
       }
@@ -262,11 +322,14 @@ export const SubscriptionProvider = ({ children }) => {
         const remove = Purchases.addCustomerInfoUpdateListener((info) => {
           const premium = RevenueCatService.checkPremiumStatus(info);
           const resolvedPremium = DEV_FORCE_PREMIUM || premium;
+          const transitionedToPremium = previousPremiumRef.current === false && resolvedPremium === true;
           setIsPremium(premium);
           notifyPremiumListeners(resolvedPremium);
           setCustomerInfo(info);
           if (resolvedPremium) updateSubscriptionDetails(info);
           else setSubscriptionDetails(null);
+          syncPremiumStartedAt(resolvedPremium, info, { transitionedToPremium }).catch(() => {});
+          previousPremiumRef.current = resolvedPremium;
         });
 
         listenerRef.current = typeof remove === 'function' ? remove : null;
@@ -302,7 +365,7 @@ export const SubscriptionProvider = ({ children }) => {
       }
       initPromiseRef.current = null;
     };
-  }, [user, coupleId, storedCoupleId, checkSubscriptionStatus, effectiveIsPremium, loadOfferings, notifyPremiumListeners, updateSubscriptionDetails]);
+  }, [user, coupleId, storedCoupleId, checkSubscriptionStatus, effectiveIsPremium, loadOfferings, notifyPremiumListeners, syncPremiumStartedAt, updateSubscriptionDetails]);
 
   const purchasePackage = async (packageToPurchase) => {
     try {
@@ -338,6 +401,7 @@ export const SubscriptionProvider = ({ children }) => {
     offerings,
     subscriptionDetails,
     customerInfo,
+    premiumStartedAt,
     purchasePackage,
     restorePurchases,
     checkSubscriptionStatus,
@@ -346,7 +410,7 @@ export const SubscriptionProvider = ({ children }) => {
       return () => premiumListenersRef.current.delete(cb);
     },
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }), [effectiveIsPremium, isLoading, offerings, subscriptionDetails, customerInfo]);
+  }), [effectiveIsPremium, isLoading, offerings, subscriptionDetails, customerInfo, premiumStartedAt]);
 
   return <SubscriptionContext.Provider value={value}>{children}</SubscriptionContext.Provider>;
 };

@@ -54,6 +54,7 @@ import {
   canOpenFreeDateDetail,
   trackFreeDateDetailUsage,
 } from '../utils/freePromptAnswerQuota';
+import { resolveWeeklyContentAnchorDate } from '../utils/contentSchedule';
 import { getRestoredDeckItemIds } from '../utils/contentDeckRestores';
 
 const { width, height } = Dimensions.get('window');
@@ -420,7 +421,7 @@ const CardStack = forwardRef(function CardStack(
 // ── Main screen ─────────────────────────────────────────────────────────────
 export default function DateNightScreen({ navigation }) {
   const { colors, isDark } = useTheme();
-  const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
+  const { isPremiumEffective: isPremium, premiumStartedAt, showPaywall } = useEntitlements();
   const { user, userProfile } = useAuth();
   const { state } = useAppContext();
   const userId = userProfile?.id || userProfile?.user_id || userProfile?.uid || userProfile?.sub || user?.uid || user?.id || null;
@@ -519,7 +520,7 @@ export default function DateNightScreen({ navigation }) {
           userId: userId || 'anonymous',
           isPremium,
           userSettings: profile || userProfile || {},
-          userCreatedAt: userProfile?.created_at || userProfile?.createdAt,
+          userCreatedAt: contentAnchorDate,
           date: new Date(),
         });
 
@@ -541,7 +542,7 @@ export default function DateNightScreen({ navigation }) {
         setReady(true);
       });
       return () => task.cancel();
-    }, [userProfile, userId, isPremium])
+    }, [contentAnchorDate, isPremium, userId, userProfile])
   );
 
   const visibleDateDeck = useMemo(() => {
@@ -598,6 +599,12 @@ export default function DateNightScreen({ navigation }) {
   const deckDone = deckIndex >= deck.length && deck.length > 0;
   const freeDeckDone = !isPremium && deckDone;
   const toneCopy = TONE_DATE_COPY[contentProfile?.tone || 'warm'] || TONE_DATE_COPY.warm;
+  const contentAnchorDate = useMemo(() => resolveWeeklyContentAnchorDate({
+    isPremium,
+    premiumStartedAt,
+    user,
+    userProfile,
+  }), [isPremium, premiumStartedAt, user, userProfile]);
 
   const handleSwipeRight = useCallback((date) => {
     if (date?.isLockedPreview || date?.requiresPremium) {

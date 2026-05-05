@@ -68,10 +68,15 @@ export const useEntitlements = () => {
 };
 
 export const EntitlementsProvider = ({ children }) => {
-  const { isPremium: isPremiumSelf, isLoading: subscriptionLoading } = useSubscription();
+  const {
+    isPremium: isPremiumSelf,
+    isLoading: subscriptionLoading,
+    premiumStartedAt: selfPremiumStartedAt,
+  } = useSubscription();
   const { user, coupleId } = useAuth();
 
   const [isPremiumCouple, setIsPremiumCouple] = useState(false);
+  const [couplePremiumSince, setCouplePremiumSince] = useState(null);
   const [premiumSource, setPremiumSource] = useState(PremiumSource.NONE);
   const [coupleLoading, setCoupleLoading] = useState(true);
   const [paywallState, setPaywallState] = useState({ visible: false, feature: null });
@@ -136,9 +141,11 @@ export const EntitlementsProvider = ({ children }) => {
       // No couple link or no Supabase → fall back to cached value
       const cached = await _loadCachedCouplePremium();
       if (cached !== null) {
-        setIsPremiumCouple(cached);
+        setIsPremiumCouple(!!cached.isPremium);
+        setCouplePremiumSince(cached.isPremium ? cached.premiumSince || null : null);
       } else {
         setIsPremiumCouple(false);
+        setCouplePremiumSince(null);
       }
       setCoupleLoading(false);
       return;
@@ -160,22 +167,26 @@ export const EntitlementsProvider = ({ children }) => {
         // Fallback to cache with grace window
         const cached = await _loadCachedCouplePremium();
         if (cached !== null) {
-          setIsPremiumCouple(cached);
+          setIsPremiumCouple(!!cached.isPremium);
+          setCouplePremiumSince(cached.isPremium ? cached.premiumSince || null : null);
         }
         setCoupleLoading(false);
         return;
       }
 
       const couplePremium = data?.is_premium ?? false;
+      const premiumSince = couplePremium ? data?.premium_since || null : null;
       setIsPremiumCouple(couplePremium);
+      setCouplePremiumSince(premiumSince);
 
       // Cache for offline grace window
-      await _cacheCouplePremium(couplePremium);
+      await _cacheCouplePremium(couplePremium, premiumSince);
     } catch (err) {
       if (__DEV__) console.warn('[Entitlements] Couple premium exception:', err.message);
       const cached = await _loadCachedCouplePremium();
       if (cached !== null) {
-        setIsPremiumCouple(cached);
+        setIsPremiumCouple(!!cached.isPremium);
+        setCouplePremiumSince(cached.isPremium ? cached.premiumSince || null : null);
       }
     } finally {
       if (timeoutId) clearTimeout(timeoutId);
@@ -319,8 +330,10 @@ export const EntitlementsProvider = ({ children }) => {
         },
         (payload) => {
           const newPremium = payload.new?.is_premium ?? false;
+          const newPremiumSince = newPremium ? payload.new?.premium_since || null : null;
           setIsPremiumCouple(newPremium);
-          _cacheCouplePremium(newPremium);
+          setCouplePremiumSince(newPremiumSince);
+          _cacheCouplePremium(newPremium, newPremiumSince);
           if (__DEV__) console.log('[Entitlements] Real-time couple premium update:', newPremium);
         }
       )
@@ -334,6 +347,17 @@ export const EntitlementsProvider = ({ children }) => {
   // ─── Derived State ──────────────────────────────────────────────────────────
 
   const isPremiumEffective = !!(isPremiumSelf || isPremiumCouple);
+  const premiumStartedAt = useMemo(() => {
+    if (isPremiumCouple) {
+      return couplePremiumSince || selfPremiumStartedAt || null;
+    }
+
+    if (isPremiumSelf) {
+      return selfPremiumStartedAt || null;
+    }
+
+    return null;
+  }, [couplePremiumSince, isPremiumCouple, isPremiumSelf, selfPremiumStartedAt]);
 
   // Schedule or cancel win-back nudges based on premium status
   useEffect(() => {
@@ -494,6 +518,7 @@ export const EntitlementsProvider = ({ children }) => {
       isPremiumSelf: !!isPremiumSelf,
       isPremiumCouple,
       premiumSource,
+      premiumStartedAt,
       isLoading: subscriptionLoading || coupleLoading,
 
       // Feature flags
@@ -533,6 +558,7 @@ export const EntitlementsProvider = ({ children }) => {
       isPremiumSelf,
       isPremiumCouple,
       premiumSource,
+      premiumStartedAt,
       subscriptionLoading,
       coupleLoading,
       features,
@@ -561,11 +587,11 @@ export const EntitlementsProvider = ({ children }) => {
 
 // ─── Private Helpers: Offline Cache ───────────────────────────────────────────
 
-async function _cacheCouplePremium(isPremium) {
+async function _cacheCouplePremium(isPremium, premiumSince = null) {
   try {
     await AsyncStorage.setItem(
       COUPLE_PREMIUM_CACHE_KEY,
-      JSON.stringify({ isPremium, cachedAt: Date.now() })
+      JSON.stringify({ isPremium, premiumSince, cachedAt: Date.now() })
     );
   } catch (e) {
     if (__DEV__) console.warn('[Entitlements] Failed to cache couple premium status:', e?.message);
@@ -576,21 +602,21 @@ async function _loadCachedCouplePremium() {
   try {
     const raw = await AsyncStorage.getItem(COUPLE_PREMIUM_CACHE_KEY);
     if (!raw) return null;
-    const { isPremium, cachedAt } = JSON.parse(raw);
+    const { isPremium, premiumSince = null, cachedAt } = JSON.parse(raw);
 
     // Reject tampered timestamps (future dates or non-numbers)
     if (typeof cachedAt !== 'number' || cachedAt > Date.now() + 60000) {
       // Suspicious cache — treat as expired
-      return false;
+      return { isPremium: false, premiumSince: null };
     }
 
     // Honor the 72-hour grace window
     if (Date.now() - cachedAt > GRACE_WINDOW_MS) {
       // Cache expired — treat as unknown (not premium)
-      return false;
+      return { isPremium: false, premiumSince: null };
     }
 
-    return isPremium;
+    return { isPremium, premiumSince };
   } catch (e) {
     if (__DEV__) console.warn('[Entitlements] Failed to load cached couple premium:', e?.message);
     return null;

@@ -200,8 +200,8 @@ const TermsScreen = ({ navigation, route }) => {
               <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
                 Free and Premium Features:{'\n'}
                 • Free users can access the app's core couple features, including prompts, notes, date ideas, shared calendar, Keepsake, app lock, and recaps{'\n'}
-                • Free users start with 5 prompts, 5 date ideas, and 1 sex position, and the free library grows by 5 prompts, 5 date ideas, and 1 sex position each week; free Keepsake access is limited to the most recent 30 days of supported shared content{'\n'}
-                • Premium starts with 100 prompts, 100 date ideas, and 10 sex positions, adds 15 prompts, 15 date ideas, and 3 sex positions each week, and includes the full Keepsake archive beyond the free 30-day window{'\n'}
+                • Free users start with 5 prompts, 5 date ideas, and 1 sex position, and the free library grows by 5 prompts, 5 date ideas, and 1 sex position each week from the signup day; free Keepsake access is limited to the most recent 30 days of supported shared content{'\n'}
+                • Premium starts with 100 prompts, 100 date ideas, and 10 sex positions, adds 15 prompts, 15 date ideas, and 3 sex positions each week from the day premium starts, and includes the full Keepsake archive beyond the free 30-day window{'\n'}
                 • One premium subscription is intended to cover both linked partners after entitlement sync completes{'\n\n'}
                 Current pricing:{'\n'}
                 • Monthly: {FALLBACK_PRICES.monthly}{'\n'}

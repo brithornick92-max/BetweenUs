@@ -4,6 +4,7 @@ import {
   UPGRADE_COPY,
   buildPremiumPromptLibrary,
   buildWeeklySet,
+  getUserWeekNumber,
   getWeekNumberFromStart,
 } from '../../services/WeeklyContentSetService';
 
@@ -295,5 +296,14 @@ describe('WeeklyContentSetService', () => {
     expect(getWeekNumberFromStart(new Date('2026-01-05T12:00:00.000Z'))).toBe(0);
     expect(getWeekNumberFromStart(new Date('2026-01-12T12:00:00.000Z'))).toBe(1);
     expect(getWeekNumberFromStart(new Date('2026-01-26T12:00:00.000Z'))).toBe(3);
+  });
+
+  it('uses local calendar days for personalized weekly rollovers', () => {
+    expect(
+      getUserWeekNumber(new Date(2026, 4, 5, 23, 45), new Date(2026, 4, 12, 0, 1))
+    ).toBe(1);
+    expect(
+      getUserWeekNumber(new Date(2026, 4, 5, 23, 45), new Date(2026, 4, 11, 23, 59))
+    ).toBe(0);
   });
 });

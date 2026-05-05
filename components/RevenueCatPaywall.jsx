@@ -38,7 +38,7 @@ const FEATURE_COPY = {
   [PremiumFeature.UNLIMITED_PROMPTS]: {
     eyebrow: "PROMPTS",
     title: "Keep the conversation going.",
-    body: "Free starts with 5 prompts and adds 5 more each week. Premium starts with 100 prompts and adds 15 more each week.",
+    body: "Free starts with 5 prompts and adds 5 more each week from signup. Premium starts with 100 prompts and adds 15 more each week from the day premium starts.",
     benefits: [
       ["copy-outline", "A larger prompt library right away"],
       ["sparkles-outline", "More new prompts added every week"],
@@ -48,7 +48,7 @@ const FEATURE_COPY = {
   [PremiumFeature.UNLIMITED_DATE_IDEAS]: {
     eyebrow: "DATES",
     title: "More plans for the two of you.",
-    body: "Free starts with 5 date ideas and adds 5 more each week. Premium starts with 100 date ideas and adds 15 more each week.",
+    body: "Free starts with 5 date ideas and adds 5 more each week from signup. Premium starts with 100 date ideas and adds 15 more each week from the day premium starts.",
     benefits: [
       ["calendar-outline", "A larger date library right away"],
       ["map-outline", "More new date ideas every week"],
@@ -68,7 +68,7 @@ const FEATURE_COPY = {
   default: {
     eyebrow: "PREMIUM",
     title: "Keep more of what you start.",
-    body: "Free gives you the core couple experience with a smaller growing content library. Premium starts with 100 prompts, 100 dates, and 10 sex positions, adds more every week, and unlocks the full Keepsake archive.",
+    body: "Free gives you the core couple experience with a smaller growing content library from signup. Premium starts with 100 prompts, 100 dates, and 10 sex positions, adds more every week from the day premium starts, and unlocks the full Keepsake archive.",
     benefits: [
       ["copy-outline", "More prompts every week"],
       ["calendar-outline", "More date ideas every week"],
