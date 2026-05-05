@@ -50,6 +50,21 @@ describe('freeWeeklyDeckAccess', () => {
     expect(deck).toHaveLength(20);
   });
 
+  it('pads free prompt decks back to 20 cards when the eligible pool is smaller', () => {
+    const prompts = Array.from({ length: 8 }, (_, index) => makePrompt(`prompt-${index + 1}`));
+    const deck = getFreeWeeklyDeck(prompts, {
+      contentType: CONTENT_TYPES.PROMPTS,
+      userId: 'user-1',
+      userProfile: { created_at: '2026-04-01T12:00:00.000Z' },
+      userSettings: { maxHeat: 5 },
+      date: new Date('2026-04-30T12:00:00.000Z'),
+    });
+
+    expect(deck).toHaveLength(20);
+    expect(deck.some((item) => item.weeklySetMeta?.isRepeatedFill)).toBe(true);
+    expect(deck.every((item) => prompts.some((prompt) => prompt.id === item.id))).toBe(true);
+  });
+
   it('uses the same 20-card deck shape for free dates each week', () => {
     const dates = Array.from({ length: 24 }, (_, index) => makeDate(`date-${index + 1}`));
 
@@ -70,6 +85,21 @@ describe('freeWeeklyDeckAccess', () => {
 
     expect(welcomeDeck).toHaveLength(20);
     expect(ongoingDeck).toHaveLength(20);
+  });
+
+  it('pads free date decks back to 20 cards when the eligible pool is smaller', () => {
+    const dates = Array.from({ length: 7 }, (_, index) => makeDate(`date-${index + 1}`));
+    const deck = getFreeWeeklyDeck(dates, {
+      contentType: CONTENT_TYPES.DATES,
+      userId: 'user-1',
+      userProfile: { created_at: '2026-04-01T12:00:00.000Z' },
+      userSettings: { maxHeat: 5 },
+      date: new Date('2026-04-30T12:00:00.000Z'),
+    });
+
+    expect(deck).toHaveLength(20);
+    expect(deck.some((item) => item.weeklySetMeta?.isRepeatedFill)).toBe(true);
+    expect(deck.every((item) => dates.some((date) => date.id === item.id))).toBe(true);
   });
 
   it('limits the free sex-position deck to 5 items each week', () => {

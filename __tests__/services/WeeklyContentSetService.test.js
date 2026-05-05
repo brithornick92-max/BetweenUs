@@ -126,6 +126,25 @@ describe('WeeklyContentSetService', () => {
     expect(result.items.every((item) => item.requiresPremium === false)).toBe(true);
   });
 
+  it('pads free prompt decks back to 20 cards when boundaries leave too few unique picks', () => {
+    const promptCatalog = makePromptCatalog(6);
+    const result = buildWeeklySet(promptCatalog, {
+      contentType: CONTENT_TYPES.PROMPTS,
+      userId: 'tight-boundaries',
+      isPremium: false,
+      userSettings: { maxHeat: 2 },
+      date: TEST_DATE,
+    });
+
+    const repeatedFill = result.unlocked.filter((item) => item.weeklySetMeta?.isRepeatedFill);
+    const eligibleIds = new Set(promptCatalog.filter((item) => item.heat <= 2).map((item) => item.id));
+
+    expect(result.unlocked).toHaveLength(20);
+    expect(repeatedFill.length).toBeGreaterThan(0);
+    expect(repeatedFill.every((item) => item.weeklySetMeta?.repeatedFillIndex > 0)).toBe(true);
+    expect(result.unlocked.every((item) => eligibleIds.has(item.id))).toBe(true);
+  });
+
   it('builds free date welcome-week decks with 20 usable cards and no locked previews', () => {
     const dateCatalog = Array.from({ length: 24 }, (_, index) =>
       makeDate(
@@ -156,6 +175,31 @@ describe('WeeklyContentSetService', () => {
     expect(result.items.every((item) => item.requiresPremium === false)).toBe(true);
   });
 
+  it('pads free date decks back to 20 cards when boundaries leave too few unique picks', () => {
+    const dateCatalog = Array.from({ length: 9 }, (_, index) =>
+      makeDate(
+        `d${index + 1}`,
+        1,
+        (index % 3) + 1,
+        index % 2 === 0 ? 'mixed' : 'talking',
+        `Date ${index + 1}`,
+        ['romantic', 'after-dark', 'creative'][index % 3]
+      )
+    );
+
+    const result = buildWeeklySet(dateCatalog, {
+      contentType: CONTENT_TYPES.DATES,
+      userId: 'tight-boundaries',
+      isPremium: false,
+      userSettings: { maxHeat: 5 },
+      date: TEST_DATE,
+    });
+
+    expect(result.unlocked).toHaveLength(20);
+    expect(result.unlocked.some((item) => item.weeklySetMeta?.isRepeatedFill)).toBe(true);
+    expect(result.unlocked.every((item) => dateCatalog.some((candidate) => candidate.id === item.id))).toBe(true);
+  });
+
   it('builds free position welcome-week previews and prioritizes soft accessible picks first', () => {
     const result = buildWeeklySet(positions, {
       contentType: CONTENT_TYPES.POSITIONS,
@@ -170,6 +214,20 @@ describe('WeeklyContentSetService', () => {
     expect(result.items).toHaveLength(5);
     expect(result.unlocked[0].heat).toBe(1);
     expect(result.unlocked[0].accessibility).toBe('low-mobility');
+  });
+
+  it('does not pad sex positions with duplicate ids when the eligible pool is smaller than five', () => {
+    const limitedPositions = positions.slice(0, 3);
+    const result = buildWeeklySet(limitedPositions, {
+      contentType: CONTENT_TYPES.POSITIONS,
+      userId: 'tight-boundaries',
+      isPremium: false,
+      userSettings: { maxHeat: 5 },
+      date: TEST_DATE,
+    });
+
+    expect(result.unlocked).toHaveLength(3);
+    expect(result.unlocked.some((item) => item.weeklySetMeta?.isRepeatedFill)).toBe(false);
   });
 
 

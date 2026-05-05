@@ -242,6 +242,33 @@ const pickBalancedPrompts = (items, limit, seed) => {
   return selected;
 };
 
+const padSelectionToTarget = (items, targetCount, seed) => {
+  const normalized = Array.isArray(items) ? items.filter(Boolean) : [];
+  if (!normalized.length || normalized.length >= targetCount) {
+    return normalized;
+  }
+
+  const padded = [...normalized];
+  const refillPool = sortSeeded(normalized, `${seed}:pad`);
+  let refillIndex = 0;
+
+  while (padded.length < targetCount) {
+    const source = refillPool[refillIndex % refillPool.length];
+    const repeatIndex = Math.floor(refillIndex / refillPool.length) + 1;
+
+    padded.push({
+      ...source,
+      deckInstanceId: `${source?.id ?? source?.title ?? source?.text ?? padded.length}:repeat:${repeatIndex}:${padded.length}`,
+      isRepeatedFill: true,
+      repeatedFillIndex: repeatIndex,
+    });
+
+    refillIndex += 1;
+  }
+
+  return padded;
+};
+
 const buildPremiumPromptLibrary = (
   items,
   {
@@ -402,12 +429,15 @@ const withUnlockedWeeklyMeta = (item, contentType, weeklyIndex, weekNumber) => (
   ...item,
   isLockedPreview: false,
   requiresPremium: false,
+  deckInstanceId: item?.deckInstanceId ?? `${contentType}:${weekNumber}:${weeklyIndex}:${item?.id ?? item?.title ?? item?.text ?? 'item'}`,
   weeklySetMeta: {
     contentType,
     weekNumber,
     isWeeklyPick: true,
     isLockedPreview: false,
     weeklyIndex,
+    isRepeatedFill: !!item?.isRepeatedFill,
+    repeatedFillIndex: item?.repeatedFillIndex ?? 0,
   },
 });
 
@@ -491,15 +521,23 @@ const buildWeeklySet = (
         return seededScore(a, `${seed}:free-sort`) - seededScore(b, `${seed}:free-sort`);
       });
 
-  const unlockedCount = isPremium ? weeklySelection.length : freeUnlockedLimit;
+  const shouldPadFreeDeck =
+    !isPremium &&
+    type !== CONTENT_TYPES.POSITIONS;
 
-  const unlocked = weeklySelection
+  const paddedWeeklySelection = shouldPadFreeDeck
+    ? padSelectionToTarget(weeklySelection, freeUnlockedLimit, seed)
+    : weeklySelection;
+
+  const unlockedCount = isPremium ? paddedWeeklySelection.length : freeUnlockedLimit;
+
+  const unlocked = paddedWeeklySelection
     .slice(0, unlockedCount)
     .map((item, index) => withUnlockedWeeklyMeta(item, type, index, weekNumber));
 
   const lockedPreviews = isPremium
     ? []
-    : weeklySelection
+    : paddedWeeklySelection
         .slice(freeUnlockedLimit, freeUnlockedLimit + freeLockedPreviewLimit)
         .map((item, index) => toLockedPreview(item, type, index + freeUnlockedLimit, weekNumber));
 
@@ -510,7 +548,7 @@ const buildWeeklySet = (
     premiumLibraryTotal: PREMIUM_LIBRARY_TOTALS[type] ?? eligible.length,
     freeUnlockedLimit,
     freeLockedPreviewLimit,
-    totalWeeklyPicks: selected.length,
+    totalWeeklyPicks: paddedWeeklySelection.length,
     upgradeCopy: UPGRADE_COPY[type],
     unlocked,
     lockedPreviews,
