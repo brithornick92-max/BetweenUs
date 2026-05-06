@@ -421,7 +421,7 @@ const CardStack = forwardRef(function CardStack(
 });
 
 // ── Main screen ─────────────────────────────────────────────────────────────
-export default function DateNightScreen({ navigation }) {
+export default function DateNightScreen({ navigation, route }) {
   const { colors, isDark } = useTheme();
   const { isPremiumEffective: isPremium, premiumStartedAt, showPaywall } = useEntitlements();
   const { user, userProfile } = useAuth();
@@ -445,6 +445,7 @@ export default function DateNightScreen({ navigation }) {
   }), [colors, isDark]);
 
   const styles = createStyles(colors, isDark);
+  const isFromReveal = route?.params?.source === 'prompt_reveal';
 
   const [ready, setReady] = useState(false);
   const [allDates, setAllDates] = useState([]);
@@ -902,6 +903,15 @@ export default function DateNightScreen({ navigation }) {
           ) : null}
         </View>
 
+        {isFromReveal ? (
+          <View style={[styles.revealContextCard, { backgroundColor: isDark ? 'rgba(255,255,255,0.045)' : 'rgba(210,18,26,0.06)', borderColor: t.border }]}>
+            <View style={styles.revealContextHeader}>
+              <Icon name="sparkles-outline" size={14} color={t.primary} />
+              <Text style={[styles.revealContextEyebrow, { color: t.primary }]}>INSPIRED BY YOUR REVEAL</Text>
+            </View>
+          </View>
+        ) : null}
+
         {/* Show lightweight placeholder until data is ready */}
         {!ready ? (
           <View style={styles.stackWrapper}>
@@ -1156,6 +1166,26 @@ const createStyles = (colors, isDark) => StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     letterSpacing: 0.2,
+  },
+  revealContextCard: {
+    marginHorizontal: SPACING.xl,
+    marginBottom: SPACING.sm,
+    borderRadius: 16,
+    borderWidth: 1,
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.sm,
+    alignSelf: 'flex-start',
+  },
+  revealContextHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  revealContextEyebrow: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 1.5,
   },
   filterToggle: {
     width: 44,

@@ -245,6 +245,7 @@ export default function RevealScreen({ route, navigation }) {
       secondaryLabel: 'Plan something from this',
     },
   }[revealStage];
+  const isCompactReveal = revealStage === 'revealed';
 
   const handleSaveMoment = () => {
     selection();
@@ -276,21 +277,12 @@ export default function RevealScreen({ route, navigation }) {
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           
           <View style={styles.header}>
-            <View style={styles.headerTextBlock}>
+            <View style={[styles.headerPill, { backgroundColor: t.surfaceGlass, borderColor: t.border }]}>
               <Text
                 style={[styles.headerSubtitle, { color: t.primary }]}
-                maxFontSizeMultiplier={1.05}
+                allowFontScaling={false}
               >
                 {revealCopy.eyebrow}
-              </Text>
-              <Text
-                style={[styles.headerTitle, { color: t.text }]}
-                numberOfLines={1}
-                adjustsFontSizeToFit
-                minimumFontScale={0.72}
-                maxFontSizeMultiplier={1.05}
-              >
-                Shared Reveal
               </Text>
             </View>
             <TouchableOpacity
@@ -306,19 +298,16 @@ export default function RevealScreen({ route, navigation }) {
           </View>
 
           {/* Hero Prompt Card (Glass Style) */}
-          <View style={[styles.promptContainer, { backgroundColor: t.surfaceGlass, borderColor: t.border }]}>
-            <View style={styles.eyebrowRow}>
-              <Icon name="sparkles-outline" size={12} color={t.primary} />
-              <Text
-                style={[styles.questionLabel, { color: t.primary }]}
-                maxFontSizeMultiplier={1.05}
-              >
-                TODAY BETWEEN US
-              </Text>
-            </View>
+          <View
+            style={[
+              styles.promptContainer,
+              isCompactReveal && styles.promptContainerCompact,
+              { backgroundColor: t.surfaceGlass, borderColor: t.border },
+            ]}
+          >
             <Text
-              style={[styles.questionText, { color: t.text }]}
-              maxFontSizeMultiplier={1.08}
+              style={[styles.questionText, isCompactReveal && styles.questionTextCompact, { color: t.text }]}
+              allowFontScaling={false}
             >
               {prompt.text}
             </Text>
@@ -337,14 +326,8 @@ export default function RevealScreen({ route, navigation }) {
               </Animated.View>
 
               <Text
-                style={[styles.lockedEyebrow, { color: t.primary }]}
-                maxFontSizeMultiplier={1.05}
-              >
-                {revealCopy.stageLabel}
-              </Text>
-              <Text
                 style={[styles.lockedTitle, { color: t.text }]}
-                maxFontSizeMultiplier={1.05}
+                allowFontScaling={false}
               >
                 {revealCopy.title}
               </Text>
@@ -366,28 +349,28 @@ export default function RevealScreen({ route, navigation }) {
               }}
             >
               {/* My Reflection */}
-              <View style={styles.answerCard}>
-                <Text style={[styles.tagText, { color: t.subtext }]} maxFontSizeMultiplier={1.05}>
+              <View style={[styles.answerCard, styles.answerCardCompact]}>
+                <Text style={[styles.tagText, { color: t.subtext }]} allowFontScaling={false}>
                   {myName} said
                 </Text>
-                <View style={[styles.bubble, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF', borderColor: t.border }]}>
-                  <Text style={[styles.bubbleText, { color: t.text }]} maxFontSizeMultiplier={1.12}>
+                <View style={[styles.bubble, styles.bubbleCompact, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF', borderColor: t.border }]}>
+                  <Text style={[styles.bubbleText, { color: t.text }]} allowFontScaling={false}>
                     {userAnswer?.answer || "Your answer is saved."}
                   </Text>
                 </View>
               </View>
 
               {/* Partner Reflection */}
-              <View style={styles.answerCard}>
-                <Text style={[styles.tagText, { color: t.accent }]} maxFontSizeMultiplier={1.05}>
+              <View style={[styles.answerCard, styles.answerCardCompact]}>
+                <Text style={[styles.tagText, { color: t.accent }]} allowFontScaling={false}>
                   {partnerName} said
                 </Text>
                 {hasPartnerAnswer ? (
                   <LinearGradient
                     colors={isDark ? [t.accent + "15", '#1C1C1E'] : [t.accent + "10", '#FFFFFF']}
-                    style={[styles.bubble, { borderColor: t.border }]}
+                    style={[styles.bubble, styles.bubbleCompact, { borderColor: t.border }]}
                   >
-                    <Text style={[styles.bubbleText, { color: t.text }]} maxFontSizeMultiplier={1.12}>
+                    <Text style={[styles.bubbleText, { color: t.text }]} allowFontScaling={false}>
                       {partnerAnswer}
                     </Text>
                   </LinearGradient>
@@ -396,7 +379,7 @@ export default function RevealScreen({ route, navigation }) {
                     <Icon name="pulse-outline" size={36} color={t.accent + '80'} style={{ marginBottom: 16 }} />
                     <Text
                       style={[styles.bubbleText, { color: t.subtext, textAlign: 'center' }]}
-                      maxFontSizeMultiplier={1.12}
+                      allowFontScaling={false}
                     >
                       {partnerName} hasn't shared their thoughts yet.
                     </Text>
@@ -414,14 +397,17 @@ export default function RevealScreen({ route, navigation }) {
                 activeOpacity={0.75}
                 onPress={() => {
                   selection();
-                  navigation.navigate("DatePlans", {
-                    source: 'prompt_reveal',
-                    promptText: prompt.text,
+                  navigation.navigate("MainTabs", {
+                    screen: "DatePlans",
+                    params: {
+                      source: 'prompt_reveal',
+                      promptText: prompt.text,
+                    },
                   });
                 }}
                 style={styles.secondaryAction}
               >
-                <Text style={[styles.secondaryActionText, { color: t.primary }]} maxFontSizeMultiplier={1.1}>
+                <Text style={[styles.secondaryActionText, { color: t.primary }]} allowFontScaling={false}>
                   {revealCopy.secondaryLabel}
                 </Text>
               </TouchableOpacity>
@@ -454,23 +440,19 @@ const styles = StyleSheet.create({
     paddingTop: SPACING.sm,
     paddingBottom: SPACING.lg,
   },
-  headerTextBlock: {
-    flex: 1,
-    minWidth: 0,
+  headerPill: {
+    minHeight: 32,
+    borderRadius: 16,
+    borderWidth: 1,
+    justifyContent: 'center',
+    paddingHorizontal: SPACING.md,
   },
   headerSubtitle: {
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: '900',
-    letterSpacing: 2.4,
-    lineHeight: 16,
-    marginBottom: SPACING.sm,
+    letterSpacing: 1.8,
+    lineHeight: 12,
     textTransform: 'uppercase',
-  },
-  headerTitle: {
-    fontSize: 36,
-    fontWeight: '900',
-    letterSpacing: 0,
-    lineHeight: 40,
   },
   closeButton: {
     width: 44,
@@ -483,34 +465,31 @@ const styles = StyleSheet.create({
 
   // Hero Prompt
   promptContainer: {
-    paddingHorizontal: SPACING.xl,
-    paddingVertical: SPACING.lg,
-    borderRadius: 24,
-    marginBottom: SPACING.xl,
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.md,
+    borderRadius: 20,
+    marginBottom: SPACING.lg,
     borderWidth: 1,
     ...Platform.select({
       ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.12, shadowRadius: 16 },
       android: { elevation: 6 },
     }),
   },
-  eyebrowRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  promptContainerCompact: {
+    paddingHorizontal: SPACING.lg,
+    paddingVertical: SPACING.md,
     marginBottom: SPACING.md,
   },
-  questionLabel: {
-    fontSize: 11,
-    fontWeight: "900",
-    letterSpacing: 2,
-    textTransform: 'uppercase',
-  },
   questionText: {
-    fontSize: 22,
-    fontWeight: "400",
-    lineHeight: 31,
+    fontSize: 18,
+    fontWeight: "500",
+    lineHeight: 25,
     letterSpacing: 0,
     fontFamily: Platform.select({ ios: "System", android: "Roboto" }),
+  },
+  questionTextCompact: {
+    fontSize: 18,
+    lineHeight: 25,
   },
 
   // Locked State
@@ -537,7 +516,7 @@ const styles = StyleSheet.create({
     fontWeight: "900",
     letterSpacing: 0,
     lineHeight: 38,
-    marginTop: SPACING.sm,
+    marginTop: SPACING.lg,
     marginBottom: 0,
     textAlign: 'center',
   },
@@ -578,11 +557,14 @@ const styles = StyleSheet.create({
   answerCard: { 
     marginBottom: SPACING.lg,
   },
+  answerCardCompact: {
+    marginBottom: SPACING.md,
+  },
   tagText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: "800",
-    letterSpacing: 1.5,
-    marginBottom: SPACING.sm,
+    letterSpacing: 1.3,
+    marginBottom: SPACING.xs,
     marginLeft: SPACING.sm,
   },
   bubble: {
@@ -594,10 +576,15 @@ const styles = StyleSheet.create({
       android: { elevation: 2 },
     }),
   },
+  bubbleCompact: {
+    paddingVertical: SPACING.md,
+    paddingHorizontal: SPACING.lg,
+    borderRadius: 20,
+  },
   bubbleText: {
-    fontSize: 16,
-    lineHeight: 25,
-    fontWeight: "400",
+    fontSize: 15,
+    lineHeight: 22,
+    fontWeight: "600",
   },
 
   // Insights / Keep Going
@@ -626,8 +613,8 @@ const styles = StyleSheet.create({
   },
 
   journalAction: { 
-    marginTop: SPACING.xl,
-    height: 56,
+    marginTop: SPACING.md,
+    height: 54,
     borderRadius: 28,
   },
   secondaryAction: {
