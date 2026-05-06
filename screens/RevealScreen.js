@@ -14,7 +14,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from '../components/Icon';
-import CloseScreenHeader, { CLOSE_HEADER_STYLES } from '../components/CloseScreenHeader';
 import { notification, selection, NotificationFeedbackType } from '../utils/haptics';
 import { useAppContext } from "../context/AppContext";
 import { useAuth } from "../context/AuthContext";
@@ -228,16 +227,19 @@ export default function RevealScreen({ route, navigation }) {
   const revealCopy = {
     waiting_for_partner: {
       eyebrow: 'SAVED PRIVATELY',
+      stageLabel: 'ANSWER SAVED',
       title: 'A reveal is forming',
       primaryLabel: 'Answer saved',
     },
     ready_to_reveal: {
       eyebrow: 'PRIVATE REVEAL',
+      stageLabel: 'BOTH ANSWERS SAVED',
       title: 'You both left something',
       primaryLabel: 'Reveal together',
     },
     revealed: {
       eyebrow: 'REVEALED',
+      stageLabel: null,
       title: "Here's what you both left",
       primaryLabel: 'Save to our archive',
       secondaryLabel: 'Plan something from this',
@@ -273,40 +275,79 @@ export default function RevealScreen({ route, navigation }) {
       <SafeAreaView style={{ flex: 1 }}>
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           
-          <CloseScreenHeader
-            title="Shared Reveal"
-            subtitle={revealCopy.eyebrow}
-            titleColor={t.text}
-            subtitleColor={t.primary}
-            closeColor={t.text}
-            onClose={() => { selection(); navigation.goBack(); }}
-          />
+          <View style={styles.header}>
+            <View style={styles.headerTextBlock}>
+              <Text
+                style={[styles.headerSubtitle, { color: t.primary }]}
+                maxFontSizeMultiplier={1.05}
+              >
+                {revealCopy.eyebrow}
+              </Text>
+              <Text
+                style={[styles.headerTitle, { color: t.text }]}
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.72}
+                maxFontSizeMultiplier={1.05}
+              >
+                Shared Reveal
+              </Text>
+            </View>
+            <TouchableOpacity
+              onPress={() => { selection(); navigation.goBack(); }}
+              style={styles.closeButton}
+              hitSlop={12}
+              accessibilityRole="button"
+              accessibilityLabel="Close"
+              activeOpacity={0.75}
+            >
+              <Icon name="close-outline" size={28} color={t.text} />
+            </TouchableOpacity>
+          </View>
 
           {/* Hero Prompt Card (Glass Style) */}
           <View style={[styles.promptContainer, { backgroundColor: t.surfaceGlass, borderColor: t.border }]}>
             <View style={styles.eyebrowRow}>
               <Icon name="sparkles-outline" size={12} color={t.primary} />
-              <Text style={[styles.questionLabel, { color: t.primary }]}>TODAY BETWEEN US</Text>
+              <Text
+                style={[styles.questionLabel, { color: t.primary }]}
+                maxFontSizeMultiplier={1.05}
+              >
+                TODAY BETWEEN US
+              </Text>
             </View>
-            <Text style={[styles.questionText, { color: t.text }]}>{prompt.text}</Text>
+            <Text
+              style={[styles.questionText, { color: t.text }]}
+              maxFontSizeMultiplier={1.08}
+            >
+              {prompt.text}
+            </Text>
           </View>
 
           {revealStage !== 'revealed' ? (
             /* LOCKED STATE */
             <View style={styles.lockedStage}>
-              <View style={{ width: '100%', alignItems: 'center' }}>
-                <Animated.View style={{ transform: [{ scale: pulseAnim }], marginBottom: SPACING.xxl }}>
-                  <LinearGradient 
-                    colors={['#D2121A', '#8F0C11']} 
-                    style={[styles.lockedCircle, { shadowColor: '#D2121A' }]}
-                  >
-                    <Icon name="lock-closed-outline" size={42} color="#FFFFFF" />
-                  </LinearGradient>
-                </Animated.View>
-              </View>
+              <Animated.View style={{ transform: [{ scale: pulseAnim }] }}>
+                <LinearGradient
+                  colors={['#D2121A', '#8F0C11']}
+                  style={[styles.lockedCircle, { shadowColor: '#D2121A' }]}
+                >
+                  <Icon name="lock-closed-outline" size={34} color="#FFFFFF" />
+                </LinearGradient>
+              </Animated.View>
 
-              <Text style={[styles.lockedEyebrow, { color: t.primary }]}>{revealCopy.eyebrow}</Text>
-              <Text style={[styles.lockedTitle, { color: t.text }]}>{revealCopy.title}</Text>
+              <Text
+                style={[styles.lockedEyebrow, { color: t.primary }]}
+                maxFontSizeMultiplier={1.05}
+              >
+                {revealCopy.stageLabel}
+              </Text>
+              <Text
+                style={[styles.lockedTitle, { color: t.text }]}
+                maxFontSizeMultiplier={1.05}
+              >
+                {revealCopy.title}
+              </Text>
 
               <Button
                 title={revealCopy.primaryLabel}
@@ -326,9 +367,11 @@ export default function RevealScreen({ route, navigation }) {
             >
               {/* My Reflection */}
               <View style={styles.answerCard}>
-                <Text style={[styles.tagText, { color: t.subtext }]}>{myName} said</Text>
+                <Text style={[styles.tagText, { color: t.subtext }]} maxFontSizeMultiplier={1.05}>
+                  {myName} said
+                </Text>
                 <View style={[styles.bubble, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF', borderColor: t.border }]}>
-                  <Text style={[styles.bubbleText, { color: t.text }]}>
+                  <Text style={[styles.bubbleText, { color: t.text }]} maxFontSizeMultiplier={1.12}>
                     {userAnswer?.answer || "Your answer is saved."}
                   </Text>
                 </View>
@@ -336,20 +379,25 @@ export default function RevealScreen({ route, navigation }) {
 
               {/* Partner Reflection */}
               <View style={styles.answerCard}>
-                <Text style={[styles.tagText, { color: t.accent }]}>{partnerName} said</Text>
+                <Text style={[styles.tagText, { color: t.accent }]} maxFontSizeMultiplier={1.05}>
+                  {partnerName} said
+                </Text>
                 {hasPartnerAnswer ? (
                   <LinearGradient
                     colors={isDark ? [t.accent + "15", '#1C1C1E'] : [t.accent + "10", '#FFFFFF']}
                     style={[styles.bubble, { borderColor: t.border }]}
                   >
-                    <Text style={[styles.bubbleText, { color: t.text }]}>
+                    <Text style={[styles.bubbleText, { color: t.text }]} maxFontSizeMultiplier={1.12}>
                       {partnerAnswer}
                     </Text>
                   </LinearGradient>
                 ) : (
                   <View style={[styles.bubble, { backgroundColor: t.surfaceSecondary, borderColor: t.border, alignItems: 'center', paddingVertical: 40 }]}>
                     <Icon name="pulse-outline" size={36} color={t.accent + '80'} style={{ marginBottom: 16 }} />
-                    <Text style={[styles.bubbleText, { color: t.subtext, textAlign: 'center' }]}>
+                    <Text
+                      style={[styles.bubbleText, { color: t.subtext, textAlign: 'center' }]}
+                      maxFontSizeMultiplier={1.12}
+                    >
                       {partnerName} hasn't shared their thoughts yet.
                     </Text>
                   </View>
@@ -373,7 +421,7 @@ export default function RevealScreen({ route, navigation }) {
                 }}
                 style={styles.secondaryAction}
               >
-                <Text style={[styles.secondaryActionText, { color: t.primary }]}>
+                <Text style={[styles.secondaryActionText, { color: t.primary }]} maxFontSizeMultiplier={1.1}>
                   {revealCopy.secondaryLabel}
                 </Text>
               </TouchableOpacity>
@@ -392,31 +440,56 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   scrollContent: { 
     flexGrow: 1,
-    paddingHorizontal: SPACING.xl, 
-    paddingTop: SPACING.sm, 
-    paddingBottom: SPACING.xxxl 
+    paddingHorizontal: SPACING.xl,
+    paddingTop: SPACING.sm,
+    paddingBottom: SPACING.xxl,
   },
 
   // Header
-  header: CLOSE_HEADER_STYLES.header,
-  backButton: CLOSE_HEADER_STYLES.closeButton,
-  headerBlur: {
-    width: 44, height: 44,
+  header: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: SPACING.md,
+    paddingTop: SPACING.sm,
+    paddingBottom: SPACING.lg,
+  },
+  headerTextBlock: {
+    flex: 1,
+    minWidth: 0,
+  },
+  headerSubtitle: {
+    fontSize: 12,
+    fontWeight: '900',
+    letterSpacing: 2.4,
+    lineHeight: 16,
+    marginBottom: SPACING.sm,
+    textTransform: 'uppercase',
+  },
+  headerTitle: {
+    fontSize: 36,
+    fontWeight: '900',
+    letterSpacing: 0,
+    lineHeight: 40,
+  },
+  closeButton: {
+    width: 44,
+    height: 44,
     borderRadius: 22,
-    alignItems: "center", justifyContent: "center",
-    overflow: "hidden",
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 12,
   },
 
   // Hero Prompt
   promptContainer: {
-    padding: SPACING.xl,
-    borderRadius: 30,
-    marginBottom: SPACING.xxl,
+    paddingHorizontal: SPACING.xl,
+    paddingVertical: SPACING.lg,
+    borderRadius: 24,
+    marginBottom: SPACING.xl,
     borderWidth: 1,
     ...Platform.select({
-      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.15, shadowRadius: 20 },
+      ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.12, shadowRadius: 16 },
       android: { elevation: 6 },
     }),
   },
@@ -428,47 +501,53 @@ const styles = StyleSheet.create({
   },
   questionLabel: {
     fontSize: 11,
-    fontWeight: "800",
+    fontWeight: "900",
     letterSpacing: 2,
     textTransform: 'uppercase',
   },
   questionText: {
-    fontSize: 26,
-    fontWeight: "300",
-    lineHeight: 38,
-    letterSpacing: -0.4,
+    fontSize: 22,
+    fontWeight: "400",
+    lineHeight: 31,
+    letterSpacing: 0,
     fontFamily: Platform.select({ ios: "System", android: "Roboto" }),
   },
 
   // Locked State
   lockedStage: {
     alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: SPACING.xl,
-    paddingHorizontal: SPACING.md,
+    justifyContent: "flex-start",
+    paddingTop: SPACING.md,
+    paddingBottom: SPACING.xl,
+    paddingHorizontal: SPACING.sm,
   },
   lockedCircle: {
-    width: 100, height: 100,
-    borderRadius: 50,
-    alignItems: "center", justifyContent: "center",
+    width: 86,
+    height: 86,
+    borderRadius: 43,
+    alignItems: "center",
+    justifyContent: "center",
     ...Platform.select({
-      ios: { shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.3, shadowRadius: 16 },
+      ios: { shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.24, shadowRadius: 14 },
       android: { elevation: 8 },
     }),
   },
   lockedTitle: {
-    fontSize: 32,
-    fontWeight: "800",
-    letterSpacing: -0.5,
-    marginTop: SPACING.md,
-    marginBottom: SPACING.sm,
+    fontSize: 34,
+    fontWeight: "900",
+    letterSpacing: 0,
+    lineHeight: 38,
+    marginTop: SPACING.sm,
+    marginBottom: 0,
+    textAlign: 'center',
   },
   lockedEyebrow: {
     fontSize: 11,
-    fontWeight: "800",
+    fontWeight: "900",
     letterSpacing: 2,
     textTransform: 'uppercase',
-    marginTop: SPACING.xl,
+    marginTop: SPACING.lg,
+    textAlign: 'center',
   },
   lockedSub: {
     fontSize: 16,
@@ -478,7 +557,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.lg,
   },
   revealAction: { 
-    marginTop: SPACING.xxl, 
+    marginTop: SPACING.xl,
     width: '100%',
     height: 56,
     borderRadius: 28,
@@ -497,7 +576,7 @@ const styles = StyleSheet.create({
 
   // Revealed State
   answerCard: { 
-    marginBottom: SPACING.xl,
+    marginBottom: SPACING.lg,
   },
   tagText: {
     fontSize: 12,
@@ -507,8 +586,8 @@ const styles = StyleSheet.create({
     marginLeft: SPACING.sm,
   },
   bubble: {
-    padding: SPACING.xl,
-    borderRadius: 28,
+    padding: SPACING.lg,
+    borderRadius: 22,
     borderWidth: 1,
     ...Platform.select({
       ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.08, shadowRadius: 12 },
@@ -516,8 +595,8 @@ const styles = StyleSheet.create({
     }),
   },
   bubbleText: {
-    fontSize: 17,
-    lineHeight: 28,
+    fontSize: 16,
+    lineHeight: 25,
     fontWeight: "400",
   },
 
@@ -547,7 +626,7 @@ const styles = StyleSheet.create({
   },
 
   journalAction: { 
-    marginTop: SPACING.xxl, 
+    marginTop: SPACING.xl,
     height: 56,
     borderRadius: 28,
   },
