@@ -5,6 +5,7 @@ const {
   createNavigation,
   resetScreenHarnessMocks,
   mockGetJournalEntries,
+  setAppContextMock,
 } = require('../helpers/screenTestHarness');
 
 const JournalHomeScreen = require('../../screens/JournalHomeScreen').default;
@@ -15,6 +16,7 @@ describe('JournalHomeScreen', () => {
   });
 
   it('navigates to a new shared entry from the empty state', async () => {
+    setAppContextMock({ coupleId: 'couple-1', isLinked: true });
     mockGetJournalEntries.mockResolvedValueOnce([]);
 
     const navigation = createNavigation();
@@ -33,6 +35,7 @@ describe('JournalHomeScreen', () => {
   });
 
   it('navigates to a new shared entry from the floating action button', async () => {
+    setAppContextMock({ coupleId: 'couple-1', isLinked: true });
     mockGetJournalEntries.mockResolvedValueOnce([]);
 
     const navigation = createNavigation();
