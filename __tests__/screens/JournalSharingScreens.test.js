@@ -95,6 +95,8 @@ describe('Journal sharing screens', () => {
     expect(ImagePicker.launchImageLibraryAsync).toHaveBeenCalledWith(
       expect.objectContaining({
         mediaTypes: ['images', 'videos'],
+        preferredAssetRepresentationMode: 'current',
+        videoExportPreset: 3,
       })
     );
   });

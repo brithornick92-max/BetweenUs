@@ -112,7 +112,9 @@ function reducer(state, action) {
       return { 
         ...state, 
         coupleId: null,
-        isLinked: false 
+        isLinked: false,
+        partnerVibe: null,
+        lastPartnerActivity: null,
       };
     case ACTIONS.JOIN_COUPLE:
       return {
@@ -519,7 +521,7 @@ export function AppProvider({ children }) {
       dispatch({ type: ACTIONS.JOIN_COUPLE, payload: { coupleId } });
     },
 
-    leaveCouple: async () => {
+    leaveCouple: async ({ onProfileCleared } = {}) => {
       try {
         // Remove server-side couple_members row first — must succeed before
         // clearing local state, otherwise we get a zombie half-unpaired state.
@@ -527,6 +529,7 @@ export function AppProvider({ children }) {
         await unlinkCouple({
           coupleId: stateRef.current.coupleId,
           userId,
+          onProfileCleared,
         });
 
         dispatch({ type: ACTIONS.LEAVE_COUPLE });

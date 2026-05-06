@@ -267,7 +267,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
       ? "Your Keepsake choice was saved."
       : savedToSharedLayer
         ? "Your answer is saved. If notifications are enabled, your partner will know something is waiting."
-        : "Your answer is saved on this device and will sync when you're back online.";
+        : "Your answer is saved here and will sync when a shared connection is available.";
 
     Alert.alert(
       title,
@@ -392,7 +392,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
       savingRef.current = false;
       setIsSaving(false);
       await showSavedConfirmation({
-        savedToSharedLayer: !!syncedAnswer,
+        savedToSharedLayer: !!(syncedAnswer?.couple_id && !syncedAnswer?.sync_status),
         updatedKeepsake: answerIsLocked && keepsakeChanged,
       });
       navigation.goBack();

@@ -1354,6 +1354,10 @@ DECLARE
 BEGIN
   IF NEW.data_type = 'couple_state' THEN RETURN NEW; END IF;
 
+  IF lower(COALESCE(NEW.value::jsonb->>'notifyPartner', 'true')) IN ('false', '0', 'no', 'off') THEN
+    RETURN NEW;
+  END IF;
+
   -- Default: use the sender's own chosen display name
   SELECT COALESCE(display_name, email, 'Your partner') INTO sender_name
     FROM profiles WHERE id = NEW.created_by;
@@ -2084,8 +2088,24 @@ CREATE POLICY block_anonymous_auth_users ON date_shortlist
 -- ############################################################################
 
 INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-VALUES ('attachments', 'attachments', false, 52428800, ARRAY['application/octet-stream'])
-ON CONFLICT (id) DO NOTHING;
+VALUES (
+  'attachments',
+  'attachments',
+  false,
+  52428800,
+  ARRAY[
+    'application/octet-stream',
+    'video/mp4',
+    'video/quicktime',
+    'video/mov',
+    'video/x-m4v'
+  ]::text[]
+)
+ON CONFLICT (id) DO UPDATE
+SET
+  public = EXCLUDED.public,
+  file_size_limit = EXCLUDED.file_size_limit,
+  allowed_mime_types = EXCLUDED.allowed_mime_types;
 
 INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 VALUES (
@@ -2097,9 +2117,19 @@ VALUES (
 )
 ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO storage.buckets (id, name, public)
-VALUES ('couple-media', 'couple-media', false)
-ON CONFLICT (id) DO NOTHING;
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES (
+  'couple-media',
+  'couple-media',
+  false,
+  52428800,
+  ARRAY['image/jpeg', 'image/png', 'image/heic', 'image/heif', 'image/webp']::text[]
+)
+ON CONFLICT (id) DO UPDATE
+SET
+  public = EXCLUDED.public,
+  file_size_limit = EXCLUDED.file_size_limit,
+  allowed_mime_types = EXCLUDED.allowed_mime_types;
 
 -- Attachments storage policies
 DROP POLICY IF EXISTS "couple_upload_attachments" ON storage.objects;

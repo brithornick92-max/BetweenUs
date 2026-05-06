@@ -552,6 +552,38 @@ function isCacheFallback(value) {
 const IMAGE_BUCKET = 'couple-media';
 const VIDEO_BUCKET = 'attachments';
 
+function isVideoMedia({ mimeType, localUri } = {}) {
+  if (mimeType?.startsWith('video/')) return true;
+  if (mimeType?.startsWith('image/')) return false;
+
+  return /\.(mp4|mov|m4v)$/i.test(String(localUri || '').split('?')[0]);
+}
+
+function getMediaExtension({ mimeType, localUri, isVideo }) {
+  const rawSubtype = mimeType?.split('/')?.[1]?.toLowerCase() || '';
+  const subtype = rawSubtype.replace(/^x-/, '');
+
+  if (subtype === 'quicktime') return 'mov';
+  if (subtype) return subtype;
+
+  const pathExtension = String(localUri || '')
+    .split('?')[0]
+    .match(/\.([a-z0-9]+)$/i)?.[1]?.toLowerCase();
+
+  return pathExtension || (isVideo ? 'mp4' : 'jpg');
+}
+
+function isStorageMimePolicyError(error) {
+  const message = String(error?.message || error?.error_description || error || '').toLowerCase();
+
+  return (
+    message.includes('mime')
+    || message.includes('content type')
+    || message.includes('not supported')
+    || message.includes('not allowed')
+  );
+}
+
 /**
  * Upload a local file URI to Supabase Storage.
  * Returns the storage path for use in value.mediaPath.
@@ -567,9 +599,10 @@ async function uploadMedia({ localUri, mimeType, coupleId, throwOnError = false 
     return null;
   }
 
-  const isVideo = mimeType?.startsWith('video/');
+  const isVideo = isVideoMedia({ mimeType, localUri });
   const bucket = isVideo ? VIDEO_BUCKET : IMAGE_BUCKET;
-  const ext = mimeType?.split('/')[1]?.replace('quicktime', 'mov') || 'jpg';
+  const normalizedMimeType = mimeType || (isVideo ? 'video/mp4' : 'image/jpeg');
+  const ext = getMediaExtension({ mimeType: normalizedMimeType, localUri, isVideo });
   const fileId = randomUUID();
 
   // couple-media RLS policy requires path: couples/{couple_id}/{file}
@@ -585,16 +618,22 @@ async function uploadMedia({ localUri, mimeType, coupleId, throwOnError = false 
 
     const bytes = bytesFromBase64(b64);
 
-    const { error } = await sb.storage
+    const uploadWithContentType = (contentType) => sb.storage
       .from(bucket)
       .upload(storagePath, bytes, {
-        contentType: mimeType || (isVideo ? 'application/octet-stream' : 'image/jpeg'),
+        contentType,
         upsert: false,
       });
 
+    let { error } = await uploadWithContentType(normalizedMimeType);
+
+    if (error && isVideo && isStorageMimePolicyError(error)) {
+      ({ error } = await uploadWithContentType('application/octet-stream'));
+    }
+
     if (error) throw error;
 
-    return { storagePath, bucket, mimeType };
+    return { storagePath, bucket, mimeType: normalizedMimeType };
   } catch (err) {
     if (__DEV__) console.warn('[SupabaseDataLayer] Media upload failed:', err?.message);
     if (throwOnError) throw err;
@@ -1703,6 +1742,7 @@ const SupabaseDataLayer = {
     snapshot_index = null,
     snapshot_count = null,
     snapshot_created_at = null,
+    notifyPartner = true,
   }) {
     const id = makeId('mem');
 
@@ -1720,6 +1760,7 @@ const SupabaseDataLayer = {
       snapshot_index,
       snapshot_count,
       snapshot_created_at,
+      ...(notifyPartner === false ? { notifyPartner: false } : {}),
     });
 
     return runCloudOperation({
@@ -1992,7 +2033,7 @@ const SupabaseDataLayer = {
     const sb = getSupabaseOrNull();
 
     if (!sb) return CACHE_FALLBACK;
-    if (!_coupleId) return null;
+    if (!_coupleId) return CACHE_FALLBACK;
 
     const { data, error } = await sb
       .from(TABLES.COUPLE_DATA)
@@ -2068,7 +2109,7 @@ const SupabaseDataLayer = {
       return this._getCachedLatestVibe();
     }
 
-    if (!_coupleId) return null;
+    if (!_coupleId) return this._getCachedLatestVibe();
 
     const { data, error } = await sb
       .from(TABLES.COUPLE_DATA)
@@ -2434,6 +2475,7 @@ const SupabaseDataLayer = {
           await removeCacheRow(CACHE_SCOPES.calendar, id);
           if (targetId !== id) await removeCacheRow(CACHE_SCOPES.calendar, targetId);
         },
+        fallbackOnAnyError: true,
       });
     }
 
@@ -2460,9 +2502,17 @@ const SupabaseDataLayer = {
       }
     }
 
-    await Promise.all(
+    const cleanupResults = await Promise.allSettled(
       [...relatedDatePlanIds].map((planId) => this.deleteDatePlan(planId))
     );
+
+    cleanupResults
+      .filter((result) => result.status === 'rejected')
+      .forEach((result) => {
+        CrashReporting.captureException(result.reason, {
+          source: 'calendar_related_date_plan_cleanup',
+        });
+      });
   },
 
   async refreshCalendarEventsFromRemote({ limit = 5000 } = {}) {

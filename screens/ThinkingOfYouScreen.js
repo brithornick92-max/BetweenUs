@@ -39,7 +39,7 @@ import { SPACING, withAlpha } from '../utils/theme';
 import { getPartnerDisplayName } from '../utils/profileNames';
 import {
   PHOTO_LIBRARY_PRIVACY_NOTE,
-  PRIVATE_MEDIA_PICKER_OPTIONS,
+  launchPrivateMediaLibraryAsync,
 } from '../utils/photoLibraryPrivacy';
 
 const { width: SCREEN_W } = Dimensions.get('window');
@@ -103,9 +103,8 @@ export default function ThinkingOfYouScreen() {
 
   const pickFromLibrary = useCallback(async () => {
     try {
-      const result = await ImagePicker.launchImageLibraryAsync({
+      const result = await launchPrivateMediaLibraryAsync({
         mediaTypes: ['images', 'videos'],
-        ...PRIVATE_MEDIA_PICKER_OPTIONS,
         allowsEditing: false,
         quality: 0.92,
       });

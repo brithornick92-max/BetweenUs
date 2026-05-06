@@ -20,7 +20,6 @@ import {
   Dimensions,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import * as ImagePicker from 'expo-image-picker';
 import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -43,7 +42,7 @@ import {
 import { SPACING, withAlpha } from '../utils/theme';
 import {
   PHOTO_LIBRARY_PRIVACY_NOTE,
-  PRIVATE_MEDIA_PICKER_OPTIONS,
+  launchPrivateMediaLibraryAsync,
 } from '../utils/photoLibraryPrivacy';
 
 const { width: SCREEN_W } = Dimensions.get('window');
@@ -388,9 +387,8 @@ export default function AddMemoryScreen() {
 
   const handlePickMedia = useCallback(async () => {
     try {
-      const result = await ImagePicker.launchImageLibraryAsync({
+      const result = await launchPrivateMediaLibraryAsync({
         mediaTypes: ['images', 'videos'],
-        ...PRIVATE_MEDIA_PICKER_OPTIONS,
         quality: 0.88,
         allowsEditing: false,
         allowsMultipleSelection: true,

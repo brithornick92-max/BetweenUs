@@ -94,6 +94,38 @@ describe('CouplesQuizScreen', () => {
     );
   });
 
+  it('lets solo users review a saved Daily Quiz answer without waiting for a partner', async () => {
+    const navigation = createNavigation();
+    tree = await renderScreen(CouplesQuizScreen, { navigation });
+    await flushEffects();
+
+    const input = tree.root.findByType(TextInput);
+    await renderer.act(async () => {
+      input.props.onChangeText('They would choose coffee and a walk.');
+    });
+
+    const [submitButton] = findTouchablesByText(tree.root, 'Lock In My Answer');
+    await renderer.act(async () => {
+      await submitButton.props.onPress();
+    });
+
+    const [reviewButton] = findTouchablesByText(tree.root, 'Review My Answer');
+    expect(reviewButton).toBeTruthy();
+
+    await renderer.act(async () => {
+      reviewButton.props.onPress();
+    });
+
+    const renderedText = getRenderedText(tree.root);
+    expect(renderedText).toContain('Your answer');
+    expect(renderedText).toContain('Link your partner later to reveal both sides on future quizzes.');
+    expect(mockAlert).not.toHaveBeenCalledWith(
+      expect.stringContaining('Waiting for'),
+      expect.any(String),
+      expect.any(Array)
+    );
+  });
+
   it('does not render the Daily Quiz category label', async () => {
     const navigation = createNavigation();
     tree = await renderScreen(CouplesQuizScreen, { navigation });

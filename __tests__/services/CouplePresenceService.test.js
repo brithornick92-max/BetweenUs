@@ -12,6 +12,7 @@ describe('CouplePresenceService', () => {
   function createDeps({
     remoteCoupleId = 'couple-1',
     secondRemoteCoupleId,
+    unlinkError = null,
   } = {}) {
     const getMyCouple = jest.fn()
       .mockResolvedValueOnce(remoteCoupleId ? { couple_id: remoteCoupleId } : null);
@@ -23,7 +24,9 @@ describe('CouplePresenceService', () => {
     return {
       coupleService: {
         getMyCouple,
-        unlinkFromCouple: jest.fn().mockResolvedValue(true),
+        unlinkFromCouple: unlinkError
+          ? jest.fn().mockRejectedValue(unlinkError)
+          : jest.fn().mockResolvedValue(true),
       },
       storageRouter: {
         updateUserDocument: jest.fn().mockResolvedValue(undefined),
@@ -108,5 +111,42 @@ describe('CouplePresenceService', () => {
 
     expect(deps.coupleService.unlinkFromCouple).toHaveBeenCalledTimes(1);
     expect(onProfileCleared).toHaveBeenCalledWith({ coupleId: null });
+  });
+
+  it('clears local state when unlink response fails but remote membership is already gone', async () => {
+    const { unlinkCouple } = require('../../services/couple/CouplePresenceService');
+    const deps = createDeps({
+      remoteCoupleId: null,
+      unlinkError: new Error('Network request failed'),
+    });
+
+    await expect(unlinkCouple({
+      coupleId: 'couple-1',
+      userId: 'user-1',
+      dependencies: deps,
+    })).resolves.toBe(true);
+
+    expect(deps.coupleService.getMyCouple).toHaveBeenCalledTimes(1);
+    expect(deps.storageApi.remove).toHaveBeenCalledWith('@betweenus:cache:coupleId');
+    expect(deps.storageRouter.updateUserDocument).toHaveBeenCalledWith('user-1', { coupleId: null });
+  });
+
+  it('keeps local state when unlink fails and remote membership still exists', async () => {
+    const { unlinkCouple } = require('../../services/couple/CouplePresenceService');
+    const unlinkError = new Error('profiles.is_premium is managed server-side');
+    const deps = createDeps({
+      remoteCoupleId: 'couple-1',
+      unlinkError,
+    });
+
+    await expect(unlinkCouple({
+      coupleId: 'couple-1',
+      userId: 'user-1',
+      dependencies: deps,
+    })).rejects.toThrow('profiles.is_premium is managed server-side');
+
+    expect(deps.coupleService.getMyCouple).toHaveBeenCalledTimes(1);
+    expect(deps.storageApi.remove).not.toHaveBeenCalled();
+    expect(deps.storageRouter.updateUserDocument).not.toHaveBeenCalled();
   });
 });

@@ -23,7 +23,6 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useVideoPlayer, VideoView } from 'expo-video';
 import Icon from '../components/Icon';
 import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
-import * as ImagePicker from "expo-image-picker";
 import Animated, { FadeIn, FadeInDown, FadeInUp } from "react-native-reanimated";
 import { DataLayer } from "../services/localfirst";
 import { useTheme } from "../context/ThemeContext";
@@ -35,7 +34,7 @@ import FilmGrain from "../components/FilmGrain";
 import CloseScreenHeader, { CLOSE_HEADER_STYLES } from "../components/CloseScreenHeader";
 import {
   PHOTO_LIBRARY_PRIVACY_NOTE,
-  PRIVATE_MEDIA_PICKER_OPTIONS,
+  launchPrivateMediaLibraryAsync,
 } from "../utils/photoLibraryPrivacy";
 
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
@@ -176,9 +175,8 @@ export default function JournalEntryScreen({ navigation, route }) {
 
   const handlePickMedia = async () => {
     try {
-      const result = await ImagePicker.launchImageLibraryAsync({
+      const result = await launchPrivateMediaLibraryAsync({
         mediaTypes: ['images', 'videos'],
-        ...PRIVATE_MEDIA_PICKER_OPTIONS,
         quality: 0.85,
         allowsEditing: false,
       });

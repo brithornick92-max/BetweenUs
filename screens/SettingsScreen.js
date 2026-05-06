@@ -37,6 +37,7 @@ import ReAnimated, {
 import { useAuth } from '../context/AuthContext';
 import { useEntitlements } from '../context/EntitlementsContext';
 import { useContent } from '../context/ContentContext';
+import { useAppContext } from '../context/AppContext';
 import { useTheme } from '../context/ThemeContext';
 
 // Utilities & Components
@@ -49,7 +50,7 @@ import FilmGrain from '../components/FilmGrain';
 import { cloudSyncStorage, settingsStorage, STORAGE_KEYS, storage } from '../utils/storage';
 import CrashReporting from '../services/CrashReporting';
 import RevenueCatService from '../services/RevenueCatService';
-import { getVerifiedCoupleState, unlinkCouple } from '../services/couple/CouplePresenceService';
+import { getVerifiedCoupleState } from '../services/couple/CouplePresenceService';
 import StorageRouter from '../services/storage/StorageRouter';
 import SeasonSelector from '../components/SeasonSelector';
 import EnergyMatcher from '../components/EnergyMatcher';
@@ -162,6 +163,7 @@ export default function SettingsScreen({ navigation }) {
   const { user, userProfile, signOutLocal, updateProfile } = useAuth();
   const { isPremiumEffective: isPremium } = useEntitlements();
   const { colors, themeMode, setThemeMode, isDark } = useTheme();
+  const { actions: appActions } = useAppContext();
   const { getRelationshipDurationText, updateRelationshipStartDate, loadContentProfile } = useContent();
   const scrollY = useRef(new RNAnimated.Value(0)).current;
 
@@ -183,8 +185,10 @@ export default function SettingsScreen({ navigation }) {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [paired, setPaired] = useState(false);
   const [showUnlinkConfirm, setShowUnlinkConfirm] = useState(false);
+  const [isUnlinking, setIsUnlinking] = useState(false);
   const [keepsakeSettings, setKeepsakeSettings] = useState(DEFAULT_KEEPSAKE_SETTINGS);
   const unlinkInFlightRef = useRef(false);
+  const connectionMutationRef = useRef(0);
 
   const [selectedDate, setSelectedDate] = useState(
     () => {
@@ -214,6 +218,8 @@ export default function SettingsScreen({ navigation }) {
 
   // ─── REFRESH LOGIC ───
   const refreshSyncStatus = useCallback(async () => {
+    if (unlinkInFlightRef.current) return;
+    const mutationVersion = connectionMutationRef.current;
     try {
       await cloudSyncStorage.getSyncStatus();
 
@@ -231,6 +237,7 @@ export default function SettingsScreen({ navigation }) {
         await StorageRouter.setActiveCoupleId(verified.coupleId);
       }
 
+      if (unlinkInFlightRef.current || mutationVersion !== connectionMutationRef.current) return;
       setPaired(!!verified.coupleId);
     } catch (err) {
       // Do not force setPaired(false) on a transient refresh failure — the user
@@ -305,10 +312,10 @@ export default function SettingsScreen({ navigation }) {
   const handleUnlink = async () => {
     if (unlinkInFlightRef.current) return;
     unlinkInFlightRef.current = true;
+    connectionMutationRef.current += 1;
+    setIsUnlinking(true);
     try {
-      await unlinkCouple({
-        coupleId: await storage.get(STORAGE_KEYS.COUPLE_ID, null),
-        userId: user?.id || user?.uid,
+      await appActions.leaveCouple({
         onProfileCleared: updateProfile,
       });
       setPaired(false);
@@ -323,16 +330,17 @@ export default function SettingsScreen({ navigation }) {
       );
     } finally {
       unlinkInFlightRef.current = false;
+      setIsUnlinking(false);
     }
   };
 
   const handleUnlinkAndReconnect = async () => {
     if (unlinkInFlightRef.current) return;
     unlinkInFlightRef.current = true;
+    connectionMutationRef.current += 1;
+    setIsUnlinking(true);
     try {
-      await unlinkCouple({
-        coupleId: await storage.get(STORAGE_KEYS.COUPLE_ID, null),
-        userId: user?.id || user?.uid,
+      await appActions.leaveCouple({
         onProfileCleared: updateProfile,
       });
       setPaired(false);
@@ -351,6 +359,7 @@ export default function SettingsScreen({ navigation }) {
       );
     } finally {
       unlinkInFlightRef.current = false;
+      setIsUnlinking(false);
     }
   };
 
@@ -720,19 +729,32 @@ export default function SettingsScreen({ navigation }) {
               This will stop shared syncing between you and your partner. Content created after unlinking will belong only to the account that creates it.
             </Text>
             <View style={styles.modalActions}>
-              <TouchableOpacity style={[styles.modalBtn, { backgroundColor: t.surfaceSecondary }]} onPress={() => setShowUnlinkConfirm(false)}>
+              <TouchableOpacity
+                style={[styles.modalBtn, { backgroundColor: t.surfaceSecondary }, isUnlinking && styles.actionBtnDisabled]}
+                onPress={() => setShowUnlinkConfirm(false)}
+                disabled={isUnlinking}
+              >
                 <Text style={{ color: t.text, fontFamily: SYSTEM_FONT, fontWeight: '600' }}>Cancel</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={[styles.modalBtn, styles.btnDestructive]} onPress={handleUnlink}>
-                <Text style={{ color: '#FFFFFF', fontFamily: SYSTEM_FONT, fontWeight: '700' }}>Unlink</Text>
+              <TouchableOpacity
+                style={[styles.modalBtn, styles.btnDestructive, isUnlinking && styles.actionBtnDisabled]}
+                onPress={handleUnlink}
+                disabled={isUnlinking}
+              >
+                <Text style={{ color: '#FFFFFF', fontFamily: SYSTEM_FONT, fontWeight: '700' }}>
+                  {isUnlinking ? 'Unlinking...' : 'Unlink'}
+                </Text>
               </TouchableOpacity>
             </View>
             <TouchableOpacity
-              style={[styles.reconnectBtn, { backgroundColor: t.primary }]}
+              style={[styles.reconnectBtn, { backgroundColor: t.primary }, isUnlinking && styles.actionBtnDisabled]}
               onPress={handleUnlinkAndReconnect}
+              disabled={isUnlinking}
             >
               <Icon name="link-outline" size={16} color="#FFFFFF" />
-              <Text style={styles.reconnectBtnText}>{'Unlink & Invite New Partner'}</Text>
+              <Text style={styles.reconnectBtnText}>
+                {isUnlinking ? 'Unlinking...' : 'Unlink & Invite New Partner'}
+              </Text>
             </TouchableOpacity>
           </ReAnimated.View>
         </View>

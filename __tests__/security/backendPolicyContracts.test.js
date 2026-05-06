@@ -199,4 +199,16 @@ describe('backend security policy contracts', () => {
       expect(sql).toContain("'route', 'our-story'");
     }
   });
+
+  test('keepsake media posting can suppress intermediate partner notifications', () => {
+    const productionSql = readRepoFile('database/supabase-production-setup.sql');
+    const migrationSql = readRepoFile('supabase/migrations/20260506210000_fix_keepsake_media_posting.sql');
+
+    for (const sql of [productionSql, migrationSql]) {
+      expect(sql).toContain("NEW.value::jsonb->>'notifyPartner'");
+      expect(sql).toContain("IN ('false', '0', 'no', 'off')");
+      expect(sql).toContain("'video/mp4'");
+      expect(sql).toContain("'application/octet-stream'");
+    }
+  });
 });

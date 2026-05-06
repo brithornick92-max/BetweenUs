@@ -63,7 +63,19 @@ export async function clearLocalCoupleState({
 
 export async function unlinkCouple({ coupleId, userId, onProfileCleared, dependencies = {} } = {}) {
   const { coupleService } = getDependencies(dependencies);
-  await coupleService.unlinkFromCouple();
+  try {
+    await coupleService.unlinkFromCouple();
+  } catch (error) {
+    // If the RPC committed but the client lost the response, finish cleanup
+    // only after the remote membership confirms the user is already unpaired.
+    let remoteCoupleId = null;
+    try {
+      remoteCoupleId = await getRemoteCoupleId({ dependencies, timeoutMs: 8000 });
+    } catch (_) {
+      throw error;
+    }
+    if (remoteCoupleId) throw error;
+  }
   await clearLocalCoupleState({ coupleId, userId, onProfileCleared, dependencies });
   return true;
 }

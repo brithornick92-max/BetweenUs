@@ -282,6 +282,11 @@ describe('SupabaseDataLayer memory snapshots', () => {
     });
 
     expect(mockMemorySaved).not.toHaveBeenCalled();
+    expect(mockInsert).toHaveBeenCalledWith(expect.objectContaining({
+      value: expect.objectContaining({
+        notifyPartner: false,
+      }),
+    }));
   });
 
   it('uploads memory media and returns the signed media URL', async () => {
@@ -319,6 +324,59 @@ describe('SupabaseDataLayer memory snapshots', () => {
     expect(saved).toEqual(expect.objectContaining({
       media_ref: 'couples/couple-1/mem-test-id-123.jpeg',
       mime_type: 'image/jpeg',
+      mediaUri: 'https://example.com/signed-media-url',
+    }));
+  });
+
+  it('falls back to storage-compatible content type for video uploads', async () => {
+    await SupabaseDataLayer.init({
+      userId: 'user-1',
+      coupleId: 'couple-1',
+      isPremium: true,
+    });
+
+    mockStorageUpload
+      .mockResolvedValueOnce({ error: { message: 'mime type video/mp4 is not supported' } })
+      .mockResolvedValueOnce({ error: null });
+
+    const saved = await SupabaseDataLayer.saveMemory({
+      content: 'Snapshot with video',
+      type: 'snapshot',
+      mediaUri: 'file:///snapshot-video.mp4',
+      mimeType: 'video/mp4',
+      notifyPartner: false,
+    });
+
+    expect(mockStorageUpload).toHaveBeenNthCalledWith(
+      1,
+      'couple-1/mem-test-id-123.mp4',
+      expect.any(Uint8Array),
+      expect.objectContaining({
+        contentType: 'video/mp4',
+        upsert: false,
+      })
+    );
+    expect(mockStorageUpload).toHaveBeenNthCalledWith(
+      2,
+      'couple-1/mem-test-id-123.mp4',
+      expect.any(Uint8Array),
+      expect.objectContaining({
+        contentType: 'application/octet-stream',
+        upsert: false,
+      })
+    );
+    expect(mockInsert).toHaveBeenCalledWith(expect.objectContaining({
+      data_type: 'memory',
+      value: expect.objectContaining({
+        mediaPath: 'couple-1/mem-test-id-123.mp4',
+        mediaBucket: 'attachments',
+        mimeType: 'video/mp4',
+        notifyPartner: false,
+      }),
+    }));
+    expect(saved).toEqual(expect.objectContaining({
+      media_ref: 'couple-1/mem-test-id-123.mp4',
+      mime_type: 'video/mp4',
       mediaUri: 'https://example.com/signed-media-url',
     }));
   });
@@ -508,6 +566,84 @@ describe('SupabaseDataLayer memory snapshots', () => {
     ]));
   });
 
+  it('keeps today check-ins readable and updatable while unpaired', async () => {
+    await SupabaseDataLayer.init({
+      userId: 'user-1',
+      coupleId: null,
+      isPremium: false,
+    });
+
+    const saved = await SupabaseDataLayer.saveCheckIn({
+      mood: 'steady',
+      intimacy: 3,
+      notes: 'A quiet start.',
+      touch: 'hand',
+    });
+
+    let today = await SupabaseDataLayer.getCheckInForToday();
+    let rows = await SupabaseDataLayer.getCheckIns({ limit: 10 });
+
+    expect(mockInsert).not.toHaveBeenCalled();
+    expect(saved).toEqual(expect.objectContaining({
+      id: 'mem-test-id-123',
+      user_id: 'user-1',
+      couple_id: null,
+      mood: 'steady',
+      sync_status: 'pending',
+    }));
+    expect(today).toEqual(expect.objectContaining({
+      id: saved.id,
+      mood: 'steady',
+      notes: 'A quiet start.',
+    }));
+    expect(rows).toHaveLength(1);
+
+    await SupabaseDataLayer.saveCheckIn({
+      mood: 'warm',
+      intimacy: 4,
+      notes: 'Updated locally.',
+      touch: 'hug',
+    });
+
+    today = await SupabaseDataLayer.getCheckInForToday();
+    rows = await SupabaseDataLayer.getCheckIns({ limit: 10 });
+
+    expect(today).toEqual(expect.objectContaining({
+      id: saved.id,
+      mood: 'warm',
+      notes: 'Updated locally.',
+    }));
+    expect(rows).toHaveLength(1);
+  });
+
+  it('keeps the latest vibe readable while unpaired', async () => {
+    await SupabaseDataLayer.init({
+      userId: 'user-1',
+      coupleId: null,
+      isPremium: false,
+    });
+
+    const saved = await SupabaseDataLayer.saveVibe({
+      vibe: 'soft',
+      note: 'Saving the signal locally.',
+    });
+    const latest = await SupabaseDataLayer.getLatestVibe();
+
+    expect(mockInsert).not.toHaveBeenCalled();
+    expect(saved).toEqual(expect.objectContaining({
+      id: 'mem-test-id-123',
+      user_id: 'user-1',
+      couple_id: null,
+      vibe: 'soft',
+      sync_status: 'pending',
+    }));
+    expect(latest).toEqual(expect.objectContaining({
+      id: saved.id,
+      vibe: 'soft',
+      note: 'Saving the signal locally.',
+    }));
+  });
+
   it('keeps calendar events readable while unpaired', async () => {
     await SupabaseDataLayer.init({
       userId: 'user-1',
@@ -616,6 +752,40 @@ describe('SupabaseDataLayer memory snapshots', () => {
     expect(mockDelete).not.toHaveBeenCalled();
     expect(mockRpc).not.toHaveBeenCalled();
     expect(JSON.stringify(Array.from(mockStorageState.values()))).not.toContain('calendar-blocked-delete-1');
+  });
+
+  it('hides remote calendar events locally and queues a retry when remote delete is denied', async () => {
+    await SupabaseDataLayer.init({
+      userId: 'user-1',
+      coupleId: 'couple-1',
+      isPremium: false,
+    });
+
+    await SupabaseDataLayer.createCalendarEvent({
+      id: 'calendar-remote-delete-1',
+      title: 'Dinner',
+      whenTs: Date.parse('2026-05-02T14:00:00.000Z'),
+      eventType: 'general',
+    });
+
+    mockDeleteSelect.mockResolvedValueOnce({
+      data: null,
+      error: { code: '42501', message: 'violates row-level security policy' },
+    });
+    mockRpc.mockResolvedValueOnce({ data: false, error: null });
+
+    await expect(SupabaseDataLayer.deleteCalendarEvent('calendar-remote-delete-1', {
+      deleteRemote: true,
+      remoteId: 'calendar-remote-delete-1',
+    })).resolves.toBeUndefined();
+
+    const rows = await SupabaseDataLayer.getCalendarEvents({ limit: 50 });
+
+    expect(rows).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'calendar-remote-delete-1' }),
+    ]));
+    expect(JSON.stringify(Array.from(mockStorageState.values()))).toContain('"action":"delete"');
+    expect(JSON.stringify(Array.from(mockStorageState.values()))).toContain('calendar-remote-delete-1');
   });
 
   it('keeps journal entries readable and editable while unpaired', async () => {

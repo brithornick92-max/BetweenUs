@@ -291,6 +291,7 @@ export default function CouplesQuizScreen({ navigation }) {
 
   const todayKey = useDailyQuizDateKey();
   const coupleId = state?.coupleId || userProfile?.coupleId || null;
+  const isLinked = !!coupleId;
   const userId = user?.uid || user?.id || state?.userId || null;
   const question = useDailyQuizQuestion(todayKey, quizCacheKeys, { coupleId, userId });
   const quizPromptId = useMemo(() => getQuizPromptId(question.id), [question.id]);
@@ -595,7 +596,7 @@ export default function CouplesQuizScreen({ navigation }) {
   }, [answerId, clearLocalQuizAnswer, resetSubmittedAnswerState]);
 
   const handleReveal = useCallback(() => {
-    if (!partnerHasSubmitted) {
+    if (isLinked && !partnerHasSubmitted) {
       Alert.alert(
         `Waiting for ${partnerName}`,
         `${partnerName} hasn't locked in their guess yet. Answers reveal when you've both weighed in — that's what makes it fun.`,
@@ -606,7 +607,7 @@ export default function CouplesQuizScreen({ navigation }) {
     impact(ImpactFeedbackStyle.Heavy);
     setIsRevealed(true);
     revealScale.value = withSpring(1, { damping: 14, stiffness: 120 });
-  }, [partnerHasSubmitted, partnerName, revealScale]);
+  }, [isLinked, partnerHasSubmitted, partnerName, revealScale]);
 
   // ── Render phases ──────────────────────────────────────────────────
 
@@ -728,22 +729,29 @@ export default function CouplesQuizScreen({ navigation }) {
                   {/* Partner status */}
                   <View style={[styles.partnerStatusCard, { borderColor: partnerHasSubmitted ? accentColor + '55' : t.border }]}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                      <View style={[styles.statusDot, { backgroundColor: partnerHasSubmitted ? '#34C759' : '#FF9F0A' }]} />
+                      <View style={[styles.statusDot, { backgroundColor: partnerHasSubmitted ? '#34C759' : (isLinked ? '#FF9F0A' : accentColor) }]} />
                       <Text style={styles.partnerStatusText}>
                         {partnerHasSubmitted
                           ? `${partnerName} locked in their guess`
-                          : `Waiting for ${partnerName}…`}
+                          : isLinked
+                            ? `Waiting for ${partnerName}…`
+                            : 'Saved for later'}
                       </Text>
                       {partnerHasSubmitted && <Icon name="checkmark-circle" size={18} color="#34C759" />}
                     </View>
                     {!partnerHasSubmitted && (
                       <Text style={styles.partnerStatusHint}>
-                        Your guess is locked — the reveal happens when {partnerName} is in.
+                        {isLinked
+                          ? `Your guess is locked — the reveal happens when ${partnerName} is in.`
+                          : 'You can review your answer now and connect your partner later.'}
                       </Text>
                     )}
                   </View>
 
                   {/* Reveal button */}
+                  {(() => {
+                    const canReveal = partnerHasSubmitted || !isLinked;
+                    return (
                   <TouchableOpacity
                     onPress={handleReveal}
                     activeOpacity={0.85}
@@ -751,21 +759,23 @@ export default function CouplesQuizScreen({ navigation }) {
                       styles.revealBtn,
                       {
                         marginTop: SPACING.md,
-                        backgroundColor: partnerHasSubmitted ? t.primary : t.surface,
-                        borderWidth: partnerHasSubmitted ? 0 : 1,
+                        backgroundColor: canReveal ? t.primary : t.surface,
+                        borderWidth: canReveal ? 0 : 1,
                         borderColor: t.border,
                       },
                     ]}
                   >
                     <Icon
-                      name={partnerHasSubmitted ? 'eye-outline' : 'time-outline'}
+                      name={canReveal ? 'eye-outline' : 'time-outline'}
                       size={18}
-                      color={partnerHasSubmitted ? '#FFF' : t.subtext}
+                      color={canReveal ? '#FFF' : t.subtext}
                     />
-                    <Text style={[styles.revealBtnText, !partnerHasSubmitted && { color: t.subtext }]}>
-                      {partnerHasSubmitted ? 'Reveal Both Answers' : `Waiting for ${partnerName}…`}
+                    <Text style={[styles.revealBtnText, !canReveal && { color: t.subtext }]}>
+                      {partnerHasSubmitted ? 'Reveal Both Answers' : isLinked ? `Waiting for ${partnerName}…` : 'Review My Answer'}
                     </Text>
                   </TouchableOpacity>
+                    );
+                  })()}
 
                   {/* ── Reveal panel ── */}
                   {isRevealed && (
@@ -775,17 +785,23 @@ export default function CouplesQuizScreen({ navigation }) {
 
                         <View style={styles.revealRow}>
                           <View style={[styles.revealCard, { borderColor: accentColor + '44' }]}>
-                            <Text style={styles.revealCardOwner}>You guessed about {partnerName}</Text>
+                            <Text style={styles.revealCardOwner}>
+                              {partnerHasSubmitted ? `You guessed about ${partnerName}` : 'Your answer'}
+                            </Text>
                             <Text style={styles.revealCardAnswer}>{myAnswer}</Text>
                           </View>
-                          <View style={[styles.revealCard, { borderColor: t.primary + '44' }]}>
-                            <Text style={[styles.revealCardOwner, { color: t.primary }]}>{partnerName} guessed about you</Text>
-                            <Text style={styles.revealCardAnswer}>{partnerGuess || '…'}</Text>
-                          </View>
+                          {(partnerHasSubmitted || isLinked) ? (
+                            <View style={[styles.revealCard, { borderColor: t.primary + '44' }]}>
+                              <Text style={[styles.revealCardOwner, { color: t.primary }]}>{partnerName} guessed about you</Text>
+                              <Text style={styles.revealCardAnswer}>{partnerGuess || '…'}</Text>
+                            </View>
+                          ) : null}
                         </View>
 
                         <Text style={styles.revealCta}>
-                          Compare the guesses and fill in the real answers together.
+                          {partnerHasSubmitted
+                            ? 'Compare the guesses and fill in the real answers together.'
+                            : 'Link your partner later to reveal both sides on future quizzes.'}
                         </Text>
                       </View>
                     </Animated.View>

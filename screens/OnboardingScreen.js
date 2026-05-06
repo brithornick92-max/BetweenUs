@@ -598,8 +598,8 @@ export default function OnboardingScreen({ navigation }) {
             style={[styles.primaryButtonTouch, { backgroundColor: t.text }]} 
             activeOpacity={0.8}
             onPress={() => {
-              if (!myName.trim() || !partnerName.trim()) {
-                Alert.alert('One more thing', "Please enter both your name and your partner's name to continue.");
+              if (!myName.trim()) {
+                Alert.alert('One more thing', 'Please enter your name to continue. You can add your partner later.');
                 return;
               }
               Keyboard.dismiss();

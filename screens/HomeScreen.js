@@ -84,7 +84,7 @@ const loadAllBundledPrompts = () => {
 function deriveRitualState({ isLinked, myAnswer, partnerAnswer, isRevealed }) {
   if (isRevealed) return 'revealed';
   if (myAnswer && partnerAnswer) return 'both_answered_ready';
-  if (myAnswer) return 'answered_waiting';
+  if (myAnswer) return isLinked ? 'answered_waiting' : 'solo_answered';
   if (isLinked && partnerAnswer) return 'partner_answered';
   if (isLinked) return 'linked_unanswered';
   return 'solo_unanswered';
@@ -637,6 +637,13 @@ export default function HomeScreen({ navigation }) {
       primaryLabel: 'Answer saved',
       secondaryLabel: null,
     },
+    solo_answered: {
+      eyebrow: 'SAVED',
+      title: promptReady ? prompt.text : 'Your answer is saved',
+      body: 'Your answer is saved. Add it to Keepsake or invite your partner whenever you are ready.',
+      primaryLabel: includePromptInKeepsake ? 'In Keepsake' : 'Add to Keepsake',
+      secondaryLabel: 'Invite your partner',
+    },
     both_answered_ready: {
       eyebrow: 'PRIVATE REVEAL',
       title: 'Your private reveal is ready',
@@ -810,7 +817,7 @@ export default function HomeScreen({ navigation }) {
       return;
     }
 
-    if (ritualState === 'revealed') {
+    if (ritualState === 'revealed' || ritualState === 'solo_answered') {
       const nextValue = !includePromptInKeepsake;
       const row = await DataLayer.getPromptAnswerForToday(prompt.id, todayKey).catch(() => null);
       const answerText = row?.answer || myAnswer;
@@ -902,7 +909,7 @@ export default function HomeScreen({ navigation }) {
   const handleSecondaryCTA = useCallback(() => {
     if (!promptReady) return;
 
-    if (ritualState === 'solo_unanswered') {
+    if (ritualState === 'solo_unanswered' || ritualState === 'solo_answered') {
       navigation.navigate('ConnectPartner');
       return;
     }
@@ -1088,6 +1095,7 @@ export default function HomeScreen({ navigation }) {
                       name={
                         (ritualState === 'both_answered_ready'
                           || ritualState === 'revealed'
+                          || ritualState === 'solo_answered'
                           || ritualState === 'partner_answered')
                           ? 'checkmark-outline'
                           : ritualState === 'answered_waiting'

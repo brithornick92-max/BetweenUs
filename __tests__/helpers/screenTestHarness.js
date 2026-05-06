@@ -140,9 +140,9 @@ jest.mock('../../components/FilmGrain', () => mockCreateHostComponent('FilmGrain
 jest.mock('../../components/GlowOrb', () => mockCreateHostComponent('GlowOrb'));
 
 jest.mock('../../utils/haptics', () => ({
-  impact: jest.fn(),
-  notification: jest.fn(),
-  selection: jest.fn(),
+  impact: jest.fn(() => Promise.resolve()),
+  notification: jest.fn(() => Promise.resolve()),
+  selection: jest.fn(() => Promise.resolve()),
   ImpactFeedbackStyle: { Light: 'Light', Medium: 'Medium' },
   NotificationFeedbackType: { Success: 'Success' },
 }));
@@ -151,6 +151,8 @@ jest.mock('expo-image-picker', () => ({
   requestMediaLibraryPermissionsAsync: jest.fn().mockResolvedValue({ status: 'granted' }),
   launchImageLibraryAsync: jest.fn().mockResolvedValue({ canceled: true, assets: [] }),
   MediaTypeOptions: { Images: 'Images' },
+  UIImagePickerPreferredAssetRepresentationMode: { Current: 'current' },
+  VideoExportPreset: { HighestQuality: 3 },
 }));
 
 jest.mock('expo-file-system/legacy', () => ({
