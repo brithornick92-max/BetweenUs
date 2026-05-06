@@ -37,7 +37,7 @@ import { PremiumFeature } from '../utils/featureFlags';
 import { promptStorage, savedPromptStorage } from "../utils/storage";
 import { DataLayer } from "../services/localfirst";
 import * as PreferenceEngine from "../services/PreferenceEngine";
-import { getPromptById } from "../utils/contentLoader";
+import { getPromptById, isTodayBetweenUsPrompt } from "../utils/contentLoader";
 import { removeRestoredDeckItem } from "../utils/contentDeckRestores";
 import { SPACING, withAlpha } from "../utils/theme";
 import { CONTENT_TYPES } from "../services/WeeklyContentSetService";
@@ -151,7 +151,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
         return;
       }
 
-      if (!isPremium) {
+      if (!isPremium && !isTodayBetweenUsPrompt(resolvedPrompt)) {
         const weeklyEligiblePrompts = loadAllBundledPrompts().filter((item) =>
           PreferenceEngine.getPromptVisibilityState(item, profile).visible
         );
@@ -252,6 +252,8 @@ export default function PromptAnswerScreen({ route, navigation }) {
 
       Keyboard.dismiss();
 
+      let syncedAnswer = null;
+
       try {
         await DataLayer.savePromptAnswer({
           promptId: prompt.id,
@@ -259,16 +261,18 @@ export default function PromptAnswerScreen({ route, navigation }) {
           heatLevel: prompt?.heat || 1,
           dateKey: prompt.dateKey,
         });
+        syncedAnswer = await DataLayer.getPromptAnswerForToday(prompt.id, prompt.dateKey);
       } catch (dataLayerError) {
         if (__DEV__) console.warn('[PromptAnswer] DataLayer prompt save failed:', dataLayerError?.message);
       }
 
       // Keep a local answer even when the shared cloud row cannot be written yet.
       if (prompt?.dateKey) {
+        const isSyncedRevealed = !!(syncedAnswer?.isRevealed || syncedAnswer?.is_revealed);
         await promptStorage.setAnswer(prompt.dateKey, prompt.id, {
           answer: finalText,
           timestamp: Date.now(),
-          isRevealed: existingAnswer?.isRevealed || false,
+          isRevealed: isSyncedRevealed || existingAnswer?.isRevealed || false,
         });
       }
 
@@ -294,6 +298,31 @@ export default function PromptAnswerScreen({ route, navigation }) {
         }
       }
       notification(NotificationFeedbackType.Success);
+
+      if (syncedAnswer?.partnerAnswer) {
+        const revealParams = {
+          prompt: {
+            id: prompt.id,
+            text: prompt.text,
+            dateKey: prompt.dateKey,
+            heat: prompt.heat,
+            category: prompt.category,
+          },
+          userAnswer: {
+            answer: syncedAnswer.answer || finalText,
+            isRevealed: !!(syncedAnswer.isRevealed || syncedAnswer.is_revealed),
+          },
+          partnerAnswer: syncedAnswer.partnerAnswer,
+          bothAnswered: true,
+        };
+
+        if (typeof navigation.replace === 'function') {
+          navigation.replace('Reveal', revealParams);
+        } else {
+          navigation.navigate('Reveal', revealParams);
+        }
+        return;
+      }
 
       navigation.goBack();
     } catch {

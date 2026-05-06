@@ -4,6 +4,7 @@ import { STORAGE_KEYS, storage } from '../../utils/storage';
 export const SHARED_ANNIVERSARY_KEY = 'relationship_start_date';
 export const PENDING_SHARED_ANNIVERSARY_KEY = '@betweenus:cache:pendingSharedAnniversaryDate';
 export const SHARED_DAILY_PROMPT_KEY_PREFIX = 'daily_prompt';
+export const SHARED_DAILY_QUIZ_KEY_PREFIX = 'daily_quiz';
 
 function getDependencies(dependencies = {}) {
   return {
@@ -14,6 +15,10 @@ function getDependencies(dependencies = {}) {
 
 export function getSharedDailyPromptKey(dateKey) {
   return `${SHARED_DAILY_PROMPT_KEY_PREFIX}_${dateKey}`;
+}
+
+export function getSharedDailyQuizKey(dateKey) {
+  return `${SHARED_DAILY_QUIZ_KEY_PREFIX}_${dateKey}`;
 }
 
 export async function getActiveCoupleId({ fallbackCoupleId = null, dependencies = {} } = {}) {
@@ -59,6 +64,47 @@ export async function saveSharedDailyPromptSelection(dateKey, promptId, userId, 
     userId,
     false,
     'daily_prompt'
+  );
+}
+
+export async function getSharedDailyQuizQuestionSelection(dateKey, {
+  fallbackCoupleId = null,
+  ensureSession,
+  dependencies = {},
+} = {}) {
+  const { storageRouter } = getDependencies(dependencies);
+  const coupleId = await getActiveCoupleId({ fallbackCoupleId, dependencies });
+  if (!coupleId) return null;
+
+  if (ensureSession) {
+    const session = await ensureSession();
+    if (!session) return null;
+  }
+  return storageRouter.getCoupleData(coupleId, getSharedDailyQuizKey(dateKey)).catch(() => null);
+}
+
+export async function saveSharedDailyQuizQuestionSelection(dateKey, questionId, userId, {
+  fallbackCoupleId = null,
+  ensureSession,
+  dependencies = {},
+} = {}) {
+  if (!dateKey || !questionId || !userId) return false;
+
+  const { storageRouter } = getDependencies(dependencies);
+  const coupleId = await getActiveCoupleId({ fallbackCoupleId, dependencies });
+  if (!coupleId) return false;
+
+  if (ensureSession) {
+    const session = await ensureSession();
+    if (!session) return false;
+  }
+  return storageRouter.upsertCoupleData(
+    coupleId,
+    getSharedDailyQuizKey(dateKey),
+    { questionId, dateKey },
+    userId,
+    false,
+    'daily_quiz'
   );
 }
 
@@ -183,8 +229,11 @@ export default {
   PENDING_SHARED_ANNIVERSARY_KEY,
   getActiveCoupleId,
   getSharedDailyPromptKey,
+  getSharedDailyQuizKey,
   getSharedDailyPromptSelection,
   saveSharedDailyPromptSelection,
+  getSharedDailyQuizQuestionSelection,
+  saveSharedDailyQuizQuestionSelection,
   syncSharedAnniversary,
   getSharedAnniversary,
   getPendingSharedAnniversary,

@@ -49,6 +49,7 @@ const {
   getFilteredPrompts,
   getPromptOfTheDay,
   getPromptById,
+  isTodayBetweenUsPrompt,
   getTodayBetweenUsPrompts,
   getAllDates,
   filterDates,
@@ -153,6 +154,15 @@ describe('Today Between Us prompts', () => {
       sourceLibrary: 'today-between-us',
     });
     expect(getAllPrompts().some((item) => item.id === 'tbu_l1_001')).toBe(false);
+  });
+
+  it('identifies Today Between Us prompts for daily answer access', () => {
+    const prompt = getPromptById('tbu_l1_001');
+
+    expect(isTodayBetweenUsPrompt(prompt)).toBe(true);
+    expect(isTodayBetweenUsPrompt('tbu_l1_001')).toBe(true);
+    expect(isTodayBetweenUsPrompt({ id: 'tbu_l1_001' })).toBe(true);
+    expect(isTodayBetweenUsPrompt({ id: 'p1' })).toBe(false);
   });
 });
 

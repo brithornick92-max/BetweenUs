@@ -6,6 +6,7 @@ describe('CoupleStateService', () => {
   function createDeps({
     coupleId = 'couple-1',
     sharedPromptSelection = null,
+    sharedQuizSelection = null,
     sharedAnniversary = null,
   } = {}) {
     return {
@@ -21,6 +22,7 @@ describe('CoupleStateService', () => {
       storageRouter: {
         getCoupleData: jest.fn().mockImplementation((_coupleId, key) => {
           if (key === 'relationship_start_date') return Promise.resolve(sharedAnniversary);
+          if (key.startsWith('daily_quiz_')) return Promise.resolve(sharedQuizSelection);
           return Promise.resolve(sharedPromptSelection);
         }),
         upsertCoupleData: jest.fn().mockResolvedValue(true),
@@ -70,6 +72,37 @@ describe('CoupleStateService', () => {
       'user-1',
       false,
       'daily_prompt'
+    );
+  });
+
+  it('reads and writes shared Daily Quiz question selections through one service boundary', async () => {
+    const {
+      getSharedDailyQuizQuestionSelection,
+      saveSharedDailyQuizQuestionSelection,
+    } = require('../../services/couple/CoupleStateService');
+    const deps = createDeps({
+      sharedQuizSelection: { value: { questionId: 'q123' } },
+    });
+    const ensureSession = jest.fn().mockResolvedValue({ access_token: 'token' });
+
+    await expect(getSharedDailyQuizQuestionSelection('2026-04-20', {
+      ensureSession,
+      dependencies: deps,
+    })).resolves.toEqual({ value: { questionId: 'q123' } });
+
+    await expect(saveSharedDailyQuizQuestionSelection('2026-04-20', 'q124', 'user-1', {
+      ensureSession,
+      dependencies: deps,
+    })).resolves.toBe(true);
+
+    expect(deps.storageRouter.getCoupleData).toHaveBeenCalledWith('couple-1', 'daily_quiz_2026-04-20');
+    expect(deps.storageRouter.upsertCoupleData).toHaveBeenCalledWith(
+      'couple-1',
+      'daily_quiz_2026-04-20',
+      { questionId: 'q124', dateKey: '2026-04-20' },
+      'user-1',
+      false,
+      'daily_quiz'
     );
   });
 

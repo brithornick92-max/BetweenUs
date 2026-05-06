@@ -43,6 +43,10 @@ import { SPACING } from '../utils/theme';
 import { getMyDisplayName, getPartnerDisplayName } from '../utils/profileNames';
 import { storage } from '../utils/storage';
 import {
+  getSharedDailyQuizQuestionSelection,
+  saveSharedDailyQuizQuestionSelection,
+} from '../services/couple/CoupleStateService';
+import {
   getDailyContentDateKey,
   getMsUntilNextDailyContentRollover,
 } from '../utils/dailyContentDate';
@@ -150,7 +154,7 @@ function useDailyQuizDateKey() {
   return dateKey;
 }
 
-function useDailyQuizQuestion(todayKey, quizCacheKeys) {
+function useDailyQuizQuestion(todayKey, quizCacheKeys, { coupleId = null, userId = null } = {}) {
   const deterministicQuestion = useMemo(() => getDailyQuestion(todayKey), [todayKey]);
   const [questionId, setQuestionId] = useState(() => deterministicQuestion.id);
 
@@ -161,6 +165,31 @@ function useDailyQuizQuestion(todayKey, quizCacheKeys) {
 
     const resolveQuestionForDay = async () => {
       try {
+        if (coupleId) {
+          const sharedSelection = await getSharedDailyQuizQuestionSelection(todayKey, {
+            fallbackCoupleId: coupleId,
+          });
+
+          if (!active) return;
+
+          const sharedQuestion = getQuizQuestionById(sharedSelection?.value?.questionId);
+          const nextQuestion = sharedQuestion || deterministicQuestion;
+
+          setQuestionId(nextQuestion.id);
+
+          await Promise.all([
+            storage.set(quizCacheKeys.date, todayKey),
+            storage.set(quizCacheKeys.question, nextQuestion.id),
+            !sharedQuestion && userId
+              ? saveSharedDailyQuizQuestionSelection(todayKey, nextQuestion.id, userId, {
+                fallbackCoupleId: coupleId,
+              }).catch(() => false)
+              : Promise.resolve(false),
+          ]);
+
+          return;
+        }
+
         const [cachedDateKey, cachedQuestionId] = await Promise.all([
           storage.get(quizCacheKeys.date, null),
           storage.get(quizCacheKeys.question, null),
@@ -191,7 +220,7 @@ function useDailyQuizQuestion(todayKey, quizCacheKeys) {
     return () => {
       active = false;
     };
-  }, [deterministicQuestion, quizCacheKeys, todayKey]);
+  }, [coupleId, deterministicQuestion, quizCacheKeys, todayKey, userId]);
 
   return useMemo(
     () => getQuizQuestionById(questionId) || deterministicQuestion,
@@ -229,7 +258,9 @@ export default function CouplesQuizScreen({ navigation }) {
   const quizCacheKeys = useMemo(() => getQuizCacheKeys(quizCacheScope), [quizCacheScope]);
 
   const todayKey = useDailyQuizDateKey();
-  const question = useDailyQuizQuestion(todayKey, quizCacheKeys);
+  const coupleId = state?.coupleId || userProfile?.coupleId || null;
+  const userId = user?.uid || user?.id || state?.userId || null;
+  const question = useDailyQuizQuestion(todayKey, quizCacheKeys, { coupleId, userId });
   const quizPromptId = useMemo(() => getQuizPromptId(question.id), [question.id]);
   const questionText = substitutePartnerName(question.text, partnerName);
   const accentColor = t.primary;

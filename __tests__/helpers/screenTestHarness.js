@@ -8,6 +8,8 @@ const mockSavePromptAnswer = jest.fn();
 const mockGetPromptAnswers = jest.fn();
 const mockGetSharedPromptAnswers = jest.fn();
 const mockDeletePromptAnswer = jest.fn();
+const mockGetSharedDailyQuizQuestionSelection = jest.fn();
+const mockSaveSharedDailyQuizQuestionSelection = jest.fn();
 const mockNeedsReconnect = jest.fn(() => false);
 const mockStorageGet = jest.fn();
 const mockStorageSet = jest.fn();
@@ -18,6 +20,7 @@ const mockEntitlements = {
   isPremiumEffective: true,
   showPaywall: mockShowPaywall,
 };
+let mockAppContextState = { userId: 'user-1' };
 
 function mockCreateHostComponent(name) {
   const Component = (props) => React.createElement(name, props, props.children);
@@ -178,7 +181,7 @@ jest.mock('../../context/AuthContext', () => ({
 
 jest.mock('../../context/AppContext', () => ({
   useAppContext: () => ({
-    state: { userId: 'user-1' },
+    state: mockAppContextState,
   }),
 }));
 
@@ -195,6 +198,15 @@ jest.mock('../../services/localfirst', () => ({
     deleteJournalEntry: jest.fn(),
   },
 }));
+
+jest.mock('../../services/couple/CoupleStateService', () => {
+  const actual = jest.requireActual('../../services/couple/CoupleStateService');
+  return {
+    ...actual,
+    getSharedDailyQuizQuestionSelection: (...args) => mockGetSharedDailyQuizQuestionSelection(...args),
+    saveSharedDailyQuizQuestionSelection: (...args) => mockSaveSharedDailyQuizQuestionSelection(...args),
+  };
+});
 
 jest.mock('../../utils/featureFlags', () => ({
   PremiumFeature: {
@@ -264,6 +276,7 @@ function findTouchablesByText(root, textValue) {
 function resetScreenHarnessMocks() {
   jest.clearAllMocks();
   mockEntitlements.isPremiumEffective = true;
+  mockAppContextState = { userId: 'user-1' };
   mockUpdateJournalEntry.mockResolvedValue(undefined);
   mockSaveJournalEntry.mockResolvedValue(undefined);
   mockGetJournalEntries.mockResolvedValue([]);
@@ -271,6 +284,8 @@ function resetScreenHarnessMocks() {
   mockGetPromptAnswers.mockResolvedValue([]);
   mockGetSharedPromptAnswers.mockResolvedValue([]);
   mockDeletePromptAnswer.mockResolvedValue(undefined);
+  mockGetSharedDailyQuizQuestionSelection.mockResolvedValue(null);
+  mockSaveSharedDailyQuizQuestionSelection.mockResolvedValue(true);
   mockNeedsReconnect.mockReturnValue(false);
   mockStorageGet.mockResolvedValue(true);
   mockStorageSet.mockResolvedValue(undefined);
@@ -279,6 +294,10 @@ function resetScreenHarnessMocks() {
 
 function setEntitlementsMock(overrides = {}) {
   Object.assign(mockEntitlements, overrides);
+}
+
+function setAppContextMock(state = {}) {
+  mockAppContextState = { userId: 'user-1', ...state };
 }
 
 module.exports = {
@@ -297,11 +316,14 @@ module.exports = {
   mockGetPromptAnswers,
   mockGetSharedPromptAnswers,
   mockDeletePromptAnswer,
+  mockGetSharedDailyQuizQuestionSelection,
+  mockSaveSharedDailyQuizQuestionSelection,
   mockNeedsReconnect,
   mockStorageGet,
   mockStorageSet,
   mockStorageRemove,
   mockAlert,
   mockShowPaywall,
+  setAppContextMock,
   setEntitlementsMock,
 };

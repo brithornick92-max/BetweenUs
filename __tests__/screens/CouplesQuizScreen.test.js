@@ -7,6 +7,7 @@ const {
   findTouchablesByText,
   resetScreenHarnessMocks,
   mockDeletePromptAnswer,
+  mockGetSharedDailyQuizQuestionSelection,
   mockGetPromptAnswers,
   mockGetSharedPromptAnswers,
   mockAlert,
@@ -14,6 +15,7 @@ const {
   mockSavePromptAnswer,
   mockStorageRemove,
   mockStorageSet,
+  setAppContextMock,
 } = require('../helpers/screenTestHarness');
 
 const CouplesQuizModule = require('../../screens/CouplesQuizScreen');
@@ -132,6 +134,37 @@ describe('CouplesQuizScreen', () => {
 
     const renderedText = getRenderedText(tree.root);
     expect(renderedText).toContain(cachedQuestion.text.replace(/\{partner\}/g, 'your partner'));
+  });
+
+  it('uses the shared Daily Quiz question before linked local cache', async () => {
+    const navigation = createNavigation();
+    const todayKey = getDailyContentDateKey();
+    const questions = require('../../content/quizQuestions.json').questions;
+    const deterministicQuestion = getDailyQuestion(todayKey);
+    const sharedQuestion = questions.find((question) => question.id !== deterministicQuestion.id);
+    const scopedKeys = getQuizCacheKeys('user-1:couple-1');
+
+    setAppContextMock({ userId: 'user-1', coupleId: 'couple-1' });
+    mockGetSharedDailyQuizQuestionSelection.mockResolvedValue({
+      value: { questionId: sharedQuestion.id },
+    });
+    mockStorageGet.mockImplementation((key, fallback = null) => {
+      if (key === scopedKeys.date) return Promise.resolve(todayKey);
+      if (key === scopedKeys.question) return Promise.resolve(deterministicQuestion.id);
+      return Promise.resolve(fallback);
+    });
+
+    tree = await renderScreen(CouplesQuizScreen, { navigation });
+    await flushEffects();
+    await flushEffects();
+
+    const renderedText = getRenderedText(tree.root);
+    expect(renderedText).toContain(sharedQuestion.text.replace(/\{partner\}/g, 'your partner'));
+    expect(mockGetSharedDailyQuizQuestionSelection).toHaveBeenCalledWith(
+      todayKey,
+      expect.objectContaining({ fallbackCoupleId: 'couple-1' })
+    );
+    expect(mockStorageSet).toHaveBeenCalledWith(scopedKeys.question, sharedQuestion.id);
   });
 
   it('ignores legacy unscoped local answers from another signed-in account', async () => {

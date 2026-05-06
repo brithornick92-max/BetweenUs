@@ -45,7 +45,7 @@ import {
   shouldShowAnniversaryPopup,
 } from '../services/AnniversaryMomentService';
 import { getMyDisplayName, getPartnerDisplayName } from '../utils/profileNames';
-import { FALLBACK_PROMPT, getPromptById } from '../utils/contentLoader';
+import { FALLBACK_PROMPT, getPromptById, isTodayBetweenUsPrompt } from '../utils/contentLoader';
 import {
   canShowPartnerPromptQuote,
   chooseDailyPartnerPromptQuote,
@@ -615,7 +615,8 @@ export default function HomeScreen({ navigation }) {
 
   const handleInlineSave = useCallback(async () => {
     const finalText = inlineText.trim();
-    if (!finalText || !prompt?.id || !user?.uid || savingInlineRef.current) return;
+    const activeUserId = user?.uid || user?.id;
+    if (!finalText || !prompt?.id || !activeUserId || savingInlineRef.current) return;
 
     savingInlineRef.current = true;
     setIsSavingInline(true);
@@ -624,20 +625,24 @@ export default function HomeScreen({ navigation }) {
       const usageUserId = resolvePromptUsageUserId(user, userProfile);
 
       if (!isPremium && !myAnswer) {
+        const isDailyBetweenUsPrompt = isTodayBetweenUsPrompt(prompt);
         const profile = await PreferenceEngine.getContentProfile(userProfile || {});
-        const weeklyEligiblePrompts = loadAllBundledPrompts().filter((item) =>
-          PreferenceEngine.getPromptVisibilityState(item, profile).visible
-        );
-        const isWeeklyPrompt = await isItemInStableFreeWeeklyDeck(prompt.id, weeklyEligiblePrompts, {
-          contentType: CONTENT_TYPES.PROMPTS,
-          user,
-          userProfile,
-          userSettings: profile || userProfile || {},
-        });
 
-        if (!isWeeklyPrompt) {
-          showPaywall?.(PremiumFeature.UNLIMITED_PROMPTS);
-          return;
+        if (!isDailyBetweenUsPrompt) {
+          const weeklyEligiblePrompts = loadAllBundledPrompts().filter((item) =>
+            PreferenceEngine.getPromptVisibilityState(item, profile).visible
+          );
+          const isWeeklyPrompt = await isItemInStableFreeWeeklyDeck(prompt.id, weeklyEligiblePrompts, {
+            contentType: CONTENT_TYPES.PROMPTS,
+            user,
+            userProfile,
+            userSettings: profile || userProfile || {},
+          });
+
+          if (!isWeeklyPrompt) {
+            showPaywall?.(PremiumFeature.UNLIMITED_PROMPTS);
+            return;
+          }
         }
 
         const accessCheck = await canSaveFreePromptAnswer({
@@ -654,6 +659,9 @@ export default function HomeScreen({ navigation }) {
         }
       }
 
+      let nextPartnerAnswer = partnerAnswer;
+      let nextRevealed = false;
+
       try {
         await DataLayer.savePromptAnswer({
           promptId: prompt.id,
@@ -661,6 +669,10 @@ export default function HomeScreen({ navigation }) {
           heatLevel: prompt.heat || 1,
           dateKey: todayKey,
         });
+
+        const refreshedRow = await DataLayer.getPromptAnswerForToday(prompt.id, todayKey);
+        nextPartnerAnswer = refreshedRow?.partnerAnswer || '';
+        nextRevealed = !!(refreshedRow?.isRevealed || refreshedRow?.is_revealed);
       } catch (dataLayerError) {
         if (__DEV__) console.warn('[Home] DataLayer prompt save failed:', dataLayerError?.message);
       }
@@ -668,7 +680,7 @@ export default function HomeScreen({ navigation }) {
       await promptStorage.setAnswer(todayKey, prompt.id, {
         answer: finalText,
         timestamp: Date.now(),
-        isRevealed: false,
+        isRevealed: nextRevealed,
       });
 
       if (!isPremium && !myAnswer) {
@@ -691,7 +703,8 @@ export default function HomeScreen({ navigation }) {
 
       notification(NotificationFeedbackType.Success);
       setMyAnswer(finalText);
-      setIsRevealed(false);
+      setPartnerAnswer(nextPartnerAnswer);
+      setIsRevealed(nextRevealed);
       setInlineText('');
 
       if (!isPremium) {
@@ -735,6 +748,7 @@ export default function HomeScreen({ navigation }) {
     userProfile,
     isPremium,
     myAnswer,
+    partnerAnswer,
     showPaywall,
     loadUsageStatus,
     todayKey,
@@ -1183,7 +1197,6 @@ export default function HomeScreen({ navigation }) {
 
 const systemFont = Platform.select({ ios: 'System', android: 'Roboto' });
 const DARK_TODAY_BETWEEN_US_CARD = '#131016';
-const QUICK_ACTION_CARD_BLACK = '#050505';
 
 const createStyles = (t, isDark) => StyleSheet.create({
   root: { flex: 1 },
@@ -1432,7 +1445,7 @@ const createStyles = (t, isDark) => StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1,
     borderColor: isDark ? 'rgba(255,255,255,0.12)' : t.border,
-    backgroundColor: isDark ? QUICK_ACTION_CARD_BLACK : t.surface,
+    backgroundColor: isDark ? DARK_TODAY_BETWEEN_US_CARD : t.surface,
     gap: 8,
     ...Platform.select({
       ios: {

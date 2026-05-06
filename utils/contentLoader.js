@@ -283,6 +283,18 @@ export function getTodayBetweenUsPromptById(id) {
   return match ? normalizePrompt(match, { dailyOnly: true, sourceLibrary: 'today-between-us' }) : null;
 }
 
+export function isTodayBetweenUsPrompt(promptOrId) {
+  const prompt = promptOrId && typeof promptOrId === 'object' ? promptOrId : null;
+  const id = prompt ? prompt.id : promptOrId;
+
+  if (prompt?.sourceLibrary === 'today-between-us' || prompt?.dailyOnly === true) {
+    return true;
+  }
+
+  if (!id) return false;
+  return !!getTodayBetweenUsPromptById(String(id));
+}
+
 export function getPromptById(id) {
   const items = eligibleCatalog(safeArray(promptsData?.items));
   const match = items.find((prompt) => prompt && prompt.id === id);

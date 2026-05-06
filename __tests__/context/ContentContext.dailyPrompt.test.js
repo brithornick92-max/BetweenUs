@@ -187,6 +187,12 @@ describe('ContentContext daily prompt stability', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     capturedContext = null;
+    const coupleStateService = require('../../services/couple/CoupleStateService');
+    const contentCoupleService = require('../../services/content/ContentCoupleService');
+
+    coupleStateService.getActiveCoupleId.mockResolvedValue(null);
+    contentCoupleService.getSharedDailyPromptSelection.mockResolvedValue(null);
+    contentCoupleService.saveSharedDailyPromptSelection.mockResolvedValue(true);
     mockCurrentProfile = {
       heatLevelPreference: 5,
       maxHeat: 5,
@@ -281,5 +287,55 @@ describe('ContentContext daily prompt stability', () => {
     expect(mockStorageSet).not.toHaveBeenCalled();
 
     remountedTree.unmount();
+  });
+
+  it('uses the shared couple prompt before a stale linked local cache', async () => {
+    const coupleStateService = require('../../services/couple/CoupleStateService');
+    const contentCoupleService = require('../../services/content/ContentCoupleService');
+
+    coupleStateService.getActiveCoupleId.mockResolvedValue('couple-1');
+    contentCoupleService.getSharedDailyPromptSelection.mockResolvedValue({
+      value: { promptId: 'allowed' },
+    });
+    mockStorageGet.mockImplementation(async (key) => {
+      if (key === DAILY_PROMPT_CACHE_KEY) {
+        return {
+          dateKey: TODAY_KEY,
+          scope: 'couple:couple-1',
+          promptId: 'blocked',
+        };
+      }
+      if (key === 'contentDeckRestores') {
+        return {
+          prompts: [],
+          dates: [],
+          positions: [],
+        };
+      }
+      return null;
+    });
+
+    const tree = await mountProvider();
+
+    let prompt;
+    await renderer.act(async () => {
+      prompt = await capturedContext.loadTodayPrompt();
+    });
+
+    expect(prompt.id).toBe('allowed');
+    expect(contentCoupleService.getSharedDailyPromptSelection).toHaveBeenCalledWith(
+      TODAY_KEY,
+      expect.objectContaining({ fallbackCoupleId: 'couple-1' })
+    );
+    expect(mockStorageSet).toHaveBeenCalledWith(
+      DAILY_PROMPT_CACHE_KEY,
+      {
+        dateKey: TODAY_KEY,
+        scope: 'couple:couple-1',
+        promptId: 'allowed',
+      }
+    );
+
+    tree.unmount();
   });
 });

@@ -228,20 +228,6 @@ export const ContentProvider = ({ children }) => {
       }
 
       const cachedPromptSelection = await storage.get(DAILY_PROMPT_CACHE_KEY, null);
-      if (
-        cachedPromptSelection?.dateKey === today
-        && cachedPromptSelection?.scope === scope
-        && cachedPromptSelection?.promptId
-      ) {
-        const cachedPrompt = getPromptById(cachedPromptSelection.promptId);
-        if (cachedPrompt?.text) {
-          const personalizedCachedPrompt = await personalizePrompt({ ...cachedPrompt, dateKey: today });
-          const resolvedCachedPrompt = { ...personalizedCachedPrompt, _dailyPromptScope: scope };
-          setTodayPrompt(resolvedCachedPrompt);
-          PromptAllocator.setDailyPromptId(cachedPrompt.id);
-          return resolvedCachedPrompt;
-        }
-      }
 
       if (coupleId) {
         const sharedPromptSelection = await getSharedDailyPromptSelection(today, {
@@ -263,6 +249,21 @@ export const ContentProvider = ({ children }) => {
             PromptAllocator.setDailyPromptId(sharedPrompt.id);
             return resolvedSharedPrompt;
           }
+        }
+      }
+
+      if (
+        cachedPromptSelection?.dateKey === today
+        && cachedPromptSelection?.scope === scope
+        && cachedPromptSelection?.promptId
+      ) {
+        const cachedPrompt = getPromptById(cachedPromptSelection.promptId);
+        if (cachedPrompt?.text) {
+          const personalizedCachedPrompt = await personalizePrompt({ ...cachedPrompt, dateKey: today });
+          const resolvedCachedPrompt = { ...personalizedCachedPrompt, _dailyPromptScope: scope };
+          setTodayPrompt(resolvedCachedPrompt);
+          PromptAllocator.setDailyPromptId(cachedPrompt.id);
+          return resolvedCachedPrompt;
         }
       }
 
