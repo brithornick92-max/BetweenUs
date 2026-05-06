@@ -20,7 +20,7 @@ const {
 
 const CouplesQuizModule = require('../../screens/CouplesQuizScreen');
 const CouplesQuizScreen = CouplesQuizModule.default;
-const { getDailyQuestion, getQuizCacheKeys } = CouplesQuizModule;
+const { getDailyQuestion, getQuizAnswerCacheKey, getQuizCacheKeys } = CouplesQuizModule;
 const { getDailyContentDateKey } = require('../../utils/dailyContentDate');
 const { Text } = require('react-native');
 
@@ -45,6 +45,7 @@ describe('CouplesQuizScreen', () => {
 
   beforeEach(() => {
     resetScreenHarnessMocks();
+    mockStorageGet.mockImplementation((_key, fallback = null) => Promise.resolve(fallback));
   });
 
   afterEach(() => {
@@ -75,10 +76,17 @@ describe('CouplesQuizScreen', () => {
       heatLevel: 1,
     }));
 
+    const todayKey = getDailyContentDateKey();
     const scopedKeys = getQuizCacheKeys('user-1:solo');
+    const answerKey = getQuizAnswerCacheKey('user-1:solo', todayKey, getDailyQuestion(todayKey).id);
+
     expect(mockStorageSet).toHaveBeenCalledWith(
-      scopedKeys.answer,
+      answerKey,
       'They would choose coffee and a walk.'
+    );
+    expect(mockStorageSet).not.toHaveBeenCalledWith(
+      scopedKeys.answer,
+      expect.any(String)
     );
     expect(mockStorageSet).not.toHaveBeenCalledWith(
       '@betweenus:cache:quizMyAnswer',
@@ -217,6 +225,28 @@ describe('CouplesQuizScreen', () => {
 
     const navigation = createNavigation();
     tree = await renderScreen(CouplesQuizScreen, { navigation });
+    await flushEffects();
+
+    const input = tree.root.findByType(TextInput);
+    expect(input.props.value).toBe('');
+    expect(findTouchablesByText(tree.root, 'Lock In My Answer')[0]).toBeTruthy();
+  });
+
+  it("does not reuse yesterday's unqualified local answer for today's quiz", async () => {
+    const todayKey = getDailyContentDateKey();
+    const todayQuestion = getDailyQuestion(todayKey);
+    const scopedKeys = getQuizCacheKeys('user-1:solo');
+
+    mockStorageGet.mockImplementation((key, fallback = null) => {
+      if (key === scopedKeys.date) return Promise.resolve(todayKey);
+      if (key === scopedKeys.question) return Promise.resolve(todayQuestion.id);
+      if (key === scopedKeys.answer) return Promise.resolve("Yesterday's answer");
+      return Promise.resolve(fallback);
+    });
+
+    const navigation = createNavigation();
+    tree = await renderScreen(CouplesQuizScreen, { navigation });
+    await flushEffects();
     await flushEffects();
 
     const input = tree.root.findByType(TextInput);

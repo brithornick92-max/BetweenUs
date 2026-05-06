@@ -90,10 +90,19 @@ export function getQuizCacheKeys(scopeKey = 'anonymous:solo') {
   const normalizedScope = String(scopeKey || 'anonymous:solo').replace(/[^a-zA-Z0-9_.:-]/g, '_');
 
   return {
+    scope: normalizedScope,
     date: `@betweenus:cache:quiz:${normalizedScope}:dateKey`,
     question: `@betweenus:cache:quiz:${normalizedScope}:questionId`,
     answer: `@betweenus:cache:quiz:${normalizedScope}:myAnswer`,
   };
+}
+
+export function getQuizAnswerCacheKey(scopeKey = 'anonymous:solo', dateKey, questionId) {
+  const normalizedScope = String(scopeKey || 'anonymous:solo').replace(/[^a-zA-Z0-9_.:-]/g, '_');
+  const normalizedDate = String(dateKey || 'unknown').replace(/[^a-zA-Z0-9_.:-]/g, '_');
+  const normalizedQuestion = String(questionId || 'unknown').replace(/[^a-zA-Z0-9_.:-]/g, '_');
+
+  return `@betweenus:cache:quiz:${normalizedScope}:answer:${normalizedDate}:${normalizedQuestion}`;
 }
 
 function isMatchingPromptAnswer(row, promptId, dk) {
@@ -285,6 +294,10 @@ export default function CouplesQuizScreen({ navigation }) {
   const userId = user?.uid || user?.id || state?.userId || null;
   const question = useDailyQuizQuestion(todayKey, quizCacheKeys, { coupleId, userId });
   const quizPromptId = useMemo(() => getQuizPromptId(question.id), [question.id]);
+  const quizAnswerCacheKey = useMemo(
+    () => getQuizAnswerCacheKey(quizCacheScope, todayKey, question.id),
+    [quizCacheScope, question.id, todayKey]
+  );
   const questionText = substitutePartnerName(question.text, partnerName);
   const accentColor = t.primary;
 
@@ -363,13 +376,11 @@ export default function CouplesQuizScreen({ navigation }) {
         }
 
         if (!hasSyncedAnswer) {
-          const savedKey = await storage.get(quizCacheKeys.date);
-          const savedAnswer = await storage.get(quizCacheKeys.answer);
-          const savedQId = await storage.get(quizCacheKeys.question);
+          const savedAnswer = await storage.get(quizAnswerCacheKey);
 
           if (!active) return;
 
-          if (savedKey === todayKey && savedQId === question.id && savedAnswer) {
+          if (savedAnswer) {
             setMyAnswer(savedAnswer);
             setHasSubmitted(true);
           }
@@ -385,7 +396,7 @@ export default function CouplesQuizScreen({ navigation }) {
     return () => {
       active = false;
     };
-  }, [todayKey, question.id, quizPromptId, quizCacheKeys]);
+  }, [todayKey, question.id, quizPromptId, quizCacheKeys, quizAnswerCacheKey]);
 
   const refreshPartnerGuess = useCallback(async () => {
     if (!hasSubmitted) return;
@@ -484,7 +495,7 @@ export default function CouplesQuizScreen({ navigation }) {
       // Persist locally
       await storage.set(quizCacheKeys.date, todayKey);
       await storage.set(quizCacheKeys.question, question.id);
-      await storage.set(quizCacheKeys.answer, trimmed);
+      await storage.set(quizAnswerCacheKey, trimmed);
 
       // Sync using the same bilateral prompt-answer path as today's prompt.
       try {
@@ -521,16 +532,17 @@ export default function CouplesQuizScreen({ navigation }) {
     } finally {
       setIsSaving(false);
     }
-  }, [myAnswer, todayKey, question.id, quizPromptId, quizCacheKeys]);
+  }, [myAnswer, todayKey, question.id, quizPromptId, quizCacheKeys, quizAnswerCacheKey]);
 
   const clearLocalQuizAnswer = useCallback(async () => {
     await Promise.all([
+      storage.remove(quizAnswerCacheKey),
       storage.remove(quizCacheKeys.answer),
       storage.remove(TODAY_QUIZ_KEY),
       storage.remove(TODAY_QUIZ_QUESTION_KEY),
       storage.remove(MY_QUIZ_ANSWER_KEY),
     ]);
-  }, [quizCacheKeys]);
+  }, [quizAnswerCacheKey, quizCacheKeys]);
 
   const resetSubmittedAnswerState = useCallback(() => {
     setMyAnswer('');
