@@ -38,19 +38,29 @@ const FONTS = {
   }),
 };
 
-export default function EnergyMatcher({ onSelect, compact = false }) {
+export default function EnergyMatcher({
+  onSelect,
+  compact = false,
+  defaultLevel = 'open',
+  preferStored = true,
+}) {
   const { colors } = useTheme();
   const { loadContentProfile, loadTodayPrompt } = useContent() || {};
-  const [selected, setSelected] = useState('open');
+  const [selected, setSelected] = useState(defaultLevel);
   const hasInteracted = useRef(false);
 
   useEffect(() => {
+    if (!preferStored) {
+      setSelected(defaultLevel);
+      return;
+    }
+
     ContentIntensityMatcher.getEnergyLevel().then((level) => {
       if (!hasInteracted.current) {
         setSelected(level);
       }
     });
-  }, []);
+  }, [defaultLevel, preferStored]);
 
   const handleSelect = useCallback(async (level) => {
     hasInteracted.current = true;

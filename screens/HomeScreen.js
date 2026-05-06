@@ -1074,6 +1074,8 @@ export default function HomeScreen({ navigation }) {
               }).map((action) => {
                 const locked = action.premium && !isPremium;
                 const badge = 0;
+                const actionColor = isDark ? '#FFFFFF' : action.color;
+                const badgeColor = action.color;
 
                 return (
                   <TouchableOpacity
@@ -1086,17 +1088,17 @@ export default function HomeScreen({ navigation }) {
                   >
                     {locked && (
                       <View style={styles.lockBadge}>
-                        <Icon name="lock-closed-outline" size={12} color={action.color} />
+                        <Icon name="lock-closed-outline" size={12} color={actionColor} />
                       </View>
                     )}
 
                     {badge > 0 && (
-                      <View style={[styles.noteBadge, { backgroundColor: action.color }]}>
+                      <View style={[styles.noteBadge, { backgroundColor: badgeColor }]}>
                         <Text style={styles.noteBadgeText}>{badge > 9 ? '9+' : badge}</Text>
                       </View>
                     )}
 
-                    <Icon name={action.icon} size={28} color={action.color} />
+                    <Icon name={action.icon} size={28} color={actionColor} />
                     <Text style={styles.actionLabel}>{action.label}</Text>
                   </TouchableOpacity>
                 );
@@ -1181,6 +1183,7 @@ export default function HomeScreen({ navigation }) {
 
 const systemFont = Platform.select({ ios: 'System', android: 'Roboto' });
 const DARK_TODAY_BETWEEN_US_CARD = '#131016';
+const QUICK_ACTION_CARD_BLACK = '#050505';
 
 const createStyles = (t, isDark) => StyleSheet.create({
   root: { flex: 1 },
@@ -1428,8 +1431,8 @@ const createStyles = (t, isDark) => StyleSheet.create({
     paddingHorizontal: SPACING.sm,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: t.border,
-    backgroundColor: t.surface,
+    borderColor: isDark ? 'rgba(255,255,255,0.12)' : t.border,
+    backgroundColor: isDark ? QUICK_ACTION_CARD_BLACK : t.surface,
     gap: 8,
     ...Platform.select({
       ios: {
@@ -1446,7 +1449,7 @@ const createStyles = (t, isDark) => StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     letterSpacing: -0.2,
-    color: t.text,
+    color: isDark ? '#FFFFFF' : t.text,
   },
   lockBadge: {
     position: 'absolute',

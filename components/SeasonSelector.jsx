@@ -102,9 +102,14 @@ const SeasonOption = ({ season, isSelected, isLast, onPress, t }) => {
 // ------------------------------------------------------------------
 // MAIN COMPONENT
 // ------------------------------------------------------------------
-export default function SeasonSelector({ compact = false, onSeasonChange }) {
+export default function SeasonSelector({
+  compact = false,
+  onSeasonChange,
+  defaultSeasonId = null,
+  preferStored = true,
+}) {
   const { colors, isDark } = useTheme();
-  const [currentSeason, setCurrentSeason] = useState(null);
+  const [currentSeason, setCurrentSeason] = useState(defaultSeasonId);
 
   // STRICT Midnight Intimacy x Apple Editorial Theme Map
   const t = useMemo(() => ({
@@ -117,11 +122,16 @@ export default function SeasonSelector({ compact = false, onSeasonChange }) {
   }), [colors, isDark]);
 
   useEffect(() => {
+    if (!preferStored) {
+      setCurrentSeason(defaultSeasonId);
+      return;
+    }
+
     (async () => {
       const s = await RelationshipSeasons.get();
       if (s) setCurrentSeason(s.id);
     })();
-  }, []);
+  }, [defaultSeasonId, preferStored]);
 
   const handleSelect = useCallback(async (seasonId) => {
     selection();

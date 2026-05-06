@@ -34,7 +34,8 @@ import EnergyMatcher from "../components/EnergyMatcher";
 import CrashReporting from "../services/CrashReporting";
 import { useAuth } from "../context/AuthContext";
 import SeasonSelector from "../components/SeasonSelector";
-import { NicknameEngine } from "../services/PolishEngine";
+import { NicknameEngine, RelationshipSeasons } from "../services/PolishEngine";
+import { ContentIntensityMatcher } from "../services/ConnectionEngine";
 import CloudEngine from "../services/storage/CloudEngine";
 import CoupleService from "../services/supabase/CoupleService";
 import StorageRouter from "../services/storage/StorageRouter";
@@ -84,9 +85,10 @@ export default function OnboardingScreen({ navigation }) {
   const [idealDateStyle, setIdealDateStyle] = useState(null);
   const [communicationStyle, setCommunicationStyle] = useState(null);
   // Preference state (collected in step 2)
-  const [, setSelectedSeason] = useState(null);
-  const [selectedHeatLevel, setSelectedHeatLevel] = useState(2);
-  const [selectedTone, setSelectedTone] = useState('warm');
+  const [selectedSeason, setSelectedSeason] = useState('adventure');
+  const [selectedHeatLevel, setSelectedHeatLevel] = useState(5);
+  const [selectedTone, setSelectedTone] = useState('intimate');
+  const [selectedEnergyLevel, setSelectedEnergyLevel] = useState('open');
   
   // Invitation state
   const [inviteCode, setInviteCode] = useState(null);
@@ -796,6 +798,57 @@ export default function OnboardingScreen({ navigation }) {
     return map[selectedTone] || map.warm;
   }, [selectedTone, partnerName]);
 
+  const savePersonalizationPreferences = useCallback(async () => {
+    try {
+      await updateProfile?.({
+        heatLevelPreference: selectedHeatLevel,
+        partnerNames: {
+          myName: myName.trim(),
+          partnerName: partnerName.trim(),
+        },
+        display_name: myName.trim(),
+      });
+      await actions.updateProfile({
+        heatLevelPreference: selectedHeatLevel,
+        partnerNames: {
+          myName: myName.trim(),
+          partnerName: partnerName.trim(),
+        },
+      });
+      await NicknameEngine.setConfig({
+        myNickname: myName,
+        partnerNickname: partnerName,
+        tone: selectedTone,
+      });
+      if (selectedSeason) {
+        await RelationshipSeasons.set(selectedSeason);
+      }
+      await ContentIntensityMatcher.setEnergyLevel(selectedEnergyLevel);
+      StorageRouter.updateCloudProfilePreferences({
+        heatLevelPreference: selectedHeatLevel,
+        nicknameConfig: {
+          myNickname: myName,
+          partnerNickname: partnerName,
+          tone: selectedTone,
+        },
+        tone: selectedTone,
+        relationshipSeason: { id: selectedSeason, setAt: Date.now() },
+        energyLevel: selectedEnergyLevel,
+      }).catch(() => {});
+    } catch (e) {
+      if (__DEV__) console.warn('Error saving onboarding preferences:', e);
+    }
+  }, [
+    actions,
+    myName,
+    partnerName,
+    selectedEnergyLevel,
+    selectedHeatLevel,
+    selectedSeason,
+    selectedTone,
+    updateProfile,
+  ]);
+
   const renderPreferences = () => (
     <KeyboardAvoidingView 
       behavior="padding"
@@ -807,11 +860,15 @@ export default function OnboardingScreen({ navigation }) {
         showsVerticalScrollIndicator={false}
       >
         <Text style={styles.title}>Personalize</Text>
-        <Text style={styles.prefSubtitle}>Choose a starting tone. You can change this together anytime in Settings.</Text>
+        <Text style={styles.prefSubtitle}>We start with the most open settings. You can turn anything down anytime in Settings.</Text>
 
         {/* Season Selector */}
         <View style={styles.prefSection}>
-          <SeasonSelector onSeasonChange={(id) => setSelectedSeason(id)} />
+          <SeasonSelector
+            defaultSeasonId={selectedSeason}
+            preferStored={false}
+            onSeasonChange={(id) => setSelectedSeason(id)}
+          />
         </View>
 
         {/* Heat Level */}
@@ -900,7 +957,11 @@ export default function OnboardingScreen({ navigation }) {
           <Text style={styles.groupLabel}>ENERGY</Text>
           <View style={styles.groupCard}>
             <View style={{ paddingHorizontal: 16, paddingVertical: 8 }}>
-              <EnergyMatcher />
+              <EnergyMatcher
+                defaultLevel="open"
+                preferStored={false}
+                onSelect={(level) => setSelectedEnergyLevel(level)}
+              />
             </View>
           </View>
         </View>
@@ -911,46 +972,18 @@ export default function OnboardingScreen({ navigation }) {
             activeOpacity={0.8}
             onPress={async () => {
               Keyboard.dismiss();
-              // Save all preferences
-              try {
-                await updateProfile?.({
-                  heatLevelPreference: selectedHeatLevel,
-                  partnerNames: {
-                    myName: myName.trim(),
-                    partnerName: partnerName.trim(),
-                  },
-                  display_name: myName.trim(),
-                });
-                await actions.updateProfile({
-                  heatLevelPreference: selectedHeatLevel,
-                  partnerNames: {
-                    myName: myName.trim(),
-                    partnerName: partnerName.trim(),
-                  },
-                });
-                await NicknameEngine.setConfig({
-                  myNickname: myName,
-                  partnerNickname: partnerName,
-                  tone: selectedTone,
-                });
-                StorageRouter.updateCloudProfilePreferences({
-                  nicknameConfig: {
-                    myNickname: myName,
-                    partnerNickname: partnerName,
-                    tone: selectedTone,
-                  },
-                  tone: selectedTone,
-                }).catch(() => {});
-              } catch (e) {
-                if (__DEV__) console.warn('Error saving onboarding preferences:', e);
-              }
+              await savePersonalizationPreferences();
               transitionTo(4);
             }}
           >
             <Text style={[styles.primaryButtonText, { color: t.surface }]}>Continue</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            onPress={() => { Keyboard.dismiss(); transitionTo(4); }}
+            onPress={async () => {
+              Keyboard.dismiss();
+              await savePersonalizationPreferences();
+              transitionTo(4);
+            }}
             style={{ marginTop: 16, alignItems: 'center' }}
             activeOpacity={0.6}
             accessibilityRole="button"

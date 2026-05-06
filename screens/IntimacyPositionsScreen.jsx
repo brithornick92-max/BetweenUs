@@ -421,7 +421,7 @@ export default function IntimacyPositionsScreen() {
     <EditorialScreenScaffold
       navigation={navigation}
       headerTitle="Intimacy"
-      headerSubtitle="INTIMACY"
+      headerSubtitle="SEX POSITIONS"
       headerDescription={isPremiumEffective ? "Premium users start with 10 sex positions and add 3 more each week." : "Free users start with 5 sex positions and add 1 more each week."}
       scroll={false}
       onBack={handleBack}
