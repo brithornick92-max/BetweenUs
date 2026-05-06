@@ -69,6 +69,8 @@ const DEFAULT_KEEPSAKE_SETTINGS = {
 const POSITION_ITEMS = Array.isArray(positionsData?.items) ? positionsData.items : [];
 const POSITION_BY_ID = new Map(POSITION_ITEMS.map((position) => [position.id, position]));
 const FREE_KEEPSAKE_ARCHIVE_DAYS = 30;
+const FREE_KEEPSAKE_LOAD_LIMIT = 10000;
+const PREMIUM_KEEPSAKE_LOAD_LIMIT = Infinity;
 
 function normalizeKeepsakeSettings(settings) {
   return {
@@ -1155,6 +1157,15 @@ export function filterKeepsakeEntriesByDateWindow(entries = [], days = FREE_KEEP
   });
 }
 
+export function getKeepsakeEntriesForTier(entries = [], { isPremium = false, referenceDate = new Date() } = {}) {
+  if (isPremium) return entries || [];
+  return filterKeepsakeEntriesByDateWindow(entries, FREE_KEEPSAKE_ARCHIVE_DAYS, referenceDate);
+}
+
+function getKeepsakeLoadLimitForTier(isPremium) {
+  return isPremium ? PREMIUM_KEEPSAKE_LOAD_LIMIT : FREE_KEEPSAKE_LOAD_LIMIT;
+}
+
 export default function OurStoryScreen() {
   const navigation = useNavigation();
   const { colors, isDark } = useTheme();
@@ -1191,6 +1202,7 @@ export default function OurStoryScreen() {
 
   const loadEntries = useCallback(async () => {
     try {
+      const keepsakeLoadLimit = getKeepsakeLoadLimitForTier(isPremium);
       const [
         sharedPrompts,
         personalPrompts,
@@ -1203,10 +1215,10 @@ export default function OurStoryScreen() {
         hiddenKeepsakeIds,
         occurrenceOverrides,
       ] = await Promise.all([
-        safeLoad(() => DataLayer.getSharedPromptAnswers({ limit: 200 })),
-        safeLoad(() => DataLayer.getPromptAnswers({ limit: 200 })),
-        safeLoad(() => DataLayer.getSharedMemories({ limit: 500 })),
-        safeLoad(() => DataLayer.getMemories({ limit: 500 })),
+        safeLoad(() => DataLayer.getSharedPromptAnswers({ limit: keepsakeLoadLimit })),
+        safeLoad(() => DataLayer.getPromptAnswers({ limit: keepsakeLoadLimit })),
+        safeLoad(() => DataLayer.getSharedMemories({ limit: keepsakeLoadLimit })),
+        safeLoad(() => DataLayer.getMemories({ limit: keepsakeLoadLimit })),
         safeLoad(() => settingsStorage.getKeepsakeSettings()),
         NicknameEngine.getMyName('You'),
         NicknameEngine.getPartnerName('Partner'),
@@ -1229,11 +1241,7 @@ export default function OurStoryScreen() {
       const hidden = new Set(Array.isArray(hiddenKeepsakeIds) ? hiddenKeepsakeIds : []);
       const visible = merged.filter((entry) => !hidden.has(entry.id));
       const resolvedEntries = applyOccurrenceOverrides(visible, occurrenceOverrides);
-      setEntries(
-        isPremium
-          ? resolvedEntries
-          : filterKeepsakeEntriesByDateWindow(resolvedEntries)
-      );
+      setEntries(getKeepsakeEntriesForTier(resolvedEntries, { isPremium }));
     } catch (error) {
       if (__DEV__) console.warn('[OurStory] Load failed:', error?.message);
       setEntries([]);
@@ -1964,7 +1972,7 @@ export default function OurStoryScreen() {
       <View style={styles.headerIntroContainer}>
         <Text style={styles.headerIntro}>
           {isPremium
-            ? (entries.length ? `${entries.length} keepsakes, newest first` : 'Newest first')
+            ? (entries.length ? `Lifetime archive • ${entries.length} keepsakes` : 'Lifetime archive')
             : (entries.length
               ? `Free tier • Last 30 days • ${entries.length} keepsakes`
               : 'Free tier • Last 30 days')}
@@ -1985,7 +1993,7 @@ export default function OurStoryScreen() {
 
       <Text style={styles.emptyBody}>
         {isPremium
-          ? 'Prompt, memory, date, and sex position keepsakes will collect here. You can turn off any category you do not want in Settings.'
+          ? 'Prompt, memory, date, and sex position keepsakes will collect here for your lifetime archive. You can turn off any category you do not want in Settings.'
           : 'On the free tier, prompt, memory, date, and sex position keepsakes from the last 30 days will collect here. You can turn off any category you do not want in Settings.'}
       </Text>
     </ReAnimated.View>

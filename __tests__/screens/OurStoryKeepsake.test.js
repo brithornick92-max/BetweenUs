@@ -8,6 +8,7 @@ const {
   buildDateGroupedKeepsakeList,
   buildKeepsakeEntriesFromSources,
   filterKeepsakeEntriesByDateWindow,
+  getKeepsakeEntriesForTier,
 } = require('../../screens/OurStoryScreen');
 const { KEEPSAKE_CATEGORY_COLORS } = require('../../config/constants');
 
@@ -455,5 +456,28 @@ describe('OurStory Keepsake entry building', () => {
     );
 
     expect(filtered.map((entry) => entry.id)).toEqual(['recent-entry']);
+  });
+
+  it('gives free users a 30-day Keepsake window and premium users lifetime Keepsake', () => {
+    const entries = [
+      {
+        id: 'recent-entry',
+        kind: 'memory',
+        sourceId: 'recent-entry',
+        sortAt: '2026-05-04T12:00:00.000Z',
+      },
+      {
+        id: 'old-entry',
+        kind: 'memory',
+        sourceId: 'old-entry',
+        sortAt: '2024-05-04T12:00:00.000Z',
+      },
+    ];
+    const referenceDate = new Date('2026-05-05T12:00:00.000Z');
+
+    expect(getKeepsakeEntriesForTier(entries, { isPremium: false, referenceDate }).map((entry) => entry.id))
+      .toEqual(['recent-entry']);
+    expect(getKeepsakeEntriesForTier(entries, { isPremium: true, referenceDate }).map((entry) => entry.id))
+      .toEqual(['recent-entry', 'old-entry']);
   });
 });

@@ -472,34 +472,60 @@ async function cdQuery(dataType, { limit = 100, offset = 0, filter } = {}) {
   if (!sb) return CACHE_FALLBACK;
   if (!_coupleId) return CACHE_FALLBACK;
 
-  let query = sb
-    .from(TABLES.COUPLE_DATA)
-    .select('*')
-    .eq('couple_id', _coupleId)
-    .eq('data_type', dataType)
-    .or('is_deleted.is.null,is_deleted.eq.false')
-    .order('created_at', { ascending: false })
-    .range(offset, offset + limit - 1);
+  const queryOffset = Math.max(0, Number(offset) || 0);
+  const shouldLoadAll = limit === Infinity;
+  const pageSize = shouldLoadAll ? 1000 : Math.max(0, Number(limit) || 0);
+  if (pageSize <= 0) return [];
 
-  if (filter) {
-    query = filter(query);
-  }
+  const loadPage = async (pageOffset, pageLimit) => {
+    let query = sb
+      .from(TABLES.COUPLE_DATA)
+      .select('*')
+      .eq('couple_id', _coupleId)
+      .eq('data_type', dataType)
+      .or('is_deleted.is.null,is_deleted.eq.false')
+      .order('created_at', { ascending: false })
+      .range(pageOffset, pageOffset + pageLimit - 1);
 
-  const { data, error } = await query;
-
-  if (error) {
-    if (isOfflineCapableError(error)) {
-      if (__DEV__) {
-        console.warn(`[SupabaseDataLayer] cdQuery(${dataType}) using cache fallback:`, error?.message);
-      }
-
-      return CACHE_FALLBACK;
+    if (filter) {
+      query = filter(query);
     }
 
-    throw error;
+    const { data, error } = await query;
+
+    if (error) {
+      if (isOfflineCapableError(error)) {
+        if (__DEV__) {
+          console.warn(`[SupabaseDataLayer] cdQuery(${dataType}) using cache fallback:`, error?.message);
+        }
+
+        return CACHE_FALLBACK;
+      }
+
+      throw error;
+    }
+
+    return data || [];
+  };
+
+  if (!shouldLoadAll) {
+    return loadPage(queryOffset, pageSize);
   }
 
-  return data || [];
+  const rows = [];
+  let pageOffset = queryOffset;
+
+  while (true) {
+    const page = await loadPage(pageOffset, pageSize);
+    if (isCacheFallback(page)) return CACHE_FALLBACK;
+
+    rows.push(...page);
+
+    if (page.length < pageSize) break;
+    pageOffset += pageSize;
+  }
+
+  return rows;
 }
 
 function isCacheFallback(value) {
@@ -1493,9 +1519,10 @@ const SupabaseDataLayer = {
     });
   },
 
-  async getPromptAnswers({ dateKey: dk, promptId, limit = 100 } = {}) {
+  async getPromptAnswers({ dateKey: dk, promptId, limit = 100, offset = 0 } = {}) {
     const rows = await cdQuery('prompt_answer', {
       limit,
+      offset,
       filter: (q) => {
         let query = q.eq('created_by', _userId);
 
@@ -1521,14 +1548,15 @@ const SupabaseDataLayer = {
       .filter((row) => row?.user_id === _userId)
       .filter((row) => !dk || row?.date_key === dk)
       .filter((row) => !promptId || row?.prompt_id === promptId)
-      .slice(0, limit);
+      .slice(offset, offset + limit);
   },
 
-  async getSharedPromptAnswers({ dateKey: dk, promptId, limit = 100 } = {}) {
+  async getSharedPromptAnswers({ dateKey: dk, promptId, limit = 100, offset = 0 } = {}) {
     if (!_coupleId) return [];
 
     const rows = await cdQuery('prompt_answer', {
       limit,
+      offset,
       filter: (q) => {
         let query = q;
 
@@ -1540,10 +1568,12 @@ const SupabaseDataLayer = {
     });
 
     const sourceRows = isCacheFallback(rows) ? await loadCache(CACHE_SCOPES.prompts) : rows;
-    const filteredRows = (sourceRows || [])
+    const matchingRows = (sourceRows || [])
       .filter((row) => !dk || getPromptRowDateKey(row) === dk)
-      .filter((row) => !promptId || getPromptRowId(row) === promptId)
-      .slice(0, limit);
+      .filter((row) => !promptId || getPromptRowId(row) === promptId);
+    const filteredRows = isCacheFallback(rows)
+      ? matchingRows.slice(offset, offset + limit)
+      : matchingRows;
 
     if (!isCacheFallback(rows)) {
       const mapped = await Promise.all(rows.map((r) => mapPromptRow(r)));
