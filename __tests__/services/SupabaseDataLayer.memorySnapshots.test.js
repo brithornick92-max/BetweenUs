@@ -63,6 +63,7 @@ function mockCreateQueryResult(data = []) {
     neq: jest.fn(() => query),
     or: jest.fn(() => query),
     order: jest.fn(() => query),
+    limit: jest.fn(() => query),
     range: jest.fn(() => query),
     maybeSingle: jest.fn(() => Promise.resolve({ data: null, error: null })),
     single: jest.fn(() => Promise.resolve({ data: null, error: null })),
@@ -493,6 +494,83 @@ describe('SupabaseDataLayer memory snapshots', () => {
         prompt_id: 'prompt-1',
         answer: 'Local answer',
         includeInKeepsake: true,
+      }),
+    ]));
+  });
+
+  it('keeps calendar events readable while unpaired', async () => {
+    await SupabaseDataLayer.init({
+      userId: 'user-1',
+      coupleId: null,
+      isPremium: false,
+    });
+
+    const saved = await SupabaseDataLayer.createCalendarEvent({
+      id: 'calendar-local-1',
+      title: 'Dinner downtown',
+      notes: 'Try the new place.',
+      whenTs: Date.parse('2026-05-01T23:00:00.000Z'),
+      eventType: 'dateNight',
+      isDateNight: true,
+      location: 'out',
+    });
+    const rows = await SupabaseDataLayer.getCalendarEvents({ limit: 50 });
+
+    expect(mockInsert).not.toHaveBeenCalled();
+    expect(saved).toEqual(expect.objectContaining({
+      id: 'calendar-local-1',
+      title: 'Dinner downtown',
+      eventType: 'dateNight',
+      isDateNight: true,
+      sync_status: 'pending',
+      remoteSynced: false,
+    }));
+    expect(rows).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'calendar-local-1',
+        title: 'Dinner downtown',
+        sync_status: 'pending',
+      }),
+    ]));
+    expect(JSON.stringify(Array.from(mockStorageState.values()))).toContain('"entity":"calendar"');
+  });
+
+  it('keeps calendar events readable when the cloud insert is blocked', async () => {
+    await SupabaseDataLayer.init({
+      userId: 'user-1',
+      coupleId: 'couple-1',
+      isPremium: false,
+    });
+
+    mockSingle.mockResolvedValueOnce({
+      data: null,
+      error: { code: '42501', message: 'violates row-level security policy' },
+    });
+
+    const saved = await SupabaseDataLayer.createCalendarEvent({
+      id: 'calendar-blocked-1',
+      title: 'Coffee walk',
+      whenTs: Date.parse('2026-05-02T14:00:00.000Z'),
+      eventType: 'general',
+    });
+    const rows = await SupabaseDataLayer.getCalendarEvents({ limit: 50 });
+
+    expect(mockInsert).toHaveBeenCalledWith(expect.objectContaining({
+      id: 'calendar-blocked-1',
+      couple_id: 'couple-1',
+      title: 'Coffee walk',
+    }));
+    expect(saved).toEqual(expect.objectContaining({
+      id: 'calendar-blocked-1',
+      title: 'Coffee walk',
+      sync_status: 'pending',
+      remoteSynced: false,
+    }));
+    expect(rows).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'calendar-blocked-1',
+        title: 'Coffee walk',
+        sync_status: 'pending',
       }),
     ]));
   });

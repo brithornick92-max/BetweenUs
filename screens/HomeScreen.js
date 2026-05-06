@@ -64,6 +64,8 @@ import {
 } from '../utils/freePromptAnswerQuota';
 import { isItemInStableFreeWeeklyDeck } from '../utils/freeWeeklyDeckAccess';
 import { getDailyContentDateKey } from '../utils/dailyContentDate';
+import { resolveVisibleDailyPromptState } from '../utils/dailyPromptState';
+import { getSparkAccessGate, SPARK_ACCESS_GATE_TYPES } from '../utils/sparkAccessGate';
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 const PROMPTED_PARTNER_SHARE_KEY = '@betweenus:cache:promptedPartnerShare';
@@ -136,9 +138,14 @@ export default function HomeScreen({ navigation }) {
 
   const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
 
-  const prompt = useMemo(() => normalizePrompt(todayPrompt), [todayPrompt]);
-  const todayKey = todayPrompt?.dateKey || getDailyContentDateKey();
-  const promptReady = !!todayPrompt?.id && typeof todayPrompt?.text === 'string' && !!todayPrompt.text.trim();
+  const currentDailyKey = getDailyContentDateKey();
+  const dailyPromptState = useMemo(
+    () => resolveVisibleDailyPromptState(todayPrompt, currentDailyKey),
+    [todayPrompt, currentDailyKey]
+  );
+  const prompt = useMemo(() => normalizePrompt(dailyPromptState.prompt), [dailyPromptState.prompt]);
+  const todayKey = dailyPromptState.dateKey;
+  const promptReady = dailyPromptState.promptReady;
 
   const [myAnswer, setMyAnswer] = useState('');
   const [partnerAnswer, setPartnerAnswer] = useState('');
@@ -301,6 +308,12 @@ export default function HomeScreen({ navigation }) {
       loadTodayPrompt(null).catch(() => {});
     }
   }, [user, todayPrompt, loadTodayPrompt]);
+
+  useEffect(() => {
+    if (user && dailyPromptState.isStale && typeof loadTodayPrompt === 'function') {
+      loadTodayPrompt(null).catch(() => {});
+    }
+  }, [user, dailyPromptState.isStale, loadTodayPrompt]);
 
   useFocusEffect(
     useCallback(() => {
@@ -916,6 +929,42 @@ export default function HomeScreen({ navigation }) {
     }
   }, [navigation, prompt, promptReady, ritualState, todayKey]);
 
+  const openSparkSettings = useCallback(() => {
+    navigation.navigate('RelationshipProfile');
+  }, [navigation]);
+
+  const handleSparkAction = useCallback(async () => {
+    try {
+      const profile = await PreferenceEngine.getContentProfile(userProfile || {});
+      const gate = getSparkAccessGate(profile || userProfile || {});
+
+      if (!gate) {
+        navigation.navigate('IntimacyPositions');
+        return;
+      }
+
+      if (gate.type === SPARK_ACCESS_GATE_TYPES.SPICY_HIDDEN) {
+        Alert.alert(gate.title, gate.message, [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Settings', onPress: openSparkSettings },
+          {
+            text: 'Continue',
+            onPress: () => navigation.navigate('IntimacyPositions', { allowHiddenSpicy: true }),
+          },
+        ]);
+        return;
+      }
+
+      Alert.alert(gate.title, gate.message, [
+        { text: 'Not Now', style: 'cancel' },
+        { text: 'Change Settings', onPress: openSparkSettings },
+      ]);
+    } catch (error) {
+      if (__DEV__) console.warn('[Home] Spark gate failed:', error?.message);
+      navigation.navigate('IntimacyPositions');
+    }
+  }, [navigation, openSparkSettings, userProfile]);
+
   const handleAction = useCallback(async (key) => {
     impact(ImpactFeedbackStyle.Light);
 
@@ -926,9 +975,9 @@ export default function HomeScreen({ navigation }) {
     } else if (key === 'memories') {
       navigation.navigate('OurStory');
     } else if (key === 'intimacy') {
-      navigation.navigate('IntimacyPositions');
+      await handleSparkAction();
     }
-  }, [navigation]);
+  }, [handleSparkAction, navigation]);
 
   return (
     <View style={styles.root}>
@@ -1020,11 +1069,11 @@ export default function HomeScreen({ navigation }) {
 
               {!promptReady && <PromptCardSkeleton />}
 
-              {myAnswer ? (
+              {promptReady && myAnswer ? (
                 <View style={styles.answerBubble}>
                   <Text style={styles.answerText}>{myAnswer}</Text>
                 </View>
-              ) : canWritePrompt ? (
+              ) : !promptReady ? null : canWritePrompt ? (
                 <TextInput
                   style={styles.input}
                   placeholderTextColor={t.subtext}

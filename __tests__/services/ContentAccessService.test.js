@@ -286,4 +286,36 @@ describe('ContentAccessService', () => {
     expect(result.access.requiresPremium).toBe(false);
     expect(result.access.isPreviewLimited).toBe(false);
   });
+
+  it('hides all sex positions when spicy content is hidden', async () => {
+    const positions = [1, 2, 3].map((heat) => ({
+      id: `ip${heat}`,
+      heat,
+      releaseWeek: 0,
+    }));
+
+    const result = await contentAccessService.getAccessiblePositions(positions, {
+      isPremium: false,
+      userSettings: {
+        boundaries: { hideSpicy: true },
+        heatLevelRangeId: 'gentle',
+        allowedHeatLevels: [1, 2, 3],
+      },
+    });
+
+    expect(result.positions).toHaveLength(0);
+    expect(result.access.spicyContentHidden).toBe(true);
+    expect(result.access.totalEligible).toBe(0);
+  });
+
+  it('blocks direct sex position access when spicy content is hidden', async () => {
+    const result = await contentAccessService.canAccessPosition('ip1', {
+      isPremium: true,
+      userSettings: { hideSpicy: true },
+      allPositions: [{ id: 'ip1', heat: 1, releaseWeek: 0 }],
+    });
+
+    expect(result.canAccess).toBe(false);
+    expect(result.reason).toBe('hidden_spicy_content');
+  });
 });

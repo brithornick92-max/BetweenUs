@@ -1,10 +1,15 @@
 require('../helpers/screenTestHarness');
 
 jest.mock('@react-native-community/datetimepicker', () => 'DateTimePicker');
+jest.mock('../../context/DataContext', () => ({
+  useData: () => ({ isReady: true }),
+}));
 
 const {
   buildCalendarEventPayload,
   combineCalendarDateTime,
+  getCalendarSaveBlockReason,
+  getCalendarSaveErrorMessage,
 } = require('../../screens/CalendarScreen');
 
 describe('CalendarScreen logic helpers', () => {
@@ -46,5 +51,28 @@ describe('CalendarScreen logic helpers', () => {
       notify: true,
       notificationId: 'notif-1',
     }));
+  });
+
+  it('blocks calendar saves until the data layer is ready', () => {
+    expect(getCalendarSaveBlockReason({
+      title: 'Dinner',
+      dataReady: false,
+    })).toEqual({
+      title: 'Syncing',
+      message: 'Your calendar is still getting ready. Please try again in a moment.',
+    });
+
+    expect(getCalendarSaveBlockReason({
+      title: 'Dinner',
+      dataReady: true,
+    })).toBeNull();
+  });
+
+  it('maps calendar save setup and policy failures to actionable messages', () => {
+    expect(getCalendarSaveErrorMessage(new Error('Not configured for calendar')))
+      .toBe('Your calendar is still connecting. Please try again in a moment.');
+
+    expect(getCalendarSaveErrorMessage({ code: '42501', message: 'violates row-level security policy' }))
+      .toBe("We couldn't sync this calendar event yet. Please try again in a moment.");
   });
 });

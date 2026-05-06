@@ -98,28 +98,28 @@ export default function ThinkingOfYouScreen() {
   }), [colors, isDark]);
 
   const pickFromLibrary = useCallback(async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permission needed', 'Allow photo access in Settings to pick a photo.');
-      return;
-    }
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images', 'videos'],
-      allowsEditing: false,
-      quality: 0.92,
-    });
-    if (!result.canceled && result.assets?.[0]) {
-      impact(ImpactFeedbackStyle.Light);
-      const asset = result.assets[0];
-
-      if (!validatePickedAsset(asset)) return;
-
-      setMedia({
-        uri: asset.uri,
-        type: asset.type || 'image',
-        mimeType: asset.mimeType || (asset.type === 'video' ? 'video/quicktime' : 'image/jpeg'),
-        fileName: asset.fileName || `media_${Date.now()}`,
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images', 'videos'],
+        allowsEditing: false,
+        quality: 0.92,
       });
+      if (!result.canceled && result.assets?.[0]) {
+        impact(ImpactFeedbackStyle.Light);
+        const asset = result.assets[0];
+
+        if (!validatePickedAsset(asset)) return;
+
+        setMedia({
+          uri: asset.uri,
+          type: asset.type || 'image',
+          mimeType: asset.mimeType || (asset.type === 'video' ? 'video/quicktime' : 'image/jpeg'),
+          fileName: asset.fileName || `media_${Date.now()}`,
+        });
+      }
+    } catch (err) {
+      if (__DEV__) console.warn('[ThinkingOfYou] Media pick failed:', err?.message);
+      Alert.alert('Error', "Couldn't open your photo library.");
     }
   }, []);
 

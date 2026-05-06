@@ -172,13 +172,6 @@ export default function JournalEntryScreen({ navigation, route }) {
 
   const handlePickMedia = async () => {
     try {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-      if (status !== "granted") {
-        Alert.alert("Permission needed", "Allow library access to attach a photo or video.");
-        return;
-      }
-
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ['images', 'videos'],
         quality: 0.85,

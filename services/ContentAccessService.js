@@ -236,6 +236,14 @@ class ContentAccessService {
       .filter((level) => level <= userMaxHeat && preferredHeatLevels.includes(level));
   }
 
+  isSpicyContentHidden(userSettings = {}) {
+    return !!(userSettings?.hideSpicy || userSettings?.boundaries?.hideSpicy);
+  }
+
+  isContentTypeHiddenByBoundaries(contentType = null, userSettings = {}) {
+    return contentType === CONTENT_TYPES.POSITIONS && this.isSpicyContentHidden(userSettings);
+  }
+
   getBoundaryState(userSettings = {}, contentType = null) {
     const boundaries = userSettings?.boundaries || {};
     const hiddenCategories = new Set([
@@ -289,6 +297,8 @@ class ContentAccessService {
 
   filterByUserBoundaries(items, userSettings = {}, contentType = null) {
     const normalized = this.normalizeItems(items);
+    if (this.isContentTypeHiddenByBoundaries(contentType, userSettings)) return [];
+
     const boundaryState = this.getBoundaryState(userSettings, contentType);
 
     return normalized.filter((item) => {
@@ -354,6 +364,7 @@ class ContentAccessService {
       userMaxHeat: this.getUserMaxHeatLevel(userSettings),
       effectiveMaxHeat: this.getEffectiveMaxHeatLevel(isPremium, userSettings),
       accessibleHeatLevels: this.getAllowedHeatLevels(isPremium, userSettings),
+      spicyContentHidden: this.isContentTypeHiddenByBoundaries(contentType, userSettings),
       isPreviewLimited,
       weeklyVisibleLimit,
       totalEligible,
@@ -387,6 +398,14 @@ class ContentAccessService {
     const isPremiumUser = this.isPremiumUser(isPremium);
     const itemHeat = this.getItemHeat(item);
     const userMaxHeat = this.getUserMaxHeatLevel(userSettings);
+
+    if (this.isContentTypeHiddenByBoundaries(contentType, userSettings)) {
+      return {
+        canAccess: false,
+        reason: 'hidden_spicy_content',
+        message: 'Sex positions are hidden while Hide Spicy Content is turned on.',
+      };
+    }
 
     if (itemHeat > userMaxHeat) {
       return {
@@ -634,6 +653,7 @@ class ContentAccessService {
           userMaxHeat: this.getUserMaxHeatLevel(userSettings),
           effectiveMaxHeat: this.getEffectiveMaxHeatLevel(isPremium, userSettings),
           accessibleHeatLevels: this.getAllowedHeatLevels(isPremium, userSettings),
+          spicyContentHidden: this.isContentTypeHiddenByBoundaries(CONTENT_TYPES.POSITIONS, userSettings),
           isPreviewLimited,
           weeklyVisibleLimit,
           totalEligible: eligible.length,

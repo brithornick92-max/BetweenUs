@@ -14,7 +14,7 @@ import {
   Animated,
   useWindowDimensions,
 } from 'react-native';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
 
 // Context & Services
 import { useTheme } from '../context/ThemeContext';
@@ -70,8 +70,10 @@ export default function IntimacyPositionsScreen() {
   const { isPremiumEffective, premiumStartedAt, showPaywall } = useEntitlements();
   const { userProfile } = useAuth();
   const navigation = useNavigation();
+  const route = useRoute();
   const { width } = useWindowDimensions();
   const isCompact = width < 390;
+  const allowHiddenSpicy = route?.params?.allowHiddenSpicy === true;
   
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [selectedPositionId, setSelectedPositionId] = useState(lastSelectedPositionId);
@@ -162,9 +164,19 @@ export default function IntimacyPositionsScreen() {
 
   const loadPositionAccess = useCallback(async () => {
     const profile = await PreferenceEngine.getContentProfile(userProfile || {});
+    const userSettings = allowHiddenSpicy
+      ? {
+          ...(profile || userProfile || {}),
+          hideSpicy: false,
+          boundaries: {
+            ...((profile || userProfile || {})?.boundaries || {}),
+            hideSpicy: false,
+          },
+        }
+      : profile || userProfile || {};
     const result = await contentAccessService.getAccessiblePositions(positionCatalog, {
       isPremium: isPremiumEffective,
-      userSettings: profile || userProfile || {},
+      userSettings,
       includeAll: true,
     });
 
@@ -172,13 +184,13 @@ export default function IntimacyPositionsScreen() {
       contentType: CONTENT_TYPES.POSITIONS,
       userId: userProfile?.id || userProfile?.user_id || userProfile?.uid || userProfile?.sub || 'anonymous',
       isPremium: isPremiumEffective,
-      userSettings: profile || userProfile || {},
+      userSettings,
       userCreatedAt: contentAnchorDate,
       date: new Date(),
     });
 
     setWeeklyPositionSet(weeklySet);
-  }, [contentAnchorDate, isPremiumEffective, positionCatalog, userProfile]);
+  }, [allowHiddenSpicy, contentAnchorDate, isPremiumEffective, positionCatalog, userProfile]);
 
   useEffect(() => {
     let active = true;

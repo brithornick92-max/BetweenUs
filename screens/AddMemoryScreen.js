@@ -384,13 +384,6 @@ export default function AddMemoryScreen() {
 
   const handlePickMedia = useCallback(async () => {
     try {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-      if (status !== 'granted') {
-        Alert.alert('Permission needed', 'Allow photo access to add photos or videos to this keepsake.');
-        return;
-      }
-
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ['images', 'videos'],
         quality: 0.88,

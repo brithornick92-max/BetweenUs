@@ -166,6 +166,8 @@ const getUserWeekNumber = (userCreatedAt, currentDate = new Date()) => {
 };
 
 const normalizeUserSettings = (userSettings = {}) => {
+  const boundaries = userSettings?.boundaries || {};
+  const hideSpicy = !!(userSettings?.hideSpicy || boundaries?.hideSpicy);
   const maxHeat = Number(
     userSettings.maxHeat ??
       userSettings.heat ??
@@ -173,12 +175,16 @@ const normalizeUserSettings = (userSettings = {}) => {
       userSettings.heatLevelPreference ??
       userSettings.maxHeatLevel ??
       userSettings.userMaxHeat ??
+      boundaries.maxHeatOverride ??
+      (hideSpicy ? 3 : null) ??
       5
   );
+  const normalizedMaxHeat = Number.isFinite(maxHeat) ? maxHeat : 5;
 
   return {
     ...userSettings,
-    maxHeat: Number.isFinite(maxHeat) ? maxHeat : 5,
+    hideSpicy,
+    maxHeat: hideSpicy ? Math.min(normalizedMaxHeat, 3) : normalizedMaxHeat,
   };
 };
 
@@ -516,9 +522,11 @@ const buildWeeklySet = (
   const settings = normalizeUserSettings(userSettings);
   const seed = `${type}:${userId || 'anonymous'}:library`;
 
-  const eligible = (Array.isArray(items) ? items : []).filter((item) =>
-    isAllowedByHeat(item, settings)
-  );
+  const eligible = settings.hideSpicy && type === CONTENT_TYPES.POSITIONS
+    ? []
+    : (Array.isArray(items) ? items : []).filter((item) =>
+        isAllowedByHeat(item, settings)
+      );
 
   const visibleTargetCount = isPremium
     ? premiumUnlockedLimit

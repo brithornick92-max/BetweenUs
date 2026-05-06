@@ -366,6 +366,26 @@ describe('WeeklyContentSetService', () => {
     expect(result.unlocked[0].accessibility).toBe('low-mobility');
   });
 
+  it('hides position weekly sets when spicy content is hidden', () => {
+    const result = buildWeeklySet(positions, {
+      contentType: CONTENT_TYPES.POSITIONS,
+      userId: 'free-user',
+      isPremium: false,
+      userSettings: {
+        boundaries: { hideSpicy: true },
+        heatLevelRangeId: 'gentle',
+        allowedHeatLevels: [1, 2, 3],
+      },
+      date: TEST_DATE,
+    });
+
+    expect(result.premiumLibraryTotal).toBe(0);
+    expect(result.totalWeeklyPicks).toBe(0);
+    expect(result.unlocked).toHaveLength(0);
+    expect(result.lockedPreviews).toHaveLength(0);
+    expect(result.items).toHaveLength(0);
+  });
+
   it('grows the free position library by 1 card each week', () => {
     const positionCatalog = Array.from({ length: 12 }, (_, index) =>
       makePosition(

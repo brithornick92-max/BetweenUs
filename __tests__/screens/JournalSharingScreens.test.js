@@ -18,6 +18,7 @@ const JournalHomeModule = require('../../screens/JournalHomeScreen');
 const JournalHomeScreen = JournalHomeModule.default;
 const { buildDateGroupedJournalList } = JournalHomeModule;
 const { VideoView } = require('expo-video');
+const ImagePicker = require('expo-image-picker');
 
 describe('Journal sharing screens', () => {
   beforeEach(() => {
@@ -77,6 +78,25 @@ describe('Journal sharing screens', () => {
     expect(mockShowPaywall).not.toHaveBeenCalled();
     expect(navigation.goBack).not.toHaveBeenCalled();
     expect(navigation.navigate).not.toHaveBeenCalled();
+  });
+
+  it('opens the media picker without pre-requesting broad photo library access', async () => {
+    const navigation = createNavigation();
+    const tree = await renderScreen(JournalEntryScreen, { navigation, route: { params: {} } });
+
+    const [attachButton] = findTouchablesByText(tree.root, 'Add a photo or video');
+    expect(attachButton).toBeTruthy();
+
+    await renderer.act(async () => {
+      await attachButton.props.onPress();
+    });
+
+    expect(ImagePicker.requestMediaLibraryPermissionsAsync).not.toHaveBeenCalled();
+    expect(ImagePicker.launchImageLibraryAsync).toHaveBeenCalledWith(
+      expect.objectContaining({
+        mediaTypes: ['images', 'videos'],
+      })
+    );
   });
 
   it('shows shared journal photo thumbnails and opens partner entries read-only', async () => {

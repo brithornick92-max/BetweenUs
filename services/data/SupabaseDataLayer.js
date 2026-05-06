@@ -2131,11 +2131,40 @@ const SupabaseDataLayer = {
 
   async createCalendarEvent(event) {
     const sb = getSupabaseOrNull();
-
-    if (!_coupleId || !_userId) throw new Error('Not configured for calendar');
-
     const metadata = this._buildCalendarMetadata(event);
     const id = event?.id || randomUUID();
+
+    if (!_userId) throw new Error('Not configured for calendar');
+
+    if (!_coupleId) {
+      const mapped = makeOfflineCalendarRow(id, event);
+
+      await enqueueOfflineMutation({
+        entity: 'calendar',
+        action: 'insert',
+        id,
+        payload: event,
+      });
+
+      await upsertCacheRow(CACHE_SCOPES.calendar, mapped, {
+        sortBy: 'whenTs',
+        descending: false,
+      });
+
+      if (event?.isDateNight || event?.eventType === 'dateNight') {
+        await this.saveDatePlan({
+          title: event?.title || '',
+          sourceEventId: id,
+          locationType: event?.location ? 'out' : 'home',
+          heat: 2,
+          load: 2,
+          style: 'mixed',
+          steps: event?.notes ? [event.notes] : ['Plan the vibe.', 'Enjoy the moment.'],
+        }).catch(() => {});
+      }
+
+      return mapped;
+    }
 
     return runCloudOperation({
       perform: async () => {
@@ -2198,11 +2227,12 @@ const SupabaseDataLayer = {
             load: 2,
             style: 'mixed',
             steps: event?.notes ? [event.notes] : ['Plan the vibe.', 'Enjoy the moment.'],
-          });
+          }).catch(() => {});
         }
 
         return mapped;
       },
+      fallbackOnAnyError: true,
     });
   },
 
@@ -2211,8 +2241,28 @@ const SupabaseDataLayer = {
     const eventId = event?.id;
 
     if (!eventId) throw new Error('Calendar event id required');
+    if (!_userId) throw new Error('Not configured for calendar');
 
     const metadata = this._buildCalendarMetadata(event);
+
+    if (!_coupleId) {
+      const cached = (await loadCache(CACHE_SCOPES.calendar)).find((row) => row?.id === eventId) || {};
+      const mapped = makeOfflineCalendarRow(eventId, event, cached);
+
+      await enqueueOfflineMutation({
+        entity: 'calendar',
+        action: 'update',
+        id: eventId,
+        payload: event,
+      });
+
+      await upsertCacheRow(CACHE_SCOPES.calendar, mapped, {
+        sortBy: 'whenTs',
+        descending: false,
+      });
+
+      return mapped;
+    }
 
     return runCloudOperation({
       perform: async () => {
@@ -2266,6 +2316,7 @@ const SupabaseDataLayer = {
 
         return mapped;
       },
+      fallbackOnAnyError: true,
     });
   },
 
@@ -2277,7 +2328,10 @@ const SupabaseDataLayer = {
       return cached.slice(0, limit);
     }
 
-    if (!_coupleId) return [];
+    if (!_coupleId) {
+      const cached = await loadCache(CACHE_SCOPES.calendar);
+      return cached.slice(0, limit);
+    }
 
     const { data, error } = await sb
       .from(TABLES.CALENDAR_EVENTS)
@@ -2287,21 +2341,16 @@ const SupabaseDataLayer = {
       .limit(limit);
 
     if (error) {
-      if (isOfflineCapableError(error)) {
-        if (__DEV__) {
-          console.warn('[SupabaseDataLayer] getCalendarEvents using cache fallback:', error?.message);
-        }
-
-        const cached = await loadCache(CACHE_SCOPES.calendar);
-        return cached.slice(0, limit);
+      if (__DEV__) {
+        console.warn('[SupabaseDataLayer] getCalendarEvents using cache fallback:', error?.message);
       }
 
-      throw error;
+      const cached = await loadCache(CACHE_SCOPES.calendar);
+      return cached.slice(0, limit);
     }
 
     const mapped = (data || []).map(mapCalendarRow);
-    await replaceCache(CACHE_SCOPES.calendar, mapped);
-    return mapped;
+    return replaceCache(CACHE_SCOPES.calendar, mapped);
   },
 
   async deleteCalendarEvent(id, { deleteRemote = false, remoteId } = {}) {

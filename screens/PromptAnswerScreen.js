@@ -50,7 +50,7 @@ import {
   trackFreePromptAnswerUsage,
 } from "../utils/freePromptAnswerQuota";
 import { isItemInStableFreeWeeklyDeck } from "../utils/freeWeeklyDeckAccess";
-import { getDailyContentDateKey } from "../utils/dailyContentDate";
+import { resolvePromptAnswerDateKey } from "../utils/dailyPromptState";
 
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 const MAX_LEN = 1000;
@@ -179,7 +179,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
         }
       }
 
-      const dateKey = resolvedPrompt.dateKey || getDailyContentDateKey();
+      const dateKey = resolvePromptAnswerDateKey(resolvedPrompt);
       setPrompt({ ...resolvedPrompt, dateKey });
     })().catch(() => {
       if (active) {

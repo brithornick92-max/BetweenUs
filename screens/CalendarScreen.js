@@ -33,6 +33,7 @@ import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../context/ThemeContext';
 import { useAppContext } from '../context/AppContext';
 import { useAuth } from '../context/AuthContext';
+import { useData } from '../context/DataContext';
 import {
   ensureNotificationPermissions,
   scheduleEventNotification,
@@ -101,6 +102,43 @@ export function buildCalendarEventPayload({
     eventType: resolvedEventType,
     isDateNight: resolvedEventType === 'dateNight' || !!form?.isDateNight,
   };
+}
+
+export function getCalendarSaveBlockReason({ title, dataReady = true } = {}) {
+  if (!String(title || '').trim()) {
+    return {
+      title: 'Required',
+      message: 'Please name your event.',
+    };
+  }
+
+  if (!dataReady) {
+    return {
+      title: 'Syncing',
+      message: 'Your calendar is still getting ready. Please try again in a moment.',
+    };
+  }
+
+  return null;
+}
+
+export function getCalendarSaveErrorMessage(error) {
+  const message = String(error?.message || '').toLowerCase();
+
+  if (message.includes('not configured for calendar')) {
+    return 'Your calendar is still connecting. Please try again in a moment.';
+  }
+
+  if (
+    error?.code === '42501'
+    || message.includes('row-level security')
+    || message.includes('permission denied')
+    || message.includes('not have permission')
+  ) {
+    return "We couldn't sync this calendar event yet. Please try again in a moment.";
+  }
+
+  return 'Something went wrong saving your event. Please try again.';
 }
 
 // ─── PremiumCalendar ──────────────────────────────────────────────────────────
@@ -293,6 +331,7 @@ export default function CalendarScreen({ navigation, route }) {
   const { colors, isDark }                            = useTheme();
   const { state: appState }                           = useAppContext();
   const { userProfile }                               = useAuth();
+  const { isReady: dataReady }                         = useData();
   const { coupleId }                                  = appState;
   const relationshipStartDate                         = userProfile?.relationshipStartDate || appState?.userProfile?.relationshipStartDate;
 
@@ -336,17 +375,19 @@ export default function CalendarScreen({ navigation, route }) {
   }, []);
 
   const loadLocalEvents = useCallback(async () => {
+    if (!dataReady) return;
     const safe = await DataLayer.getCalendarEvents({ limit: 5000 }).catch(() => []);
     if (!mountedRef.current) return;
     setEvents(safe.sort((a, b) => (a.whenTs || 0) - (b.whenTs || 0)));
-  }, []);
+  }, [dataReady]);
 
   const loadEvents = useCallback(async () => {
+    if (!dataReady) return;
     const safe = await DataLayer.refreshCalendarEventsFromRemote({ limit: 5000 }).catch(() => []);
     if (!mountedRef.current) return;
     setEvents(safe.sort((a, b) => (a.whenTs || 0) - (b.whenTs || 0)));
     setInitialLoading(false);
-  }, []);
+  }, [dataReady]);
 
   useFocusEffect(
     useCallback(() => {
@@ -417,10 +458,20 @@ export default function CalendarScreen({ navigation, route }) {
   }, []);
 
   const openCreateModal = useCallback(() => {
+    const blockReason = getCalendarSaveBlockReason({
+      title: 'New event',
+      dataReady,
+    });
+
+    if (blockReason && blockReason.title !== 'Required') {
+      Alert.alert(blockReason.title, blockReason.message);
+      return;
+    }
+
     resetComposer();
     setModalOpen(true);
     selection();
-  }, [resetComposer]);
+  }, [dataReady, resetComposer]);
 
   const openEditModal = useCallback((event) => {
     const when = new Date(event.whenTs);
@@ -486,7 +537,16 @@ export default function CalendarScreen({ navigation, route }) {
 
   const handleSave = async () => {
     if (isSaving) return;
-    if (!form.title.trim()) return Alert.alert('Required', 'Please name your event.');
+    const blockReason = getCalendarSaveBlockReason({
+      title: form.title,
+      dataReady,
+    });
+
+    if (blockReason) {
+      Alert.alert(blockReason.title, blockReason.message);
+      return;
+    }
+
     setIsSaving(true);
     let scheduledNotificationId = null;
 
@@ -589,7 +649,7 @@ export default function CalendarScreen({ navigation, route }) {
         }
       }
       CrashReporting.captureException(err, { source: 'calendar_save' });
-      Alert.alert('Error', 'Something went wrong saving your event. Please try again.');
+      Alert.alert('Error', getCalendarSaveErrorMessage(err));
     } finally {
       setIsSaving(false);
     }
