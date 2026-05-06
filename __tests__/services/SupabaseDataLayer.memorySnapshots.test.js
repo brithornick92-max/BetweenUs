@@ -3,6 +3,10 @@
 const mockInsert = jest.fn();
 const mockSelect = jest.fn();
 const mockSingle = jest.fn();
+const mockDelete = jest.fn();
+const mockDeleteEq = jest.fn();
+const mockDeleteSelect = jest.fn();
+const mockRpc = jest.fn();
 const mockStorageGet = jest.fn();
 const mockStorageSet = jest.fn();
 const mockCreateSignedUrl = jest.fn(() => Promise.resolve({
@@ -87,6 +91,7 @@ jest.mock('../../config/supabase', () => ({
 
       return {
         insert: mockInsert,
+        delete: mockDelete,
         update: jest.fn(() => ({
           eq: jest.fn(() => ({
             select: jest.fn(() => ({
@@ -99,6 +104,7 @@ jest.mock('../../config/supabase', () => ({
         })),
       };
     }),
+    rpc: mockRpc,
     storage: {
       from: jest.fn(() => ({
         createSignedUrl: mockCreateSignedUrl,
@@ -156,6 +162,10 @@ describe('SupabaseDataLayer memory snapshots', () => {
     mockInsert.mockReturnValue({
       select: mockSelect,
     });
+    mockDeleteSelect.mockResolvedValue({ data: [], error: null });
+    mockDeleteEq.mockReturnValue({ select: mockDeleteSelect });
+    mockDelete.mockReturnValue({ eq: mockDeleteEq });
+    mockRpc.mockResolvedValue({ data: false, error: null });
 
     SupabaseDataLayer = require('../../services/data/SupabaseDataLayer').default;
   });
@@ -573,6 +583,39 @@ describe('SupabaseDataLayer memory snapshots', () => {
         sync_status: 'pending',
       }),
     ]));
+  });
+
+  it('deletes pending local calendar events without requiring remote delete permission', async () => {
+    await SupabaseDataLayer.init({
+      userId: 'user-1',
+      coupleId: 'couple-1',
+      isPremium: false,
+    });
+
+    mockSingle.mockResolvedValueOnce({
+      data: null,
+      error: { code: '42501', message: 'violates row-level security policy' },
+    });
+
+    await SupabaseDataLayer.createCalendarEvent({
+      id: 'calendar-blocked-delete-1',
+      title: 'Coffee walk',
+      whenTs: Date.parse('2026-05-02T14:00:00.000Z'),
+      eventType: 'general',
+    });
+
+    await SupabaseDataLayer.deleteCalendarEvent('calendar-blocked-delete-1', {
+      deleteRemote: false,
+    });
+
+    const rows = await SupabaseDataLayer.getCalendarEvents({ limit: 50 });
+
+    expect(rows).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'calendar-blocked-delete-1' }),
+    ]));
+    expect(mockDelete).not.toHaveBeenCalled();
+    expect(mockRpc).not.toHaveBeenCalled();
+    expect(JSON.stringify(Array.from(mockStorageState.values()))).not.toContain('calendar-blocked-delete-1');
   });
 
   it('keeps journal entries readable and editable while unpaired', async () => {

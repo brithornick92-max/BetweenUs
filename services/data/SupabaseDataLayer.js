@@ -305,6 +305,20 @@ async function removeCacheRow(scope, id) {
   await saveCache(scope, rows.filter((item) => item?.id !== id));
 }
 
+async function removeQueuedCalendarMutations(id) {
+  if (!id) return;
+
+  const queue = await getOfflineQueue();
+  const next = (queue || []).filter((item) => !(
+    item?.entity === 'calendar'
+    && item?.id === id
+  ));
+
+  if (next.length !== (queue || []).length) {
+    await setOfflineQueue(next);
+  }
+}
+
 async function runCloudOperation({ perform, onSuccess, onOffline, fallbackOnAnyError = false }) {
   try {
     const result = await perform();
@@ -1003,6 +1017,8 @@ function makeOfflineVibeRow(id, value, base = {}) {
 function makeOfflineCalendarRow(id, event, base = {}) {
   const ts = Date.now();
   const isDateNight = !!(event?.isDateNight || event?.eventType === 'dateNight' || event?.eventType === 'date_night');
+  const supabaseId = event?.supabaseId || base.supabaseId || (base.isRemote ? id : null);
+  const isRemoteBacked = !!(event?.isRemote || base.isRemote || supabaseId);
 
   return {
     id,
@@ -1018,7 +1034,8 @@ function makeOfflineCalendarRow(id, event, base = {}) {
     metadata: event?.metadata || {},
     createdAt: base.createdAt || ts,
     updatedAt: ts,
-    isRemote: false,
+    isRemote: isRemoteBacked,
+    supabaseId,
     remoteSynced: false,
     sync_status: 'pending',
   };
@@ -2357,55 +2374,67 @@ const SupabaseDataLayer = {
     const sb = getSupabaseOrNull();
     const targetId = remoteId || id;
 
-    await runCloudOperation({
-      perform: async () => {
-        if (!sb) throw new Error('Supabase not configured');
+    if (!deleteRemote) {
+      await removeQueuedCalendarMutations(id);
+      if (targetId !== id) await removeQueuedCalendarMutations(targetId);
+      await removeCacheRow(CACHE_SCOPES.calendar, id);
+      if (targetId !== id) await removeCacheRow(CACHE_SCOPES.calendar, targetId);
+    } else {
+      await runCloudOperation({
+        perform: async () => {
+          if (!sb) throw new Error('Supabase not configured');
 
-        const { data, error } = await sb
-          .from(TABLES.CALENDAR_EVENTS)
-          .delete()
-          .eq('id', targetId)
-          .select('id');
+          const { data, error } = await sb
+            .from(TABLES.CALENDAR_EVENTS)
+            .delete()
+            .eq('id', targetId)
+            .select('id');
 
-        if (error) {
-          const { data: rpcData, error: rpcError } = await sb.rpc('delete_calendar_event_if_member', {
-            p_event_id: targetId,
-          });
+          if (error) {
+            const { data: rpcData, error: rpcError } = await sb.rpc('delete_calendar_event_if_member', {
+              p_event_id: targetId,
+            });
 
-          if (rpcError) throw error;
-          if (rpcData !== true) {
-            throw new Error('Calendar event could not be deleted. You may not have permission to delete this event.');
+            if (rpcError) throw error;
+            if (rpcData !== true) {
+              throw new Error('Calendar event could not be deleted. You may not have permission to delete this event.');
+            }
+
+            return;
           }
 
-          return;
-        }
+          if (!Array.isArray(data) || data.length === 0) {
+            const { data: rpcData, error: rpcError } = await sb.rpc('delete_calendar_event_if_member', {
+              p_event_id: targetId,
+            });
 
-        if (!Array.isArray(data) || data.length === 0) {
-          const { data: rpcData, error: rpcError } = await sb.rpc('delete_calendar_event_if_member', {
-            p_event_id: targetId,
+            if (rpcError) throw rpcError;
+            if (rpcData !== true) {
+              throw new Error('Calendar event could not be deleted. You may not have permission to delete this event.');
+            }
+          }
+        },
+        onSuccess: async () => {
+          await removeQueuedCalendarMutations(id);
+          if (targetId !== id) await removeQueuedCalendarMutations(targetId);
+          await removeCacheRow(CACHE_SCOPES.calendar, id);
+          if (targetId !== id) await removeCacheRow(CACHE_SCOPES.calendar, targetId);
+        },
+        onOffline: async () => {
+          await removeQueuedCalendarMutations(id);
+          if (targetId !== id) await removeQueuedCalendarMutations(targetId);
+
+          await enqueueOfflineMutation({
+            entity: 'calendar',
+            action: 'delete',
+            id: targetId,
           });
 
-          if (rpcError) throw rpcError;
-          if (rpcData !== true) {
-            throw new Error('Calendar event could not be deleted. You may not have permission to delete this event.');
-          }
-        }
-      },
-      onSuccess: async () => {
-        await removeCacheRow(CACHE_SCOPES.calendar, id);
-        if (targetId !== id) await removeCacheRow(CACHE_SCOPES.calendar, targetId);
-      },
-      onOffline: async () => {
-        await enqueueOfflineMutation({
-          entity: 'calendar',
-          action: 'delete',
-          id: targetId,
-        });
-
-        await removeCacheRow(CACHE_SCOPES.calendar, id);
-        if (targetId !== id) await removeCacheRow(CACHE_SCOPES.calendar, targetId);
-      },
-    });
+          await removeCacheRow(CACHE_SCOPES.calendar, id);
+          if (targetId !== id) await removeCacheRow(CACHE_SCOPES.calendar, targetId);
+        },
+      });
+    }
 
     const relatedDatePlanIds = new Set();
     const sourceEventIds = [...new Set([id, targetId].filter(Boolean))];
