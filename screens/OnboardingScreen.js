@@ -16,6 +16,7 @@ import {
   KeyboardAvoidingView,
   ScrollView,
   Platform,
+  Dimensions,
   StatusBar,
 } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -42,6 +43,9 @@ import { getSupabaseOrThrow } from "../config/supabase";
 import AnalyticsService, { AnalyticsEvent } from "../services/AnalyticsService";
 import { HEAT_LEVEL_ACCENTS } from "../config/constants";
 import { FREE_LIMITS, PREMIUM_LIMITS } from "../utils/featureFlags";
+
+const { height: SCREEN_HEIGHT } = Dimensions.get('window');
+const INTRO_HEARTBEAT_OFFSET_Y = SCREEN_HEIGHT < 760 ? -30 : -76;
 
 export default function OnboardingScreen({ navigation }) {
   const { actions, state } = useAppContext();
@@ -385,10 +389,10 @@ export default function OnboardingScreen({ navigation }) {
 
   const renderIntro = () => (
     <View style={{ flex: 1 }}>
-      <HeartbeatEntry showQuote={false} />
+      <HeartbeatEntry showQuote={false} animationOffsetY={INTRO_HEARTBEAT_OFFSET_Y} />
       <ReAnimated.View
         entering={FadeInDown.delay(1800).duration(700).springify()}
-        style={styles.introBottomPanel}
+        style={styles.introQuotePanel}
       >
         <Text
           style={styles.introQuote}
@@ -398,7 +402,12 @@ export default function OnboardingScreen({ navigation }) {
         >
           "A space for just the two of you."
         </Text>
+      </ReAnimated.View>
 
+      <ReAnimated.View
+        entering={FadeInDown.delay(1950).duration(700).springify()}
+        style={styles.introBottomPanel}
+      >
         <View style={styles.introFeatureList}>
           {[
             { icon: 'calendar-outline', text: 'Turn ordinary days into date ideas and memories' },
@@ -1107,6 +1116,7 @@ export default function OnboardingScreen({ navigation }) {
 // ------------------------------------------------------------------
 const createStyles = (t, isDark) => {
   const systemFont = Platform.select({ ios: "System", android: "Roboto" });
+  const compactIntro = SCREEN_HEIGHT < 760;
 
   return StyleSheet.create({
     container: {
@@ -1138,18 +1148,26 @@ const createStyles = (t, isDark) => {
       position: 'absolute',
       left: 0,
       right: 0,
-      bottom: 56,
+      bottom: compactIntro ? 32 : 56,
       paddingHorizontal: SPACING.xl,
-      gap: 18,
+      gap: compactIntro ? 14 : 18,
+    },
+    introQuotePanel: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      bottom: compactIntro ? 250 : 332,
+      paddingHorizontal: SPACING.xl,
+      alignItems: 'center',
     },
     introQuote: {
       fontFamily: Platform.select({ ios: 'Georgia', android: 'serif' }),
-      fontSize: 28,
+      fontSize: compactIntro ? 25 : 28,
       fontWeight: '700',
       textAlign: 'center',
       color: t.text,
       fontStyle: 'italic',
-      lineHeight: 34,
+      lineHeight: compactIntro ? 31 : 34,
     },
     introFeatureList: {
       gap: 14,
