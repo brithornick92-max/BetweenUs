@@ -7,7 +7,7 @@
  *  3. Once both have answered, the reveal shows both guesses so you can compare and talk
  *
  * Uses the same bilateral hidden-until-both pattern as today's prompts so
- * the infrastructure (DataLayer, PartnerNotifications) is already there.
+ * the infrastructure (DataLayer, server-side notifications) is already there.
  *
  * Design: Deep plum / champagne gold — playful but intimate. Apple Editorial type.
  */
@@ -40,7 +40,7 @@ import { useAuth } from '../context/AuthContext';
 import { useAppContext } from '../context/AppContext';
 import { DataLayer } from '../services/localfirst';
 import { SPACING } from '../utils/theme';
-import { getMyDisplayName, getPartnerDisplayName } from '../utils/profileNames';
+import { getPartnerDisplayName } from '../utils/profileNames';
 import { storage } from '../utils/storage';
 import {
   getSharedDailyQuizQuestionSelection,
@@ -272,7 +272,6 @@ export default function CouplesQuizScreen({ navigation }) {
 
   const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
 
-  const myName = getMyDisplayName(userProfile, state?.userProfile, null);
   const partnerName = getPartnerDisplayName(userProfile, state?.userProfile, null) || 'your partner';
   const quizCacheScope = useMemo(() => {
     const userKey = user?.id || user?.uid || state?.userId || user?.email || 'anonymous';
@@ -511,10 +510,6 @@ export default function CouplesQuizScreen({ navigation }) {
           setPartnerHasSubmitted(true);
         }
 
-        // Notify partner
-        import('../services/PartnerNotifications').then(({ default: PN }) =>
-          PN.quizAnswered?.(myName)
-        ).catch(() => {});
       } catch {
         // graceful — local save succeeded
       }
@@ -526,7 +521,7 @@ export default function CouplesQuizScreen({ navigation }) {
     } finally {
       setIsSaving(false);
     }
-  }, [myAnswer, todayKey, question.id, quizPromptId, myName, quizCacheKeys]);
+  }, [myAnswer, todayKey, question.id, quizPromptId, quizCacheKeys]);
 
   const clearLocalQuizAnswer = useCallback(async () => {
     await Promise.all([

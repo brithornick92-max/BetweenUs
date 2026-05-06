@@ -39,6 +39,7 @@ import { impact, ImpactFeedbackStyle } from "./utils/haptics";
 import { addNotificationResponseListener } from "./utils/notifications";
 import { SupabaseAuthService } from "./services/supabase/SupabaseAuthService";
 import StorageRouter from "./services/storage/StorageRouter";
+import { supabase } from "./config/supabase";
 import { cloudSyncStorage, storage, STORAGE_KEYS } from "./utils/storage";
 import ExpoUpdateService from "./services/ExpoUpdateService";
 
@@ -644,7 +645,7 @@ function App() {
           CrashReporting.captureException(e, { source: "analytics_init" })
         ),
       getExperimentService()
-        .init({})
+        .init({ supabase })
         .catch((e) =>
           CrashReporting.captureException(e, { source: "experiments_init" })
         ),

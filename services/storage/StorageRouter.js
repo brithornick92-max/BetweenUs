@@ -317,7 +317,9 @@ class StorageRouter {
         const result = SupabaseAuthService.onAuthStateChange((session) => {
           this.sessionPresent = !!session;
           if (!session) {
+            this.currentUser = null;
             this._syncCloudSessionState().catch(() => {});
+            this._notifyAuthListeners(null);
             return;
           }
 

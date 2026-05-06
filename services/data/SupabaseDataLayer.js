@@ -18,7 +18,6 @@
 import { supabase, TABLES } from '../../config/supabase';
 import { randomUUID } from 'expo-crypto';
 import * as FileSystem from 'expo-file-system/legacy';
-import PartnerNotifications from '../PartnerNotifications';
 import CrashReporting from '../CrashReporting';
 import { getPromptById } from '../../utils/contentLoader';
 import { getDailyContentDateKey } from '../../utils/dailyContentDate';
@@ -1108,7 +1107,6 @@ const SupabaseDataLayer = {
       onSuccess: async (row) => {
         const mapped = await mapJournalRow(row);
         await upsertCacheRow(CACHE_SCOPES.journals, mapped);
-        PartnerNotifications.journalShared().catch(() => {});
         return mapped;
       },
       onOffline: async () => {
@@ -1651,7 +1649,6 @@ const SupabaseDataLayer = {
     snapshot_index = null,
     snapshot_count = null,
     snapshot_created_at = null,
-    notifyPartner = true,
   }) {
     const id = makeId('mem');
 
@@ -1693,10 +1690,6 @@ const SupabaseDataLayer = {
       onSuccess: async (row) => {
         const mapped = await mapMemoryRow(row);
         await upsertCacheRow(CACHE_SCOPES.memories, mapped);
-
-        if (_coupleId && notifyPartner) {
-          PartnerNotifications.memorySaved(null, type).catch(() => {});
-        }
 
         return mapped;
       },
@@ -2143,7 +2136,6 @@ const SupabaseDataLayer = {
           descending: false,
         });
 
-        PartnerNotifications.calendarEventCreated?.(null, mapped.title).catch(() => {});
         return mapped;
       },
       onOffline: async () => {

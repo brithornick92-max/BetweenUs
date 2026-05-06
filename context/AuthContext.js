@@ -182,23 +182,23 @@ export const AuthProvider = ({ children }) => {
     const unsubscribe = StorageRouter.onAuthStateChanged(async (localUser) => {
       try {
         if (!active) {
-          console.log('[AuthContext] Auth listener skipped - component unmounted');
+          if (__DEV__) console.log('[AuthContext] Auth listener skipped - component unmounted');
           return;
         }
         
         // Skip all auth listener work if we're in the middle of signing out
         if (isSigningOutRef.current) {
-          console.log('[AuthContext] Auth listener skipped - sign out in progress');
+          if (__DEV__) console.log('[AuthContext] Auth listener skipped - sign out in progress');
           return;
         }
 
         // Debounce: Skip if we just processed this exact auth state
         const authStateKey = localUser ? `user:${localUser.uid}` : 'no-user';
         if (lastAuthStateRef.current === authStateKey) {
-          console.log('[AuthContext] Auth listener skipped - duplicate state:', authStateKey);
+          if (__DEV__) console.log('[AuthContext] Auth listener skipped - duplicate state:', authStateKey);
           return;
         }
-        console.log('[AuthContext] Auth listener processing:', authStateKey);
+        if (__DEV__) console.log('[AuthContext] Auth listener processing:', authStateKey);
         lastAuthStateRef.current = authStateKey;
 
         // Set auth state immediately (don’t block UI while doing heavy work)
@@ -481,24 +481,24 @@ export const AuthProvider = ({ children }) => {
 
   const signIn = async (email, password) => {
     try {
-      console.log('[AuthContext] signIn called for:', email);
+      if (__DEV__) console.log('[AuthContext] signIn called');
       setBusy(true);
       await new Promise(resolve => setTimeout(resolve, 0));
 
       let signedInUser;
 
-      console.log('[AuthContext] Calling SupabaseAuthService.signInWithPassword...');
+      if (__DEV__) console.log('[AuthContext] Calling SupabaseAuthService.signInWithPassword...');
       const session = await Promise.race([
         SupabaseAuthService.signInWithPassword(email, password),
         new Promise((_, reject) => setTimeout(() => reject(new Error('Remote sign-in timed out')), 10000)),
       ]);
 
-      console.log('[AuthContext] Got session:', !!session);
+      if (__DEV__) console.log('[AuthContext] Got session:', !!session);
       if (!session?.user?.id) {
         throw new Error('Supabase session required');
       }
 
-      console.log('[AuthContext] Restoring session...');
+      if (__DEV__) console.log('[AuthContext] Restoring session...');
       signedInUser = await _restoreSupabaseSession(email, session);
 
       if (!signedInUser) throw new Error('Sign-in failed');
@@ -507,11 +507,11 @@ export const AuthProvider = ({ children }) => {
         setUser(signedInUser.user);
       }
 
-      console.log('[AuthContext] Setting onboarding flags...');
+      if (__DEV__) console.log('[AuthContext] Setting onboarding flags...');
       await storage.set(STORAGE_KEYS.PENDING_ONBOARDING, false);
       setRequiresOnboarding(false);
 
-      console.log('[AuthContext] Sign in complete!');
+      if (__DEV__) console.log('[AuthContext] Sign in complete!');
 
       // Push registration can happen after the auth handoff; it should not hold the sign-in UI open.
       if (supabase) {
@@ -523,7 +523,7 @@ export const AuthProvider = ({ children }) => {
       }
       return signedInUser;
     } catch (error) {
-      console.error('[AuthContext] Sign in error:', error);
+      if (__DEV__) console.error('[AuthContext] Sign in error:', error);
       throw error;
     } finally {
       setBusy(false);
@@ -568,7 +568,7 @@ export const AuthProvider = ({ children }) => {
       await ConnectionMemory.clear();
       await clearLocalCache();
     } catch (error) {
-      console.error('[AuthContext] signOut error:', error);
+      if (__DEV__) console.error('[AuthContext] signOut error:', error);
       // Even if there's an error, we still want to sign out locally
       setUser(null);
       setUserProfile(null);
@@ -635,7 +635,7 @@ export const AuthProvider = ({ children }) => {
           await CloudEngine.deleteUserData();
         }
       } catch (cloudErr) {
-        console.warn('Cloud data cleanup (non-fatal):', cloudErr?.message);
+        if (__DEV__) console.warn('Cloud data cleanup (non-fatal):', cloudErr?.message);
       }
 
       // 3. Delete the Supabase auth user via RPC

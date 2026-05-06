@@ -219,6 +219,16 @@ CREATE TABLE IF NOT EXISTS analytics_events (
   created_at timestamptz NOT NULL DEFAULT now()
 );
 
+-- Remote experiment config
+CREATE TABLE IF NOT EXISTS experiments (
+  id text PRIMARY KEY,
+  variants jsonb NOT NULL DEFAULT '["control", "treatment"]'::jsonb,
+  weights jsonb,
+  enabled boolean NOT NULL DEFAULT false,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
 -- Rate limit buckets
 CREATE TABLE IF NOT EXISTS rate_limit_buckets (
   user_id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -226,6 +236,29 @@ CREATE TABLE IF NOT EXISTS rate_limit_buckets (
   max_tokens INT NOT NULL DEFAULT 60,
   last_refill TIMESTAMPTZ NOT NULL DEFAULT now(),
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Password recovery code vault (service-role Edge Function only)
+CREATE TABLE IF NOT EXISTS password_recovery_codes (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  email text NOT NULL,
+  user_id uuid REFERENCES auth.users(id) ON DELETE CASCADE,
+  code_hash text NOT NULL,
+  expires_at timestamptz NOT NULL,
+  consumed_at timestamptz,
+  attempts int NOT NULL DEFAULT 0 CHECK (attempts >= 0),
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+-- Password recovery request rate limits (service-role Edge Function only)
+CREATE TABLE IF NOT EXISTS password_recovery_request_limits (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  identifier_hash text NOT NULL,
+  action text NOT NULL,
+  request_count int NOT NULL DEFAULT 0 CHECK (request_count >= 0),
+  window_started_at timestamptz NOT NULL DEFAULT now(),
+  updated_at timestamptz NOT NULL DEFAULT now(),
+  UNIQUE(identifier_hash, action)
 );
 
 -- Push tokens (Expo push notification tokens per user/device)
@@ -262,6 +295,16 @@ CREATE TABLE IF NOT EXISTS notification_log (
   created_at  timestamptz DEFAULT now()
 );
 
+-- Date shortlist (per-user saved date idea list)
+CREATE TABLE IF NOT EXISTS date_shortlist (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  date_id text NOT NULL,
+  created_at timestamptz NOT NULL DEFAULT now(),
+  removed_at timestamptz,
+  CONSTRAINT date_shortlist_user_date_unique UNIQUE (user_id, date_id)
+);
+
 
 -- ############################################################################
 -- PART 3: INDEXES
@@ -291,6 +334,39 @@ CREATE INDEX IF NOT EXISTS idx_couple_data_sync ON couple_data(couple_id, data_t
 CREATE INDEX IF NOT EXISTS idx_couple_data_updated ON couple_data(updated_at);
 CREATE INDEX IF NOT EXISTS idx_couple_data_not_deleted ON couple_data(couple_id, data_type, updated_at) WHERE is_deleted = false;
 CREATE INDEX IF NOT EXISTS idx_couple_data_type_user ON couple_data(couple_id, data_type, created_by);
+
+WITH ranked AS (
+  SELECT
+    id,
+    row_number() OVER (
+      PARTITION BY couple_id, created_by, value->>'promptId', value->>'dateKey'
+      ORDER BY updated_at DESC NULLS LAST, created_at DESC NULLS LAST, id DESC
+    ) AS rn
+  FROM couple_data
+  WHERE data_type = 'prompt_answer'
+    AND COALESCE(is_deleted, false) = false
+    AND value->>'promptId' IS NOT NULL
+    AND value->>'dateKey' IS NOT NULL
+)
+UPDATE couple_data cd
+SET is_deleted = true,
+    deleted_at = now(),
+    updated_at = now()
+FROM ranked r
+WHERE cd.id = r.id
+  AND r.rn > 1;
+
+CREATE UNIQUE INDEX IF NOT EXISTS couple_data_prompt_answer_unique_live
+  ON couple_data (
+    couple_id,
+    created_by,
+    (value->>'promptId'),
+    (value->>'dateKey')
+  )
+  WHERE data_type = 'prompt_answer'
+    AND COALESCE(is_deleted, false) = false
+    AND value->>'promptId' IS NOT NULL
+    AND value->>'dateKey' IS NOT NULL;
 
 -- calendar_events
 CREATE INDEX IF NOT EXISTS idx_calendar_events_couple ON calendar_events(couple_id);
@@ -325,6 +401,9 @@ CREATE INDEX IF NOT EXISTS idx_analytics_events_timestamp ON analytics_events(ti
 CREATE INDEX IF NOT EXISTS idx_analytics_events_user_id ON analytics_events(user_id) WHERE user_id IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_analytics_events_event ON analytics_events(event);
 
+-- experiments
+CREATE INDEX IF NOT EXISTS idx_experiments_enabled ON experiments(enabled) WHERE enabled = true;
+
 -- push_tokens
 CREATE INDEX IF NOT EXISTS idx_push_tokens_user ON push_tokens(user_id);
 CREATE INDEX IF NOT EXISTS idx_push_tokens_token ON push_tokens(token);
@@ -333,6 +412,19 @@ CREATE INDEX IF NOT EXISTS idx_push_tokens_token ON push_tokens(token);
 CREATE INDEX IF NOT EXISTS idx_notification_log_created   ON notification_log(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_notification_log_status    ON notification_log(status) WHERE status = 'failed';
 CREATE INDEX IF NOT EXISTS idx_notification_log_recipient ON notification_log(recipient);
+
+-- password recovery
+CREATE INDEX IF NOT EXISTS idx_password_recovery_codes_email
+  ON password_recovery_codes(email, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_password_recovery_codes_user_id
+  ON password_recovery_codes(user_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_password_recovery_request_limits_updated_at
+  ON password_recovery_request_limits(updated_at DESC);
+
+-- date shortlist
+CREATE INDEX IF NOT EXISTS date_shortlist_user_active_idx
+  ON date_shortlist(user_id, created_at DESC)
+  WHERE removed_at IS NULL;
 
 -- partial indexes for cron cleanup queries
 CREATE INDEX IF NOT EXISTS idx_link_codes_unused      ON partner_link_codes(expires_at) WHERE used_at IS NULL;
@@ -367,6 +459,25 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION guard_couple_data_immutable_fields()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  IF NEW.couple_id IS DISTINCT FROM OLD.couple_id
+    OR NEW.key IS DISTINCT FROM OLD.key
+    OR NEW.data_type IS DISTINCT FROM OLD.data_type
+    OR NEW.created_by IS DISTINCT FROM OLD.created_by
+  THEN
+    RAISE EXCEPTION 'couple_data identity fields cannot be changed';
+  END IF;
+
+  RETURN NEW;
+END;
+$$;
+
 -- Get couple ID for a user
 CREATE OR REPLACE FUNCTION get_user_couple_id(input_user_id uuid)
 RETURNS uuid
@@ -383,7 +494,7 @@ $$;
 CREATE OR REPLACE FUNCTION is_couple_member(couple_uuid uuid, user_uuid uuid)
 RETURNS boolean
 LANGUAGE plpgsql
-SECURITY DEFINER
+SECURITY INVOKER
 SET search_path = public
 AS $$
 BEGIN
@@ -403,6 +514,16 @@ STABLE
 SET search_path = public
 AS $$
   SELECT couple_id FROM couple_members WHERE user_id = auth.uid();
+$$;
+
+CREATE OR REPLACE FUNCTION is_permanent_authenticated_user()
+RETURNS boolean
+LANGUAGE sql
+SECURITY INVOKER
+STABLE
+SET search_path = public
+AS $$
+  SELECT COALESCE((auth.jwt()->>'is_anonymous')::boolean, false) IS FALSE;
 $$;
 
 -- Check premium via user_entitlements
@@ -426,7 +547,7 @@ $$;
 CREATE OR REPLACE FUNCTION is_user_premium()
 RETURNS boolean
 LANGUAGE sql
-SECURITY DEFINER
+SECURITY INVOKER
 STABLE
 SET search_path = public
 AS $$
@@ -460,7 +581,7 @@ $$;
 CREATE OR REPLACE FUNCTION user_data_count(p_couple_id uuid, p_data_type text)
 RETURNS bigint
 LANGUAGE sql
-SECURITY DEFINER
+SECURITY INVOKER
 STABLE
 SET search_path = public
 AS $$
@@ -490,7 +611,7 @@ $$;
 CREATE OR REPLACE FUNCTION get_couple_premium_status(input_couple_id uuid)
 RETURNS jsonb
 LANGUAGE plpgsql
-SECURITY DEFINER
+SECURITY INVOKER
 SET search_path = public
 AS $$
 DECLARE result jsonb;
@@ -513,7 +634,7 @@ CREATE OR REPLACE FUNCTION get_daily_usage_count(
 )
 RETURNS integer
 LANGUAGE plpgsql
-SECURITY DEFINER
+SECURITY INVOKER
 SET search_path = public
 AS $$
 BEGIN
@@ -523,7 +644,12 @@ BEGIN
   RETURN (
     SELECT count(*)::integer FROM usage_events
     WHERE couple_id = input_couple_id AND user_id = input_user_id
-      AND event_type = input_event_type AND local_day_key = input_day_key
+      AND local_day_key = input_day_key
+      AND (
+        event_type = input_event_type
+        OR (input_event_type = 'prompt_viewed' AND event_type = 'prompts')
+        OR (input_event_type = 'date_idea_viewed' AND event_type = 'dates')
+      )
   );
 END;
 $$;
@@ -679,10 +805,12 @@ SET search_path = public
 SET row_security = off
 AS $$
 DECLARE
-  code_row  partner_link_codes%ROWTYPE;
+  code_row partner_link_codes%ROWTYPE;
+  target_couple_id uuid;
   new_couple_id uuid;
-  creator_id    uuid;
-  redeemer_id   uuid;
+  creator_id uuid;
+  redeemer_id uuid;
+  member_count integer;
 BEGIN
   redeemer_id := auth.uid();
   IF redeemer_id IS NULL THEN
@@ -709,11 +837,70 @@ BEGIN
   IF creator_id = redeemer_id THEN
     RETURN jsonb_build_object('success', false, 'error', 'Cannot pair with yourself');
   END IF;
-  IF EXISTS (SELECT 1 FROM couple_members WHERE user_id = creator_id) THEN
-    RETURN jsonb_build_object('success', false, 'error', 'Code creator is already in a couple');
-  END IF;
+
   IF EXISTS (SELECT 1 FROM couple_members WHERE user_id = redeemer_id) THEN
     RETURN jsonb_build_object('success', false, 'error', 'You are already in a couple');
+  END IF;
+
+  IF code_row.couple_id IS NOT NULL THEN
+    target_couple_id := code_row.couple_id;
+
+    PERFORM 1 FROM couples WHERE id = target_couple_id FOR UPDATE;
+    IF NOT FOUND THEN
+      RETURN jsonb_build_object('success', false, 'error', 'Invite couple no longer exists');
+    END IF;
+
+    IF NOT EXISTS (
+      SELECT 1
+      FROM couple_members
+      WHERE couple_id = target_couple_id
+        AND user_id = creator_id
+    ) THEN
+      RETURN jsonb_build_object('success', false, 'error', 'Code creator is no longer in this couple');
+    END IF;
+
+    SELECT count(*)::integer INTO member_count
+      FROM couple_members
+      WHERE couple_id = target_couple_id;
+
+    IF member_count >= 2 THEN
+      RETURN jsonb_build_object('success', false, 'error', 'This couple is already full');
+    END IF;
+
+    INSERT INTO couple_members (couple_id, user_id, role)
+    VALUES (target_couple_id, redeemer_id, 'member');
+
+    UPDATE partner_link_codes
+       SET used_at = now(),
+           used_by = redeemer_id
+     WHERE id = code_row.id;
+
+    INSERT INTO couple_data (couple_id, key, value, data_type, created_by)
+    VALUES (
+      target_couple_id,
+      'system:partner_linked',
+      jsonb_build_object(
+        'creator_id', creator_id,
+        'redeemer_id', redeemer_id,
+        'linked_at', now()
+      ),
+      'couple_state',
+      redeemer_id
+    )
+    ON CONFLICT (couple_id, key) DO UPDATE SET
+      value = EXCLUDED.value,
+      updated_at = now();
+
+    RETURN jsonb_build_object(
+      'success', true,
+      'couple_id', target_couple_id,
+      'creator_id', creator_id,
+      'redeemer_id', redeemer_id
+    );
+  END IF;
+
+  IF EXISTS (SELECT 1 FROM couple_members WHERE user_id = creator_id) THEN
+    RETURN jsonb_build_object('success', false, 'error', 'Code creator is already in a couple');
   END IF;
 
   INSERT INTO couples (created_by) VALUES (creator_id)
@@ -1064,9 +1251,6 @@ BEGIN
 END;
 $$;
 
-GRANT EXECUTE ON FUNCTION notify_partner(uuid, text, text, jsonb) TO authenticated;
-
-
 -- ############################################################################
 -- PART 9: TRIGGERS
 -- ############################################################################
@@ -1091,6 +1275,10 @@ DROP TRIGGER IF EXISTS couple_data_updated_at ON couple_data;
 CREATE TRIGGER couple_data_updated_at
   BEFORE UPDATE ON couple_data FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
+DROP TRIGGER IF EXISTS guard_couple_data_immutable_fields_before_update ON couple_data;
+CREATE TRIGGER guard_couple_data_immutable_fields_before_update
+  BEFORE UPDATE ON couple_data FOR EACH ROW EXECUTE FUNCTION guard_couple_data_immutable_fields();
+
 DROP TRIGGER IF EXISTS update_calendar_events_updated_at ON calendar_events;
 CREATE TRIGGER update_calendar_events_updated_at
   BEFORE UPDATE ON calendar_events FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
@@ -1102,6 +1290,10 @@ CREATE TRIGGER update_moments_updated_at
 DROP TRIGGER IF EXISTS update_entitlements_updated_at ON user_entitlements;
 CREATE TRIGGER update_entitlements_updated_at
   BEFORE UPDATE ON user_entitlements FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+DROP TRIGGER IF EXISTS experiments_updated_at ON experiments;
+CREATE TRIGGER experiments_updated_at
+  BEFORE UPDATE ON experiments FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Premium sync trigger
 DROP TRIGGER IF EXISTS trigger_sync_couple_premium ON couples;
@@ -1203,12 +1395,33 @@ BEGIN
                               notif_body  := sender_name || ' just sent a heartbeat';
     WHEN 'journal'       THEN notif_title := '📝 Journal Entry';
                               notif_body  := sender_name || ' shared a journal entry';
-    WHEN 'prompt_answer' THEN notif_title := '💬 Prompt Answer';
-                              notif_body  := sender_name || ' answered a prompt';
+    WHEN 'prompt_answer' THEN
+      IF COALESCE(NEW.value::jsonb->>'promptId', '') LIKE 'quiz:%' THEN
+        notif_title := 'Daily Quiz';
+        notif_body := sender_name || ' answered the Daily Quiz';
+        notif_data := jsonb_build_object('type', 'quiz_answered', 'route', 'quiz', 'couple_id', NEW.couple_id);
+      ELSE
+        notif_title := '💬 Prompt Answer';
+        notif_body := sender_name || ' answered a prompt';
+        notif_data := jsonb_build_object(
+          'type', 'prompt_answered',
+          'route', 'prompt',
+          'id', NEW.value::jsonb->>'promptId',
+          'prompt_id', NEW.value::jsonb->>'promptId',
+          'couple_id', NEW.couple_id
+        );
+      END IF;
     WHEN 'check_in'      THEN notif_title := '🤗 Check-In';
                               notif_body  := sender_name || ' checked in';
-    WHEN 'memory'        THEN notif_title := '📸 New Memory';
-                              notif_body  := sender_name || ' shared a memory';
+    WHEN 'memory'        THEN
+      IF COALESCE(NEW.value::jsonb->>'type', '') = 'thinking_of_you' THEN
+        notif_title := sender_name || ' left you a photo';
+        notif_body := 'A private photo is waiting.';
+        notif_data := jsonb_build_object('type', 'thinking_of_you_photo', 'route', 'our-story', 'couple_id', NEW.couple_id);
+      ELSE
+        notif_title := '📸 New Memory';
+        notif_body := sender_name || ' shared a memory';
+      END IF;
     ELSE                      notif_title := '💕 Between Us';
                               notif_body  := sender_name || ' shared something new';
   END CASE;
@@ -1237,7 +1450,7 @@ CREATE TRIGGER trigger_notify_couple_data
 CREATE OR REPLACE FUNCTION delete_calendar_event_if_member(p_event_id uuid)
 RETURNS boolean
 LANGUAGE plpgsql
-SECURITY DEFINER
+SECURITY INVOKER
 SET search_path = public
 AS $$
 DECLARE
@@ -1408,9 +1621,13 @@ ALTER TABLE partner_link_codes ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_entitlements ENABLE ROW LEVEL SECURITY;
 ALTER TABLE usage_events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE analytics_events ENABLE ROW LEVEL SECURITY;
+ALTER TABLE experiments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE rate_limit_buckets ENABLE ROW LEVEL SECURITY;
+ALTER TABLE password_recovery_codes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE password_recovery_request_limits ENABLE ROW LEVEL SECURITY;
 ALTER TABLE push_tokens ENABLE ROW LEVEL SECURITY;
 ALTER TABLE notification_log ENABLE ROW LEVEL SECURITY;
+ALTER TABLE date_shortlist ENABLE ROW LEVEL SECURITY;
 
 
 -- ############################################################################
@@ -1420,36 +1637,38 @@ ALTER TABLE notification_log ENABLE ROW LEVEL SECURITY;
 -- ─── PROFILES ──────────────────────────────────────────────────────
 DROP POLICY IF EXISTS "Users can view own profile" ON profiles;
 CREATE POLICY "Users can view own profile" ON profiles
-  FOR SELECT USING (auth.uid() = id);
+  FOR SELECT TO authenticated USING ((select auth.uid()) = id);
 
 DROP POLICY IF EXISTS "Users can update own profile" ON profiles;
 CREATE POLICY "Users can update own profile" ON profiles
-  FOR UPDATE USING (auth.uid() = id);
+  FOR UPDATE TO authenticated USING ((select auth.uid()) = id) WITH CHECK ((select auth.uid()) = id);
 
 DROP POLICY IF EXISTS "Users can insert own profile" ON profiles;
 CREATE POLICY "Users can insert own profile" ON profiles
-  FOR INSERT WITH CHECK (auth.uid() = id);
+  FOR INSERT TO authenticated WITH CHECK ((select auth.uid()) = id);
 
 -- ─── COUPLES ───────────────────────────────────────────────────────
 DROP POLICY IF EXISTS "Couple members can view couple" ON couples;
 DROP POLICY IF EXISTS "couple_select" ON couples;
 DROP POLICY IF EXISTS "couple_select_v2" ON couples;
 CREATE POLICY "Couple members can view couple" ON couples
-  FOR SELECT USING (
-    EXISTS (SELECT 1 FROM couple_members cm WHERE cm.couple_id = couples.id AND cm.user_id = auth.uid())
+  FOR SELECT TO authenticated USING (
+    EXISTS (SELECT 1 FROM couple_members cm WHERE cm.couple_id = couples.id AND cm.user_id = (select auth.uid()))
   );
 
 DROP POLICY IF EXISTS "Couple members can update couple" ON couples;
 CREATE POLICY "Couple members can update couple" ON couples
-  FOR UPDATE USING (
-    EXISTS (SELECT 1 FROM couple_members cm WHERE cm.couple_id = couples.id AND cm.user_id = auth.uid())
+  FOR UPDATE TO authenticated USING (
+    EXISTS (SELECT 1 FROM couple_members cm WHERE cm.couple_id = couples.id AND cm.user_id = (select auth.uid()))
+  ) WITH CHECK (
+    EXISTS (SELECT 1 FROM couple_members cm WHERE cm.couple_id = couples.id AND cm.user_id = (select auth.uid()))
   );
 
 DROP POLICY IF EXISTS "Users can create couples" ON couples;
 DROP POLICY IF EXISTS "couple_insert" ON couples;
 DROP POLICY IF EXISTS "couple_insert_v2" ON couples;
 CREATE POLICY "Users can create couples" ON couples
-  FOR INSERT WITH CHECK (auth.uid() = created_by);
+  FOR INSERT TO authenticated WITH CHECK ((select auth.uid()) = created_by);
 
 -- ─── COUPLE_MEMBERS ────────────────────────────────────────────────
 DROP POLICY IF EXISTS "Users can view own memberships" ON couple_members;
@@ -1457,18 +1676,18 @@ DROP POLICY IF EXISTS "Couple members can view memberships" ON couple_members;
 DROP POLICY IF EXISTS "member_select" ON couple_members;
 DROP POLICY IF EXISTS "member_select_v2" ON couple_members;
 CREATE POLICY "Couple members can view memberships" ON couple_members
-  FOR SELECT USING (couple_id IN (SELECT get_my_couple_ids()));
+  FOR SELECT TO authenticated USING (couple_id IN (SELECT get_my_couple_ids()));
 
 DROP POLICY IF EXISTS "Users can join couple" ON couple_members;
 DROP POLICY IF EXISTS "member_insert" ON couple_members;
 DROP POLICY IF EXISTS "member_insert_v2" ON couple_members;
 CREATE POLICY "Users can join couple" ON couple_members
-  FOR INSERT WITH CHECK (
-    user_id = auth.uid()
+  FOR INSERT TO authenticated WITH CHECK (
+    user_id = (select auth.uid())
     AND EXISTS (
       SELECT 1 FROM couples c
       WHERE c.id = couple_members.couple_id
-        AND c.created_by = auth.uid()
+        AND c.created_by = (select auth.uid())
     )
   );
 
@@ -1476,13 +1695,13 @@ DROP POLICY IF EXISTS "member_update" ON couple_members;
 DROP POLICY IF EXISTS "member_update_v2" ON couple_members;
 DROP POLICY IF EXISTS "Users can update own membership" ON couple_members;
 CREATE POLICY "Users can update own membership" ON couple_members
-  FOR UPDATE USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid());
+  FOR UPDATE TO authenticated USING (user_id = (select auth.uid())) WITH CHECK (user_id = (select auth.uid()));
 
 DROP POLICY IF EXISTS "member_delete" ON couple_members;
 DROP POLICY IF EXISTS "member_delete_v2" ON couple_members;
 DROP POLICY IF EXISTS "Users can leave couple" ON couple_members;
 CREATE POLICY "Users can leave couple" ON couple_members
-  FOR DELETE USING (user_id = auth.uid());
+  FOR DELETE TO authenticated USING (user_id = (select auth.uid()));
 
 -- ─── COUPLE_DATA ───────────────────────────────────────────────────
 DROP POLICY IF EXISTS "Couple members can view shared data" ON couple_data;
@@ -1491,8 +1710,8 @@ DROP POLICY IF EXISTS "couple_data_select_v2" ON couple_data;
 DROP POLICY IF EXISTS "Couple data select" ON couple_data;
 CREATE POLICY "Couple data select" ON couple_data
   FOR SELECT TO authenticated USING (
-    EXISTS (SELECT 1 FROM couple_members cm WHERE cm.couple_id = couple_data.couple_id AND cm.user_id = auth.uid())
-    AND (is_private IS NOT TRUE OR created_by = auth.uid())
+    EXISTS (SELECT 1 FROM couple_members cm WHERE cm.couple_id = couple_data.couple_id AND cm.user_id = (select auth.uid()))
+    AND (is_private IS NOT TRUE OR created_by = (select auth.uid()))
   );
 
 DROP POLICY IF EXISTS "Couple members can insert data" ON couple_data;
@@ -1502,11 +1721,25 @@ DROP POLICY IF EXISTS "couple_data_insert_v2" ON couple_data;
 DROP POLICY IF EXISTS "Couple data insert (premium-aware)" ON couple_data;
 CREATE POLICY "Couple data insert (premium-aware)" ON couple_data
   FOR INSERT TO authenticated WITH CHECK (
-    EXISTS (SELECT 1 FROM couple_members cm WHERE cm.couple_id = couple_data.couple_id AND cm.user_id = auth.uid())
-    AND created_by = auth.uid()
+    EXISTS (SELECT 1 FROM couple_members cm WHERE cm.couple_id = couple_data.couple_id AND cm.user_id = (select auth.uid()))
+    AND created_by = (select auth.uid())
     AND (
       is_user_premium()
-      OR data_type IN ('journal', 'prompt_answer', 'check_in', 'vibe', 'couple_state', 'moment_signal', 'attachment_meta')
+      OR data_type IN (
+        'journal',
+        'prompt_answer',
+        'check_in',
+        'vibe',
+        'couple_state',
+        'moment_signal',
+        'attachment_meta',
+        'date_plan',
+        'daily_prompt',
+        'daily_quiz',
+        'custom_ritual',
+        'love_note',
+        'whisper'
+      )
       OR (data_type = 'memory' AND user_data_count(couple_id, 'memory') < 10)
     )
   );
@@ -1517,8 +1750,20 @@ DROP POLICY IF EXISTS "couple_data_update_v2" ON couple_data;
 DROP POLICY IF EXISTS "Couple data update" ON couple_data;
 CREATE POLICY "Couple data update" ON couple_data
   FOR UPDATE TO authenticated
-  USING (created_by = auth.uid() AND EXISTS (SELECT 1 FROM couple_members cm WHERE cm.couple_id = couple_data.couple_id AND cm.user_id = auth.uid()))
-  WITH CHECK (created_by = auth.uid());
+  USING (
+    EXISTS (SELECT 1 FROM couple_members cm WHERE cm.couple_id = couple_data.couple_id AND cm.user_id = (select auth.uid()))
+    AND (
+      created_by = (select auth.uid())
+      OR data_type IN ('couple_state', 'daily_prompt', 'daily_quiz', 'date_plan')
+    )
+  )
+  WITH CHECK (
+    EXISTS (SELECT 1 FROM couple_members cm WHERE cm.couple_id = couple_data.couple_id AND cm.user_id = (select auth.uid()))
+    AND (
+      created_by = (select auth.uid())
+      OR data_type IN ('couple_state', 'daily_prompt', 'daily_quiz', 'date_plan')
+    )
+  );
 
 DROP POLICY IF EXISTS "Creators can delete own data" ON couple_data;
 DROP POLICY IF EXISTS "couple_delete_data" ON couple_data;
@@ -1526,101 +1771,107 @@ DROP POLICY IF EXISTS "couple_data_delete_v2" ON couple_data;
 DROP POLICY IF EXISTS "Couple data delete" ON couple_data;
 CREATE POLICY "Couple data delete" ON couple_data
   FOR DELETE TO authenticated USING (
-    created_by = auth.uid()
-    AND EXISTS (SELECT 1 FROM couple_members cm WHERE cm.couple_id = couple_data.couple_id AND cm.user_id = auth.uid())
+    EXISTS (SELECT 1 FROM couple_members cm WHERE cm.couple_id = couple_data.couple_id AND cm.user_id = (select auth.uid()))
+    AND (
+      created_by = (select auth.uid())
+      OR data_type IN ('couple_state', 'daily_prompt', 'daily_quiz', 'date_plan')
+    )
   );
 
 -- ─── CALENDAR_EVENTS ──────────────────────────────────────────────
 DROP POLICY IF EXISTS "Couple members can view calendar events" ON calendar_events;
 CREATE POLICY "Couple members can view calendar events" ON calendar_events
-  FOR SELECT USING (
-    EXISTS (SELECT 1 FROM couple_members m WHERE m.couple_id = calendar_events.couple_id AND m.user_id = auth.uid())
+  FOR SELECT TO authenticated USING (
+    EXISTS (SELECT 1 FROM couple_members m WHERE m.couple_id = calendar_events.couple_id AND m.user_id = (select auth.uid()))
   );
 
 DROP POLICY IF EXISTS "Premium members can create calendar events" ON calendar_events;
-CREATE POLICY "Premium members can create calendar events" ON calendar_events
-  FOR INSERT WITH CHECK (
-    created_by = auth.uid()
-    AND EXISTS (SELECT 1 FROM couple_members m WHERE m.couple_id = calendar_events.couple_id AND m.user_id = auth.uid())
-    AND couple_has_premium(calendar_events.couple_id)
+DROP POLICY IF EXISTS "Couple members can create calendar events" ON calendar_events;
+CREATE POLICY "Couple members can create calendar events" ON calendar_events
+  FOR INSERT TO authenticated WITH CHECK (
+    created_by = (select auth.uid())
+    AND EXISTS (SELECT 1 FROM couple_members m WHERE m.couple_id = calendar_events.couple_id AND m.user_id = (select auth.uid()))
   );
 
 DROP POLICY IF EXISTS "Premium creators can update calendar events" ON calendar_events;
 DROP POLICY IF EXISTS "Premium members can update calendar events" ON calendar_events;
-CREATE POLICY "Premium members can update calendar events" ON calendar_events
-  FOR UPDATE USING (
-    EXISTS (SELECT 1 FROM couple_members m WHERE m.couple_id = calendar_events.couple_id AND m.user_id = auth.uid())
-    AND couple_has_premium(calendar_events.couple_id)
+DROP POLICY IF EXISTS "Couple members can update calendar events" ON calendar_events;
+CREATE POLICY "Couple members can update calendar events" ON calendar_events
+  FOR UPDATE TO authenticated USING (
+    EXISTS (SELECT 1 FROM couple_members m WHERE m.couple_id = calendar_events.couple_id AND m.user_id = (select auth.uid()))
   )
   WITH CHECK (
-    EXISTS (SELECT 1 FROM couple_members m WHERE m.couple_id = calendar_events.couple_id AND m.user_id = auth.uid())
-    AND couple_has_premium(calendar_events.couple_id)
+    EXISTS (SELECT 1 FROM couple_members m WHERE m.couple_id = calendar_events.couple_id AND m.user_id = (select auth.uid()))
   );
 
 DROP POLICY IF EXISTS "Premium creators can delete calendar events" ON calendar_events;
 DROP POLICY IF EXISTS "Premium members can delete calendar events" ON calendar_events;
-CREATE POLICY "Premium members can delete calendar events" ON calendar_events
-  FOR DELETE USING (
-    EXISTS (SELECT 1 FROM couple_members m WHERE m.couple_id = calendar_events.couple_id AND m.user_id = auth.uid())
-    AND couple_has_premium(calendar_events.couple_id)
+DROP POLICY IF EXISTS "Couple members can delete calendar events" ON calendar_events;
+CREATE POLICY "Couple members can delete calendar events" ON calendar_events
+  FOR DELETE TO authenticated USING (
+    EXISTS (SELECT 1 FROM couple_members m WHERE m.couple_id = calendar_events.couple_id AND m.user_id = (select auth.uid()))
   );
 
 -- ─── MOMENTS ──────────────────────────────────────────────────────
 DROP POLICY IF EXISTS "Couple members can view moments" ON moments;
 CREATE POLICY "Couple members can view moments" ON moments
-  FOR SELECT USING (
-    EXISTS (SELECT 1 FROM couple_members m WHERE m.couple_id = moments.couple_id AND m.user_id = auth.uid())
-    AND (is_private = false OR created_by = auth.uid())
+  FOR SELECT TO authenticated USING (
+    EXISTS (SELECT 1 FROM couple_members m WHERE m.couple_id = moments.couple_id AND m.user_id = (select auth.uid()))
+    AND (is_private = false OR created_by = (select auth.uid()))
   );
 
 DROP POLICY IF EXISTS "Couple members can create moments" ON moments;
 CREATE POLICY "Couple members can create moments" ON moments
-  FOR INSERT WITH CHECK (
-    created_by = auth.uid()
-    AND EXISTS (SELECT 1 FROM couple_members m WHERE m.couple_id = moments.couple_id AND m.user_id = auth.uid())
+  FOR INSERT TO authenticated WITH CHECK (
+    created_by = (select auth.uid())
+    AND EXISTS (SELECT 1 FROM couple_members m WHERE m.couple_id = moments.couple_id AND m.user_id = (select auth.uid()))
   );
 
 DROP POLICY IF EXISTS "Creators can update moments" ON moments;
 CREATE POLICY "Creators can update moments" ON moments
-  FOR UPDATE USING (
-    created_by = auth.uid()
-    AND EXISTS (SELECT 1 FROM couple_members m WHERE m.couple_id = moments.couple_id AND m.user_id = auth.uid())
+  FOR UPDATE TO authenticated USING (
+    created_by = (select auth.uid())
+    AND EXISTS (SELECT 1 FROM couple_members m WHERE m.couple_id = moments.couple_id AND m.user_id = (select auth.uid()))
+  )
+  WITH CHECK (
+    created_by = (select auth.uid())
+    AND EXISTS (SELECT 1 FROM couple_members m WHERE m.couple_id = moments.couple_id AND m.user_id = (select auth.uid()))
   );
 
 DROP POLICY IF EXISTS "Creators can delete moments" ON moments;
 CREATE POLICY "Creators can delete moments" ON moments
-  FOR DELETE USING (
-    created_by = auth.uid()
-    AND EXISTS (SELECT 1 FROM couple_members m WHERE m.couple_id = moments.couple_id AND m.user_id = auth.uid())
+  FOR DELETE TO authenticated USING (
+    created_by = (select auth.uid())
+    AND EXISTS (SELECT 1 FROM couple_members m WHERE m.couple_id = moments.couple_id AND m.user_id = (select auth.uid()))
   );
 
 -- ─── PARTNER_LINK_CODES ───────────────────────────────────────────
 DROP POLICY IF EXISTS "Users can view own link codes" ON partner_link_codes;
 CREATE POLICY "Users can view own link codes" ON partner_link_codes
-  FOR SELECT USING (created_by = auth.uid());
+  FOR SELECT TO authenticated USING (created_by = (select auth.uid()));
 
 DROP POLICY IF EXISTS "Authenticated users can create link codes" ON partner_link_codes;
 CREATE POLICY "Authenticated users can create link codes" ON partner_link_codes
-  FOR INSERT WITH CHECK (
-    created_by = auth.uid()
+  FOR INSERT TO authenticated WITH CHECK (
+    created_by = (select auth.uid())
     AND (
       couple_id IS NULL
       OR EXISTS (
         SELECT 1 FROM couple_members cm
         WHERE cm.couple_id = partner_link_codes.couple_id
-          AND cm.user_id = auth.uid()
+          AND cm.user_id = (select auth.uid())
       )
     )
     AND (
       couple_id IS NOT NULL
-      OR NOT EXISTS (SELECT 1 FROM couple_members WHERE user_id = auth.uid())
+      OR NOT EXISTS (SELECT 1 FROM couple_members WHERE user_id = (select auth.uid()))
     )
   );
 
 -- ─── USER_ENTITLEMENTS ────────────────────────────────────────────
 DROP POLICY IF EXISTS "Users can view own entitlements" ON user_entitlements;
 CREATE POLICY "Users can view own entitlements" ON user_entitlements
-  FOR SELECT USING (user_id = auth.uid());
+  FOR SELECT TO authenticated USING (user_id = (select auth.uid()));
 
 -- Entitlements are managed server-side only (RevenueCat webhook → service_role).
 -- Explicit deny prevents client-side privilege escalation.
@@ -1635,53 +1886,160 @@ CREATE POLICY "Deny client entitlement updates" ON user_entitlements
 -- ─── USAGE_EVENTS ─────────────────────────────────────────────────
 DROP POLICY IF EXISTS "Users can insert own usage events" ON usage_events;
 CREATE POLICY "Users can insert own usage events" ON usage_events
-  FOR INSERT WITH CHECK (auth.uid() = user_id AND is_couple_member(couple_id, auth.uid()));
+  FOR INSERT TO authenticated WITH CHECK ((select auth.uid()) = user_id AND is_couple_member(couple_id, (select auth.uid())));
 
 DROP POLICY IF EXISTS "Users can read couple usage events" ON usage_events;
 CREATE POLICY "Users can read couple usage events" ON usage_events
-  FOR SELECT USING (is_couple_member(couple_id, auth.uid()));
+  FOR SELECT TO authenticated USING (is_couple_member(couple_id, (select auth.uid())));
 
 DROP POLICY IF EXISTS "Users can delete own usage events" ON usage_events;
 CREATE POLICY "Users can delete own usage events" ON usage_events
-  FOR DELETE USING (auth.uid() = user_id);
+  FOR DELETE TO authenticated USING ((select auth.uid()) = user_id);
 
 -- ─── ANALYTICS_EVENTS ─────────────────────────────────────────────
 DROP POLICY IF EXISTS "analytics_insert_own" ON analytics_events;
 DROP POLICY IF EXISTS analytics_insert_own ON analytics_events;
 CREATE POLICY "analytics_insert_own" ON analytics_events
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
+  FOR INSERT TO authenticated WITH CHECK ((select auth.uid()) = user_id);
 
 DROP POLICY IF EXISTS "analytics_select_own" ON analytics_events;
 DROP POLICY IF EXISTS analytics_select_own ON analytics_events;
 CREATE POLICY "analytics_select_own" ON analytics_events
-  FOR SELECT USING (auth.uid() = user_id);
+  FOR SELECT TO authenticated USING ((select auth.uid()) = user_id);
 
 -- ─── RATE_LIMIT_BUCKETS ───────────────────────────────────────────
 DROP POLICY IF EXISTS "service_role_only" ON rate_limit_buckets;
 CREATE POLICY "service_role_only" ON rate_limit_buckets
-  FOR ALL USING (auth.role() = 'service_role');
+  FOR ALL TO service_role USING (true) WITH CHECK (true);
 
 -- ─── PUSH_TOKENS ──────────────────────────────────────────────────
 DROP POLICY IF EXISTS "Users can view own push tokens" ON push_tokens;
 CREATE POLICY "Users can view own push tokens" ON push_tokens
-  FOR SELECT USING (user_id = auth.uid());
+  FOR SELECT TO authenticated USING (user_id = (select auth.uid()));
 
 DROP POLICY IF EXISTS "Users can insert own push tokens" ON push_tokens;
 CREATE POLICY "Users can insert own push tokens" ON push_tokens
-  FOR INSERT WITH CHECK (user_id = auth.uid());
+  FOR INSERT TO authenticated WITH CHECK (user_id = (select auth.uid()));
 
 DROP POLICY IF EXISTS "Users can update own push tokens" ON push_tokens;
 CREATE POLICY "Users can update own push tokens" ON push_tokens
-  FOR UPDATE USING (user_id = auth.uid());
+  FOR UPDATE TO authenticated USING (user_id = (select auth.uid())) WITH CHECK (user_id = (select auth.uid()));
 
 DROP POLICY IF EXISTS "Users can delete own push tokens" ON push_tokens;
 CREATE POLICY "Users can delete own push tokens" ON push_tokens
-  FOR DELETE USING (user_id = auth.uid());
+  FOR DELETE TO authenticated USING (user_id = (select auth.uid()));
 
 -- ─── NOTIFICATION_LOG ─────────────────────────────────────────────
 DROP POLICY IF EXISTS "notification_log_service_only" ON notification_log;
 CREATE POLICY "notification_log_service_only" ON notification_log
-  FOR ALL USING (auth.role() = 'service_role');
+  FOR ALL TO service_role USING (true) WITH CHECK (true);
+
+-- ─── EXPERIMENTS ───────────────────────────────────────────────────
+DROP POLICY IF EXISTS "Enabled experiments are readable" ON experiments;
+CREATE POLICY "Enabled experiments are readable" ON experiments
+  FOR SELECT TO anon, authenticated USING (enabled = true);
+
+DROP POLICY IF EXISTS "Service role can manage experiments" ON experiments;
+CREATE POLICY "Service role can manage experiments" ON experiments
+  FOR ALL TO service_role USING (true) WITH CHECK (true);
+
+-- ─── PASSWORD_RECOVERY ─────────────────────────────────────────────
+DROP POLICY IF EXISTS password_recovery_codes_service_only ON password_recovery_codes;
+CREATE POLICY password_recovery_codes_service_only ON password_recovery_codes
+  FOR ALL TO service_role USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS password_recovery_request_limits_service_only ON password_recovery_request_limits;
+CREATE POLICY password_recovery_request_limits_service_only ON password_recovery_request_limits
+  FOR ALL TO service_role USING (true) WITH CHECK (true);
+
+-- ─── DATE_SHORTLIST ────────────────────────────────────────────────
+DROP POLICY IF EXISTS "Users can read their own date shortlist" ON date_shortlist;
+CREATE POLICY "Users can read their own date shortlist" ON date_shortlist
+  FOR SELECT TO authenticated USING ((select auth.uid()) = user_id);
+
+DROP POLICY IF EXISTS "Users can insert their own date shortlist" ON date_shortlist;
+CREATE POLICY "Users can insert their own date shortlist" ON date_shortlist
+  FOR INSERT TO authenticated WITH CHECK ((select auth.uid()) = user_id);
+
+DROP POLICY IF EXISTS "Users can update their own date shortlist" ON date_shortlist;
+CREATE POLICY "Users can update their own date shortlist" ON date_shortlist
+  FOR UPDATE TO authenticated
+  USING ((select auth.uid()) = user_id)
+  WITH CHECK ((select auth.uid()) = user_id);
+
+-- Restrictive policies block Supabase anonymous-auth users. Anonymous auth
+-- receives the authenticated role, so this protects all private app tables.
+DROP POLICY IF EXISTS block_anonymous_auth_users ON profiles;
+CREATE POLICY block_anonymous_auth_users ON profiles
+  AS RESTRICTIVE FOR ALL TO authenticated
+  USING ((select is_permanent_authenticated_user()))
+  WITH CHECK ((select is_permanent_authenticated_user()));
+
+DROP POLICY IF EXISTS block_anonymous_auth_users ON couples;
+CREATE POLICY block_anonymous_auth_users ON couples
+  AS RESTRICTIVE FOR ALL TO authenticated
+  USING ((select is_permanent_authenticated_user()))
+  WITH CHECK ((select is_permanent_authenticated_user()));
+
+DROP POLICY IF EXISTS block_anonymous_auth_users ON couple_members;
+CREATE POLICY block_anonymous_auth_users ON couple_members
+  AS RESTRICTIVE FOR ALL TO authenticated
+  USING ((select is_permanent_authenticated_user()))
+  WITH CHECK ((select is_permanent_authenticated_user()));
+
+DROP POLICY IF EXISTS block_anonymous_auth_users ON couple_data;
+CREATE POLICY block_anonymous_auth_users ON couple_data
+  AS RESTRICTIVE FOR ALL TO authenticated
+  USING ((select is_permanent_authenticated_user()))
+  WITH CHECK ((select is_permanent_authenticated_user()));
+
+DROP POLICY IF EXISTS block_anonymous_auth_users ON calendar_events;
+CREATE POLICY block_anonymous_auth_users ON calendar_events
+  AS RESTRICTIVE FOR ALL TO authenticated
+  USING ((select is_permanent_authenticated_user()))
+  WITH CHECK ((select is_permanent_authenticated_user()));
+
+DROP POLICY IF EXISTS block_anonymous_auth_users ON moments;
+CREATE POLICY block_anonymous_auth_users ON moments
+  AS RESTRICTIVE FOR ALL TO authenticated
+  USING ((select is_permanent_authenticated_user()))
+  WITH CHECK ((select is_permanent_authenticated_user()));
+
+DROP POLICY IF EXISTS block_anonymous_auth_users ON partner_link_codes;
+CREATE POLICY block_anonymous_auth_users ON partner_link_codes
+  AS RESTRICTIVE FOR ALL TO authenticated
+  USING ((select is_permanent_authenticated_user()))
+  WITH CHECK ((select is_permanent_authenticated_user()));
+
+DROP POLICY IF EXISTS block_anonymous_auth_users ON user_entitlements;
+CREATE POLICY block_anonymous_auth_users ON user_entitlements
+  AS RESTRICTIVE FOR ALL TO authenticated
+  USING ((select is_permanent_authenticated_user()))
+  WITH CHECK ((select is_permanent_authenticated_user()));
+
+DROP POLICY IF EXISTS block_anonymous_auth_users ON usage_events;
+CREATE POLICY block_anonymous_auth_users ON usage_events
+  AS RESTRICTIVE FOR ALL TO authenticated
+  USING ((select is_permanent_authenticated_user()))
+  WITH CHECK ((select is_permanent_authenticated_user()));
+
+DROP POLICY IF EXISTS block_anonymous_auth_users ON analytics_events;
+CREATE POLICY block_anonymous_auth_users ON analytics_events
+  AS RESTRICTIVE FOR ALL TO authenticated
+  USING ((select is_permanent_authenticated_user()))
+  WITH CHECK ((select is_permanent_authenticated_user()));
+
+DROP POLICY IF EXISTS block_anonymous_auth_users ON push_tokens;
+CREATE POLICY block_anonymous_auth_users ON push_tokens
+  AS RESTRICTIVE FOR ALL TO authenticated
+  USING ((select is_permanent_authenticated_user()))
+  WITH CHECK ((select is_permanent_authenticated_user()));
+
+DROP POLICY IF EXISTS block_anonymous_auth_users ON date_shortlist;
+CREATE POLICY block_anonymous_auth_users ON date_shortlist
+  AS RESTRICTIVE FOR ALL TO authenticated
+  USING ((select is_permanent_authenticated_user()))
+  WITH CHECK ((select is_permanent_authenticated_user()));
 
 
 -- ############################################################################
@@ -1690,6 +2048,16 @@ CREATE POLICY "notification_log_service_only" ON notification_log
 
 INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
 VALUES ('attachments', 'attachments', false, 52428800, ARRAY['application/octet-stream'])
+ON CONFLICT (id) DO NOTHING;
+
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES (
+  'whispers',
+  'whispers',
+  false,
+  10485760,
+  ARRAY['audio/mp4', 'audio/m4a', 'audio/aac', 'audio/mpeg', 'audio/wav']::text[]
+)
 ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO storage.buckets (id, name, public)
@@ -1703,10 +2071,10 @@ DROP POLICY IF EXISTS "attachments_insert" ON storage.objects;
 CREATE POLICY "attachments_insert" ON storage.objects
   FOR INSERT TO authenticated WITH CHECK (
     bucket_id = 'attachments'
-    AND (storage.foldername(name))[2] = auth.uid()::text
+    AND (storage.foldername(name))[2] = (select auth.uid())::text
     AND EXISTS (
       SELECT 1 FROM couple_members cm
-      WHERE cm.couple_id = (storage.foldername(name))[1]::uuid AND cm.user_id = auth.uid()
+      WHERE cm.couple_id = (storage.foldername(name))[1]::uuid AND cm.user_id = (select auth.uid())
     )
   );
 
@@ -1718,7 +2086,7 @@ CREATE POLICY "attachments_select" ON storage.objects
     bucket_id = 'attachments'
     AND EXISTS (
       SELECT 1 FROM couple_members cm
-      WHERE cm.couple_id = (storage.foldername(name))[1]::uuid AND cm.user_id = auth.uid()
+      WHERE cm.couple_id = (storage.foldername(name))[1]::uuid AND cm.user_id = (select auth.uid())
     )
   );
 
@@ -1728,45 +2096,184 @@ DROP POLICY IF EXISTS "attachments_delete" ON storage.objects;
 CREATE POLICY "attachments_delete" ON storage.objects
   FOR DELETE TO authenticated USING (
     bucket_id = 'attachments'
-    AND (storage.foldername(name))[2] = auth.uid()::text
+    AND (storage.foldername(name))[2] = (select auth.uid())::text
     AND EXISTS (
       SELECT 1 FROM couple_members cm
-      WHERE cm.couple_id = (storage.foldername(name))[1]::uuid AND cm.user_id = auth.uid()
+      WHERE cm.couple_id = (storage.foldername(name))[1]::uuid AND cm.user_id = (select auth.uid())
+    )
+  );
+
+DROP POLICY IF EXISTS storage_attachments_member_select ON storage.objects;
+CREATE POLICY storage_attachments_member_select ON storage.objects
+  FOR SELECT TO authenticated USING (
+    bucket_id = 'attachments'
+    AND EXISTS (
+      SELECT 1 FROM couple_members cm
+      WHERE cm.user_id = (select auth.uid())
+        AND cm.couple_id::text = (storage.foldername(name))[1]
+    )
+  );
+
+DROP POLICY IF EXISTS storage_attachments_member_insert ON storage.objects;
+CREATE POLICY storage_attachments_member_insert ON storage.objects
+  FOR INSERT TO authenticated WITH CHECK (
+    bucket_id = 'attachments'
+    AND EXISTS (
+      SELECT 1 FROM couple_members cm
+      WHERE cm.user_id = (select auth.uid())
+        AND cm.couple_id::text = (storage.foldername(name))[1]
+    )
+  );
+
+DROP POLICY IF EXISTS storage_attachments_member_update ON storage.objects;
+CREATE POLICY storage_attachments_member_update ON storage.objects
+  FOR UPDATE TO authenticated USING (
+    bucket_id = 'attachments'
+    AND EXISTS (
+      SELECT 1 FROM couple_members cm
+      WHERE cm.user_id = (select auth.uid())
+        AND cm.couple_id::text = (storage.foldername(name))[1]
+    )
+  )
+  WITH CHECK (
+    bucket_id = 'attachments'
+    AND EXISTS (
+      SELECT 1 FROM couple_members cm
+      WHERE cm.user_id = (select auth.uid())
+        AND cm.couple_id::text = (storage.foldername(name))[1]
+    )
+  );
+
+DROP POLICY IF EXISTS storage_attachments_member_delete ON storage.objects;
+CREATE POLICY storage_attachments_member_delete ON storage.objects
+  FOR DELETE TO authenticated USING (
+    bucket_id = 'attachments'
+    AND EXISTS (
+      SELECT 1 FROM couple_members cm
+      WHERE cm.user_id = (select auth.uid())
+        AND cm.couple_id::text = (storage.foldername(name))[1]
+    )
+  );
+
+DROP POLICY IF EXISTS storage_whispers_member_select ON storage.objects;
+CREATE POLICY storage_whispers_member_select ON storage.objects
+  FOR SELECT TO authenticated USING (
+    bucket_id = 'whispers'
+    AND EXISTS (
+      SELECT 1 FROM couple_members cm
+      WHERE cm.user_id = (select auth.uid())
+        AND cm.couple_id::text = (storage.foldername(name))[1]
+    )
+  );
+
+DROP POLICY IF EXISTS storage_whispers_member_insert ON storage.objects;
+CREATE POLICY storage_whispers_member_insert ON storage.objects
+  FOR INSERT TO authenticated WITH CHECK (
+    bucket_id = 'whispers'
+    AND EXISTS (
+      SELECT 1 FROM couple_members cm
+      WHERE cm.user_id = (select auth.uid())
+        AND cm.couple_id::text = (storage.foldername(name))[1]
+    )
+  );
+
+DROP POLICY IF EXISTS storage_whispers_member_update ON storage.objects;
+CREATE POLICY storage_whispers_member_update ON storage.objects
+  FOR UPDATE TO authenticated USING (
+    bucket_id = 'whispers'
+    AND EXISTS (
+      SELECT 1 FROM couple_members cm
+      WHERE cm.user_id = (select auth.uid())
+        AND cm.couple_id::text = (storage.foldername(name))[1]
+    )
+  )
+  WITH CHECK (
+    bucket_id = 'whispers'
+    AND EXISTS (
+      SELECT 1 FROM couple_members cm
+      WHERE cm.user_id = (select auth.uid())
+        AND cm.couple_id::text = (storage.foldername(name))[1]
+    )
+  );
+
+DROP POLICY IF EXISTS storage_whispers_member_delete ON storage.objects;
+CREATE POLICY storage_whispers_member_delete ON storage.objects
+  FOR DELETE TO authenticated USING (
+    bucket_id = 'whispers'
+    AND EXISTS (
+      SELECT 1 FROM couple_members cm
+      WHERE cm.user_id = (select auth.uid())
+        AND cm.couple_id::text = (storage.foldername(name))[1]
     )
   );
 
 DROP POLICY IF EXISTS "Couple members can upload media" ON storage.objects;
-CREATE POLICY "Couple members can upload media" ON storage.objects
-  FOR INSERT WITH CHECK (
-    bucket_id = 'couple-media' AND auth.role() = 'authenticated'
-    AND EXISTS (
-      SELECT 1 FROM couple_members m WHERE m.user_id = auth.uid()
-        AND (storage.foldername(name))[1] = 'couples'
-        AND (storage.foldername(name))[2] = m.couple_id::text
-    )
-  );
-
 DROP POLICY IF EXISTS "Couple members can view media" ON storage.objects;
-CREATE POLICY "Couple members can view media" ON storage.objects
-  FOR SELECT USING (
-    bucket_id = 'couple-media' AND auth.role() = 'authenticated'
+DROP POLICY IF EXISTS "Couple members can delete own media" ON storage.objects;
+
+DROP POLICY IF EXISTS storage_couple_media_member_select ON storage.objects;
+CREATE POLICY storage_couple_media_member_select ON storage.objects
+  FOR SELECT TO authenticated USING (
+    bucket_id = 'couple-media'
+    AND (storage.foldername(name))[1] = 'couples'
     AND EXISTS (
-      SELECT 1 FROM couple_members m WHERE m.user_id = auth.uid()
-        AND (storage.foldername(name))[1] = 'couples'
+      SELECT 1 FROM couple_members m
+      WHERE m.user_id = (select auth.uid())
         AND (storage.foldername(name))[2] = m.couple_id::text
     )
   );
 
-DROP POLICY IF EXISTS "Couple members can delete own media" ON storage.objects;
-CREATE POLICY "Couple members can delete own media" ON storage.objects
-  FOR DELETE USING (
-    bucket_id = 'couple-media' AND auth.role() = 'authenticated' AND owner = auth.uid()
+DROP POLICY IF EXISTS storage_couple_media_member_insert ON storage.objects;
+CREATE POLICY storage_couple_media_member_insert ON storage.objects
+  FOR INSERT TO authenticated WITH CHECK (
+    bucket_id = 'couple-media'
+    AND (storage.foldername(name))[1] = 'couples'
     AND EXISTS (
-      SELECT 1 FROM couple_members m WHERE m.user_id = auth.uid()
-        AND (storage.foldername(name))[1] = 'couples'
+      SELECT 1 FROM couple_members m
+      WHERE m.user_id = (select auth.uid())
         AND (storage.foldername(name))[2] = m.couple_id::text
     )
   );
+
+DROP POLICY IF EXISTS storage_couple_media_member_update ON storage.objects;
+CREATE POLICY storage_couple_media_member_update ON storage.objects
+  FOR UPDATE TO authenticated USING (
+    bucket_id = 'couple-media'
+    AND (storage.foldername(name))[1] = 'couples'
+    AND EXISTS (
+      SELECT 1 FROM couple_members m
+      WHERE m.user_id = (select auth.uid())
+        AND (storage.foldername(name))[2] = m.couple_id::text
+    )
+  )
+  WITH CHECK (
+    bucket_id = 'couple-media'
+    AND (storage.foldername(name))[1] = 'couples'
+    AND EXISTS (
+      SELECT 1 FROM couple_members m
+      WHERE m.user_id = (select auth.uid())
+        AND (storage.foldername(name))[2] = m.couple_id::text
+    )
+  );
+
+DROP POLICY IF EXISTS storage_couple_media_member_delete ON storage.objects;
+CREATE POLICY storage_couple_media_member_delete ON storage.objects
+  FOR DELETE TO authenticated USING (
+    bucket_id = 'couple-media'
+    AND owner = (select auth.uid())
+    AND (storage.foldername(name))[1] = 'couples'
+    AND EXISTS (
+      SELECT 1 FROM couple_members m
+      WHERE m.user_id = (select auth.uid())
+        AND (storage.foldername(name))[2] = m.couple_id::text
+    )
+  );
+
+DROP POLICY IF EXISTS block_anonymous_auth_users ON storage.objects;
+CREATE POLICY block_anonymous_auth_users ON storage.objects
+  AS RESTRICTIVE FOR ALL TO authenticated
+  USING ((select is_permanent_authenticated_user()))
+  WITH CHECK ((select is_permanent_authenticated_user()));
 
 
 -- ############################################################################
@@ -1813,25 +2320,51 @@ ALTER TABLE couples         REPLICA IDENTITY FULL;
 -- PART 14: GRANTS
 -- ############################################################################
 
-GRANT EXECUTE ON FUNCTION get_user_couple_id(uuid)              TO authenticated;
-GRANT EXECUTE ON FUNCTION is_couple_member(uuid, uuid)          TO authenticated;
-GRANT EXECUTE ON FUNCTION get_my_couple_ids()                   TO authenticated;
-GRANT EXECUTE ON FUNCTION is_premium_user(uuid)                 TO authenticated;
-GRANT EXECUTE ON FUNCTION is_user_premium()                     TO authenticated;
-GRANT EXECUTE ON FUNCTION user_data_count(uuid, text)           TO authenticated;
-GRANT EXECUTE ON FUNCTION couple_has_premium(uuid)              TO authenticated;
-GRANT EXECUTE ON FUNCTION get_couple_premium_status(uuid)       TO authenticated;
+REVOKE ALL ON FUNCTION check_rate_limit(uuid, integer) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION check_sensitive_rate_limit(uuid) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION cleanup_couple_storage_objects(uuid, uuid) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION get_user_couple_id(uuid) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION guard_profile_premium_fields() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION guard_couple_data_immutable_fields() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION handle_new_user() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION is_premium_user(uuid) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION notify_on_calendar_event_insert() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION notify_on_couple_created() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION notify_on_couple_data_insert() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION notify_on_moment_insert() FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION send_expo_push(text, text, text, jsonb) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION sync_couple_premium_to_profiles() FROM PUBLIC, anon, authenticated;
+
+REVOKE ALL ON FUNCTION create_couple_for_qr() FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION delete_calendar_event_if_member(uuid) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION delete_own_account() FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION get_couple_premium_status(uuid) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION get_daily_usage_count(uuid, uuid, text, text) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION get_my_couple_ids() FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION is_couple_member(uuid, uuid) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION is_permanent_authenticated_user() FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION is_user_premium() FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION user_data_count(uuid, text) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION couple_has_premium(uuid) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION leave_couple() FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION notify_partner(uuid, text, text, jsonb) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION redeem_partner_code(text) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION set_couple_premium(uuid, boolean, text) FROM PUBLIC, anon;
+
+GRANT EXECUTE ON FUNCTION create_couple_for_qr() TO authenticated;
+GRANT EXECUTE ON FUNCTION delete_calendar_event_if_member(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION delete_own_account() TO authenticated;
+GRANT EXECUTE ON FUNCTION get_couple_premium_status(uuid) TO authenticated;
 GRANT EXECUTE ON FUNCTION get_daily_usage_count(uuid, uuid, text, text) TO authenticated;
+GRANT EXECUTE ON FUNCTION get_my_couple_ids() TO authenticated;
+GRANT EXECUTE ON FUNCTION is_couple_member(uuid, uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION is_permanent_authenticated_user() TO authenticated;
+GRANT EXECUTE ON FUNCTION is_user_premium() TO authenticated;
+GRANT EXECUTE ON FUNCTION user_data_count(uuid, text) TO authenticated;
+GRANT EXECUTE ON FUNCTION leave_couple() TO authenticated;
+GRANT EXECUTE ON FUNCTION redeem_partner_code(text) TO authenticated;
 GRANT EXECUTE ON FUNCTION set_couple_premium(uuid, boolean, text) TO authenticated;
-GRANT EXECUTE ON FUNCTION check_rate_limit(uuid, int)           TO authenticated;
-GRANT EXECUTE ON FUNCTION check_sensitive_rate_limit(uuid)      TO authenticated;
-REVOKE EXECUTE ON FUNCTION send_expo_push(text, text, text, jsonb) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION send_expo_push(text, text, text, jsonb) TO service_role;
-GRANT EXECUTE ON FUNCTION redeem_partner_code(text)             TO authenticated;
-GRANT EXECUTE ON FUNCTION create_couple_for_qr()                TO authenticated;
-GRANT EXECUTE ON FUNCTION leave_couple()                        TO authenticated;
-GRANT EXECUTE ON FUNCTION delete_own_account()                  TO authenticated;
-GRANT EXECUTE ON FUNCTION notify_partner(uuid, text, text, jsonb) TO authenticated;
 
 
 -- ############################################################################

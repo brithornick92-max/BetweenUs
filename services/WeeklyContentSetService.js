@@ -21,7 +21,7 @@
 import {
   FREE_LIMITS,
   PREMIUM_LIMITS,
-} from '../utils/featureFlags';
+} from '../utils/featureFlags.js';
 
 const CONTENT_TYPES = {
   PROMPTS: 'prompts',

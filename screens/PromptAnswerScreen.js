@@ -39,7 +39,6 @@ import { promptStorage, savedPromptStorage } from "../utils/storage";
 import { DataLayer } from "../services/localfirst";
 import * as PreferenceEngine from "../services/PreferenceEngine";
 import { getPromptById, isTodayBetweenUsPrompt } from "../utils/contentLoader";
-import { getMyDisplayName } from "../utils/profileNames";
 import { removeRestoredDeckItem } from "../utils/contentDeckRestores";
 import { SPACING, withAlpha } from "../utils/theme";
 import { CONTENT_TYPES } from "../services/WeeklyContentSetService";
@@ -332,15 +331,6 @@ export default function PromptAnswerScreen({ route, navigation }) {
         } catch (usageError) {
           if (__DEV__) console.warn('[PromptAnswer] Usage status refresh failed:', usageError?.message);
         }
-      }
-
-      if ((state?.coupleId || userProfile?.coupleId) && isFirstResponse) {
-        const myName = getMyDisplayName(userProfile, state?.userProfile, user?.displayName || null);
-        import('../services/PartnerNotifications').then(({ default: PN }) =>
-          PN.promptAnswered?.(myName, prompt.id)
-        ).catch((notifyError) => {
-          if (__DEV__) console.warn('[PromptAnswer] Partner prompt notification failed:', notifyError?.message);
-        });
       }
 
       notification(NotificationFeedbackType.Success);

@@ -14,6 +14,7 @@
  *   RECOVERY_CODE_PEPPER
  */
 
+// deno-lint-ignore no-import-prefix
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const CODE_TTL_MINUTES = 15;
@@ -36,6 +37,34 @@ type VerifyPayload = {
 };
 
 type RecoveryPayload = SendPayload | VerifyPayload;
+
+type RateLimitRow = {
+  id: string;
+  request_count: number | null;
+  window_started_at: string | null;
+};
+
+type QueryResult<TData> = PromiseLike<{ data: TData | null; error: unknown | null }>;
+type MutationResult = PromiseLike<{ error: unknown | null }>;
+
+type RateLimitSelectBuilder = {
+  eq(column: string, value: string): RateLimitSelectBuilder;
+  maybeSingle(): QueryResult<RateLimitRow>;
+};
+
+type RateLimitUpdateBuilder = {
+  eq(column: string, value: string): MutationResult;
+};
+
+type RateLimitTableBuilder = {
+  select(columns: string): RateLimitSelectBuilder;
+  insert(values: Record<string, unknown>): MutationResult;
+  update(values: Record<string, unknown>): RateLimitUpdateBuilder;
+};
+
+type SupabaseQueryClient = {
+  from(table: string): RateLimitTableBuilder;
+};
 
 const json = (status: number, body: Record<string, unknown>) =>
   new Response(JSON.stringify(body), {
@@ -72,7 +101,7 @@ function getClientIp(req: Request) {
   );
 }
 
-async function enforceSendRateLimit(supabase: ReturnType<typeof createClient>, email: string, req: Request) {
+async function enforceSendRateLimit(supabase: SupabaseQueryClient, email: string, req: Request) {
   const clientIp = getClientIp(req);
   const identifiers = [`email:${email}`];
 
@@ -115,7 +144,9 @@ async function enforceSendRateLimit(supabase: ReturnType<typeof createClient>, e
       continue;
     }
 
-    const windowStartedAt = new Date(existing.window_started_at).getTime();
+    const windowStartedAt = existing.window_started_at
+      ? new Date(existing.window_started_at).getTime()
+      : Number.NaN;
     const windowExpired = Number.isNaN(windowStartedAt) || now - windowStartedAt >= SEND_RATE_LIMIT_WINDOW_MS;
 
     if (windowExpired) {
@@ -223,7 +254,7 @@ Deno.serve(async (req: Request) => {
     }
 
     try {
-      const allowed = await enforceSendRateLimit(supabase, email, req);
+      const allowed = await enforceSendRateLimit(supabase as unknown as SupabaseQueryClient, email, req);
       if (!allowed) {
         return json(429, { error: "Too many recovery requests. Please wait a few minutes before trying again." });
       }

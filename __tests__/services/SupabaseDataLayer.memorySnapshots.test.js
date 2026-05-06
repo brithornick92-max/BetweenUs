@@ -213,7 +213,7 @@ describe('SupabaseDataLayer memory snapshots', () => {
     expect(mockMemorySaved).not.toHaveBeenCalled();
   });
 
-  it('sends one partner notification only when notifyPartner is true', async () => {
+  it('does not send client-side partner notifications for cloud-synced memories', async () => {
     await SupabaseDataLayer.init({
       userId: 'user-1',
       coupleId: 'couple-1',
@@ -230,8 +230,7 @@ describe('SupabaseDataLayer memory snapshots', () => {
       notifyPartner: true,
     });
 
-    expect(mockMemorySaved).toHaveBeenCalledTimes(1);
-    expect(mockMemorySaved).toHaveBeenCalledWith(null, 'snapshot');
+    expect(mockMemorySaved).not.toHaveBeenCalled();
   });
 
   it('forces memory rows to shared even if a caller passes isPrivate true', async () => {

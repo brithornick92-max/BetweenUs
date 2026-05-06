@@ -34,7 +34,6 @@ import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useAppContext } from '../context/AppContext';
 import { DataLayer } from '../services/localfirst';
-import PartnerNotifications from '../services/PartnerNotifications';
 import { impact, notification, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { SPACING, withAlpha } from '../utils/theme';
 import { getPartnerDisplayName } from '../utils/profileNames';
@@ -170,8 +169,6 @@ export default function ThinkingOfYouScreen() {
         mimeType: media.mimeType,
         fileName: media.fileName,
       });
-
-      await PartnerNotifications.thinkingOfYouPhoto(null, selectedReaction?.label || null).catch(() => {});
 
       notification(NotificationFeedbackType.Success);
       setSent(true);

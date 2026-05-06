@@ -722,14 +722,6 @@ export default function HomeScreen({ navigation }) {
         }
       }
 
-      if (coupleId && !myAnswer) {
-        import('../services/PartnerNotifications').then(({ default: PN }) =>
-          PN.promptAnswered?.(preferredName, prompt.id)
-        ).catch((notifyError) => {
-          if (__DEV__) console.warn('[Home] Partner prompt notification failed:', notifyError?.message);
-        });
-      }
-
       notification(NotificationFeedbackType.Success);
       setMyAnswer(finalText);
       setPartnerAnswer(nextPartnerAnswer);
@@ -779,8 +771,6 @@ export default function HomeScreen({ navigation }) {
     isPremium,
     myAnswer,
     partnerAnswer,
-    coupleId,
-    preferredName,
     showPaywall,
     loadUsageStatus,
     todayKey,

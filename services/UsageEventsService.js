@@ -1,6 +1,6 @@
 import { supabase } from '../config/supabase';
 import { storage } from '../utils/storage';
-import { FREE_LIMITS } from '../utils/featureFlags';
+import { FREE_LIMITS, UsageEventType } from '../utils/featureFlags';
 import { getDailyContentDateKey } from '../utils/dailyContentDate';
 
 /**
@@ -18,6 +18,10 @@ export const FREE_TIER_LIMITS = {
 };
 
 const CACHE_PREFIX = '@betweenus:cache:usage';
+const REMOTE_EVENT_ALIASES = Object.freeze({
+  prompts: UsageEventType.PROMPT_VIEWED,
+  dates: UsageEventType.DATE_IDEA_VIEWED,
+});
 
 class UsageEventsService {
   constructor() {
@@ -44,6 +48,15 @@ class UsageEventsService {
     return `${CACHE_PREFIX}:${userId || 'anonymous'}:${periodKey}`;
   }
 
+  _remoteWriteType(eventType) {
+    return REMOTE_EVENT_ALIASES[eventType] || eventType;
+  }
+
+  _remoteReadTypes(eventType) {
+    const canonical = this._remoteWriteType(eventType);
+    return canonical === eventType ? [eventType] : [canonical, eventType];
+  }
+
   async _getCoupleId() {
     if (!supabase) return null;
     const { data } = await supabase
@@ -55,12 +68,18 @@ class UsageEventsService {
 
   async _countRemote(userId, eventType, periodKey) {
     if (!supabase || !userId || String(userId).startsWith('user_')) return null;
-    const { count, error } = await supabase
+    const eventTypes = this._remoteReadTypes(eventType);
+    let query = supabase
       .from('usage_events')
       .select('id', { count: 'exact', head: true })
       .eq('user_id', userId)
-      .eq('event_type', eventType)
       .eq('local_day_key', periodKey);
+
+    query = eventTypes.length === 1
+      ? query.eq('event_type', eventTypes[0])
+      : query.in('event_type', eventTypes);
+
+    const { count, error } = await query;
     if (error) return null;
     return count || 0;
   }
@@ -73,7 +92,7 @@ class UsageEventsService {
       .insert({
         couple_id: coupleId,
         user_id: userId,
-        event_type: eventType,
+        event_type: this._remoteWriteType(eventType),
         local_day_key: periodKey,
         metadata,
       });

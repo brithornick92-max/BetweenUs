@@ -42,6 +42,8 @@ async function upload({ fileUri, coupleId, senderId, durationMs }) {
       couple_id: coupleId,
       data_type: 'whisper',
       key: whisperId,
+      created_by: senderId,
+      is_private: false,
       value: {
         whisper_id: whisperId,
         storage_path: storagePath,

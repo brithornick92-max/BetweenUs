@@ -97,6 +97,39 @@ describe('StorageRouter auth state bootstrap', () => {
     }));
   });
 
+  it('notifies listeners when Supabase emits a null session', async () => {
+    const session = {
+      user: {
+        id: 'user-1',
+        email: 'alex@example.com',
+        user_metadata: { display_name: 'Alex' },
+      },
+    };
+    let authStateCallback;
+
+    mockGetSession.mockResolvedValueOnce(session);
+    mockOnAuthStateChange.mockImplementation((callback) => {
+      authStateCallback = callback;
+      return { unsubscribe: jest.fn() };
+    });
+
+    const router = require('../../services/storage/StorageRouter').default;
+    const callback = jest.fn();
+
+    router.onAuthStateChanged(callback);
+    await flush();
+
+    expect(callback).toHaveBeenCalledWith(expect.objectContaining({
+      uid: 'user-1',
+      email: 'alex@example.com',
+    }));
+
+    authStateCallback(null);
+    await flush();
+
+    expect(callback).toHaveBeenLastCalledWith(null);
+  });
+
   it('ignores a stale initial session result after a newer sign-in event wins the race', async () => {
     const initialLookup = deferred();
     mockGetSession.mockReturnValueOnce(initialLookup.promise);

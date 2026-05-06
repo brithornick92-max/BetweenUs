@@ -13,6 +13,7 @@
 import { supabase } from '../config/supabase';
 import { UsageEventType, FREE_LIMITS } from '../utils/featureFlags';
 import { storage } from '../utils/storage';
+import { getDailyContentDateKey } from '../utils/dailyContentDate';
 
 const LOCAL_USAGE_PREFIX = '@betweenus:cache:usage_v2_';
 const CACHE_TTL_MS = 5 * 60 * 1000; // 5-minute cache validity
@@ -39,11 +40,7 @@ class UsageLimitsService {
   // ─── Helpers ──────────────────────────────────────────────────────────────────
 
   _todayKey() {
-    const now = new Date();
-    const y = now.getFullYear();
-    const m = String(now.getMonth() + 1).padStart(2, '0');
-    const d = String(now.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`; // e.g., '2026-02-08' (local time)
+    return getDailyContentDateKey();
   }
 
   _localKey(userId, eventType, dayKey) {
