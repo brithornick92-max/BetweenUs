@@ -65,7 +65,7 @@ import {
 import { isItemInStableFreeWeeklyDeck } from '../utils/freeWeeklyDeckAccess';
 import { getDailyContentDateKey } from '../utils/dailyContentDate';
 import { resolveVisibleDailyPromptState } from '../utils/dailyPromptState';
-import { getSparkAccessGate, SPARK_ACCESS_GATE_TYPES } from '../utils/sparkAccessGate';
+import { getSparkAccessGate } from '../utils/sparkAccessGate';
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 const PROMPTED_PARTNER_SHARE_KEY = '@betweenus:cache:promptedPartnerShare';
@@ -929,41 +929,21 @@ export default function HomeScreen({ navigation }) {
     }
   }, [navigation, prompt, promptReady, ritualState, todayKey]);
 
-  const openSparkSettings = useCallback(() => {
-    navigation.navigate('RelationshipProfile');
-  }, [navigation]);
-
-  const handleSparkAction = useCallback(async () => {
+  const handleSparkAction = useCallback(() => {
     try {
-      const profile = await PreferenceEngine.getContentProfile(userProfile || {});
-      const gate = getSparkAccessGate(profile || userProfile || {});
-
-      if (!gate) {
-        navigation.navigate('IntimacyPositions');
-        return;
-      }
-
-      if (gate.type === SPARK_ACCESS_GATE_TYPES.SPICY_HIDDEN) {
-        Alert.alert(gate.title, gate.message, [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Settings', onPress: openSparkSettings },
-          {
-            text: 'Continue',
-            onPress: () => navigation.navigate('IntimacyPositions', { allowHiddenSpicy: true }),
-          },
-        ]);
-        return;
-      }
-
+      const gate = getSparkAccessGate();
       Alert.alert(gate.title, gate.message, [
-        { text: 'Not Now', style: 'cancel' },
-        { text: 'Change Settings', onPress: openSparkSettings },
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Continue',
+          onPress: () => navigation.navigate('IntimacyPositions', { allowSexPositionContent: true }),
+        },
       ]);
     } catch (error) {
       if (__DEV__) console.warn('[Home] Spark gate failed:', error?.message);
-      navigation.navigate('IntimacyPositions');
+      navigation.navigate('IntimacyPositions', { allowSexPositionContent: true });
     }
-  }, [navigation, openSparkSettings, userProfile]);
+  }, [navigation]);
 
   const handleAction = useCallback(async (key) => {
     impact(ImpactFeedbackStyle.Light);

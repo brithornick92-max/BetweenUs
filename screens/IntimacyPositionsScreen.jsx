@@ -43,6 +43,7 @@ import { resolveWeeklyContentAnchorDate } from '../utils/contentSchedule';
 import { getIntimacyMatchState } from '../utils/coupleMatches';
 import { buildStableWeeklySet } from '../utils/stableWeeklyContent';
 import { resolveWeeklyDeckItems } from '../utils/weeklyDeckVisibility';
+import { ALL_HEAT_LEVELS } from '../utils/heatLevelRanges';
 
 const systemFont = Platform.select({ ios: "System", android: "Roboto" });
 let lastSelectedPositionId = null;
@@ -65,6 +66,41 @@ export function resolveAvailablePositions(weeklyPositionSet) {
   return resolveWeeklyDeckItems(weeklyPositionSet);
 }
 
+const asObject = (value) => (
+  value && typeof value === 'object' && !Array.isArray(value) ? value : {}
+);
+
+export function buildSexPositionAccessSettings(profile = {}, { allowSexPositionContent = false } = {}) {
+  const base = asObject(profile);
+  if (!allowSexPositionContent) return base;
+
+  const heatLevels = [...ALL_HEAT_LEVELS];
+
+  return {
+    ...base,
+    hideSpicy: false,
+    heatLevel: Math.max(...heatLevels),
+    heatBoundary: Math.max(...heatLevels),
+    heatLevelPreference: Math.max(...heatLevels),
+    maxHeatLevel: Math.max(...heatLevels),
+    allowedHeatLevels: heatLevels,
+    preferences: {
+      ...asObject(base.preferences),
+      hideSpicy: false,
+      heatLevel: Math.max(...heatLevels),
+      heatBoundary: Math.max(...heatLevels),
+      heatLevelPreference: Math.max(...heatLevels),
+      maxHeatLevel: Math.max(...heatLevels),
+      allowedHeatLevels: heatLevels,
+    },
+    boundaries: {
+      ...asObject(base.boundaries),
+      hideSpicy: false,
+      maxHeatOverride: Math.max(...heatLevels),
+    },
+  };
+}
+
 export default function IntimacyPositionsScreen() {
   const { colors, isDark } = useTheme();
   const { isPremiumEffective, premiumStartedAt, showPaywall } = useEntitlements();
@@ -73,7 +109,8 @@ export default function IntimacyPositionsScreen() {
   const route = useRoute();
   const { width } = useWindowDimensions();
   const isCompact = width < 390;
-  const allowHiddenSpicy = route?.params?.allowHiddenSpicy === true;
+  const allowSexPositionContent = route?.params?.allowSexPositionContent === true
+    || route?.params?.allowHiddenSpicy === true;
   
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [selectedPositionId, setSelectedPositionId] = useState(lastSelectedPositionId);
@@ -164,16 +201,9 @@ export default function IntimacyPositionsScreen() {
 
   const loadPositionAccess = useCallback(async () => {
     const profile = await PreferenceEngine.getContentProfile(userProfile || {});
-    const userSettings = allowHiddenSpicy
-      ? {
-          ...(profile || userProfile || {}),
-          hideSpicy: false,
-          boundaries: {
-            ...((profile || userProfile || {})?.boundaries || {}),
-            hideSpicy: false,
-          },
-        }
-      : profile || userProfile || {};
+    const userSettings = buildSexPositionAccessSettings(profile || userProfile || {}, {
+      allowSexPositionContent,
+    });
     const result = await contentAccessService.getAccessiblePositions(positionCatalog, {
       isPremium: isPremiumEffective,
       userSettings,
@@ -190,7 +220,7 @@ export default function IntimacyPositionsScreen() {
     });
 
     setWeeklyPositionSet(weeklySet);
-  }, [allowHiddenSpicy, contentAnchorDate, isPremiumEffective, positionCatalog, userProfile]);
+  }, [allowSexPositionContent, contentAnchorDate, isPremiumEffective, positionCatalog, userProfile]);
 
   useEffect(() => {
     let active = true;

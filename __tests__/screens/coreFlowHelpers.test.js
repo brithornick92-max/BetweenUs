@@ -58,6 +58,39 @@ describe('core screen flow helpers', () => {
     })).toEqual([{ id: 'ip001', title: 'Only weekly position' }]);
   });
 
+  it('lets the Spark confirmation open sex positions across heat and spicy settings', () => {
+    const { buildSexPositionAccessSettings } = require('../../screens/IntimacyPositionsScreen.jsx');
+
+    expect(buildSexPositionAccessSettings({
+      hideSpicy: true,
+      heatLevelPreference: 1,
+      allowedHeatLevels: [1],
+      preferences: {
+        hideSpicy: true,
+        heatLevelPreference: 1,
+        allowedHeatLevels: [1],
+      },
+      boundaries: {
+        hideSpicy: true,
+        maxHeatOverride: 1,
+      },
+    }, { allowSexPositionContent: true })).toEqual(expect.objectContaining({
+      hideSpicy: false,
+      heatLevelPreference: 5,
+      maxHeatLevel: 5,
+      allowedHeatLevels: [1, 2, 3, 4, 5],
+      preferences: expect.objectContaining({
+        hideSpicy: false,
+        heatLevelPreference: 5,
+        allowedHeatLevels: [1, 2, 3, 4, 5],
+      }),
+      boundaries: expect.objectContaining({
+        hideSpicy: false,
+        maxHeatOverride: 5,
+      }),
+    }));
+  });
+
   it('uses quiz-prefixed prompt ids for Daily Quiz answers', () => {
     const { getQuizPromptId } = require('../../screens/CouplesQuizScreen');
 
