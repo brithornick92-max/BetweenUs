@@ -37,7 +37,6 @@ import {
   PHOTO_LIBRARY_PRIVACY_NOTE,
   PRIVATE_MEDIA_PICKER_OPTIONS,
 } from "../utils/photoLibraryPrivacy";
-import { stripPhotoMetadataFromAsset } from "../utils/mediaPrivacy";
 
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
 const SERIF_FONT = Platform.select({ ios: 'Georgia', android: 'serif' });
@@ -196,18 +195,8 @@ export default function JournalEntryScreen({ navigation, route }) {
           return;
         }
 
-        const asset = await stripPhotoMetadataFromAsset(pickedAsset, {
-          fileNamePrefix: 'journal',
-        });
+        const asset = pickedAsset;
         const assetMimeType = asset.mimeType || (asset.type === 'video' ? 'video/quicktime' : 'image/jpeg');
-
-        if (asset.fileSize && asset.fileSize > maxBytes) {
-          Alert.alert(
-            asset.type === 'video' ? 'Video Too Large' : 'Image Too Large',
-            asset.type === 'video' ? 'Please choose a video under 25 MB.' : 'Please choose a photo under 5 MB.'
-          );
-          return;
-        }
 
         setMediaUri(asset.uri);
         setMediaType(assetMimeType);
@@ -219,7 +208,7 @@ export default function JournalEntryScreen({ navigation, route }) {
       }
     } catch (err) {
       if (__DEV__) console.warn('[JournalEntry] Media pick failed:', err?.message);
-      Alert.alert("Error", "Couldn't open or prepare your library selection.");
+      Alert.alert("Error", "Couldn't open your library selection.");
     }
   };
 

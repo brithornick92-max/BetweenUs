@@ -45,7 +45,6 @@ import {
   PHOTO_LIBRARY_PRIVACY_NOTE,
   PRIVATE_MEDIA_PICKER_OPTIONS,
 } from '../utils/photoLibraryPrivacy';
-import { stripPhotoMetadataFromAssets } from '../utils/mediaPrivacy';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 
@@ -412,14 +411,11 @@ export default function AddMemoryScreen() {
 
         if (!assetsToAdd.length || !validateAssets(assetsToAdd)) return;
 
-        const privateAssets = await stripPhotoMetadataFromAssets(assetsToAdd, {
-          fileNamePrefix: 'snapshot',
-        });
-        addAssetsToComposer(privateAssets);
+        addAssetsToComposer(assetsToAdd);
       }
     } catch (err) {
       if (__DEV__) console.warn('[AddMemory] Media pick failed:', err?.message);
-      Alert.alert('Error', "Couldn't open or prepare your photo library selection.");
+      Alert.alert('Error', "Couldn't open your photo library selection.");
     }
   }, [addAssetsToComposer, mediaItems.length, validateAssets]);
 

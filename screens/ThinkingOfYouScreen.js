@@ -41,7 +41,6 @@ import {
   PHOTO_LIBRARY_PRIVACY_NOTE,
   PRIVATE_MEDIA_PICKER_OPTIONS,
 } from '../utils/photoLibraryPrivacy';
-import { stripPhotoMetadataFromAsset } from '../utils/mediaPrivacy';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
@@ -116,11 +115,7 @@ export default function ThinkingOfYouScreen() {
 
         if (!validatePickedAsset(pickedAsset)) return;
 
-        const asset = await stripPhotoMetadataFromAsset(pickedAsset, {
-          fileNamePrefix: 'thinking_of_you',
-        });
-
-        if (!validatePickedAsset(asset)) return;
+        const asset = pickedAsset;
 
         setMedia({
           uri: asset.uri,
@@ -131,7 +126,7 @@ export default function ThinkingOfYouScreen() {
       }
     } catch (err) {
       if (__DEV__) console.warn('[ThinkingOfYou] Media pick failed:', err?.message);
-      Alert.alert('Error', "Couldn't open or prepare your photo library selection.");
+      Alert.alert('Error', "Couldn't open your photo library selection.");
     }
   }, []);
 
@@ -154,11 +149,7 @@ export default function ThinkingOfYouScreen() {
 
         if (!validatePickedAsset(pickedAsset)) return;
 
-        const asset = await stripPhotoMetadataFromAsset(pickedAsset, {
-          fileNamePrefix: 'thinking_of_you',
-        });
-
-        if (!validatePickedAsset(asset)) return;
+        const asset = pickedAsset;
 
         setMedia({
           uri: asset.uri,
@@ -169,7 +160,7 @@ export default function ThinkingOfYouScreen() {
       }
     } catch (err) {
       if (__DEV__) console.warn('[ThinkingOfYou] Camera pick failed:', err?.message);
-      Alert.alert('Error', "Couldn't open or prepare your camera capture.");
+      Alert.alert('Error', "Couldn't open your camera capture.");
     }
   }, []);
 
