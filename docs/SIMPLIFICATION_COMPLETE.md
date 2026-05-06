@@ -52,7 +52,7 @@ I've successfully simplified your app by removing confusing features and creatin
 3. **Progressive Disclosure**
    - Removed `relationshipClimate` threshold
    - Removed `yearReflection` threshold
-   - Kept: `quickActions`, `memoryLane`, `softNudge`, `momentSignal`, `surpriseTonight`
+   - Kept: `quickActions`, `memoryLane`, `softNudge`, `momentSignal`
 
 ---
 
@@ -82,6 +82,5 @@ Home → "Our Story" button
 When you're ready, you can safely delete these files:
 
 ### Screens to Delete:
-
 
 

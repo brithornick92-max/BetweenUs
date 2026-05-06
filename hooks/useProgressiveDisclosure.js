@@ -14,7 +14,6 @@ const THRESHOLDS = {
   quickActions:        { days: 0, answers: 0 },
   memoryLane:          { days: 5, answers: 4 },
   momentSignal:        { days: 7, answers: 6 },
-  surpriseTonight:     { days: 10, answers: 8 },
   softNudge:           { days: 3, answers: 3 },
 };
 

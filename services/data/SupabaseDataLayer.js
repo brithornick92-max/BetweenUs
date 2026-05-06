@@ -746,6 +746,7 @@ async function mapPromptRow(row, partnerRow = null) {
   const v = row.value || {};
   const pv = partnerRow?.value || null;
   const promptHeat = getPromptById(v.promptId)?.heat;
+  const isRevealed = !!(v.isRevealed || pv?.isRevealed);
 
   return {
     id: row.id,
@@ -756,10 +757,32 @@ async function mapPromptRow(row, partnerRow = null) {
     answer: v.answer || null,
     partnerAnswer: pv?.answer || v.partnerAnswer || null,
     heat_level: typeof promptHeat === 'number' ? promptHeat : (v.heatLevel ?? 1),
-    is_revealed: !!v.isRevealed,
-    reveal_at: v.revealAt || null,
+    is_revealed: isRevealed,
+    reveal_at: v.revealAt || pv?.revealAt || null,
     created_at: row.created_at,
     updated_at: row.updated_at,
+  };
+}
+
+function mapPartnerOnlyPromptRow(partnerRow) {
+  if (!partnerRow) return null;
+
+  const v = partnerRow.value || {};
+  const promptHeat = getPromptById(v.promptId)?.heat;
+
+  return {
+    id: null,
+    user_id: _userId,
+    couple_id: partnerRow.couple_id,
+    prompt_id: v.promptId,
+    date_key: v.dateKey,
+    answer: null,
+    partnerAnswer: v.answer || null,
+    heat_level: typeof promptHeat === 'number' ? promptHeat : (v.heatLevel ?? 1),
+    is_revealed: !!v.isRevealed,
+    reveal_at: v.revealAt || null,
+    created_at: partnerRow.created_at,
+    updated_at: partnerRow.updated_at,
   };
 }
 
@@ -1540,6 +1563,8 @@ const SupabaseDataLayer = {
       return {
         ...r,
         partnerAnswer: partner?.answer || r.partnerAnswer || null,
+        is_revealed: !!(r.is_revealed || partner?.is_revealed),
+        reveal_at: r.reveal_at || partner?.reveal_at || null,
       };
     }));
   },
@@ -1552,11 +1577,11 @@ const SupabaseDataLayer = {
       return this._getCachedPromptAnswer(promptId, dk, _userId);
     }
 
-    if (!row) {
-      return null;
-    }
-
     const partnerRow = await this._findPartnerPromptAnswer(promptId, dk);
+
+    if (!row) {
+      return isCacheFallback(partnerRow) ? null : mapPartnerOnlyPromptRow(partnerRow);
+    }
 
     return mapPromptRow(row, isCacheFallback(partnerRow) ? null : partnerRow);
   },

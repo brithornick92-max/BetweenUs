@@ -33,11 +33,13 @@ import { useTheme } from "../context/ThemeContext";
 import { useEntitlements } from "../context/EntitlementsContext";
 import { useContent } from "../context/ContentContext";
 import { useAuth } from "../context/AuthContext";
+import { useAppContext } from "../context/AppContext";
 import { PremiumFeature } from '../utils/featureFlags';
 import { promptStorage, savedPromptStorage } from "../utils/storage";
 import { DataLayer } from "../services/localfirst";
 import * as PreferenceEngine from "../services/PreferenceEngine";
 import { getPromptById, isTodayBetweenUsPrompt } from "../utils/contentLoader";
+import { getMyDisplayName } from "../utils/profileNames";
 import { removeRestoredDeckItem } from "../utils/contentDeckRestores";
 import { SPACING, withAlpha } from "../utils/theme";
 import { CONTENT_TYPES } from "../services/WeeklyContentSetService";
@@ -69,6 +71,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
   const { colors, isDark } = useTheme();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
   const { user, userProfile } = useAuth();
+  const { state } = useAppContext();
   const { loadUsageStatus } = useContent();
 
   const [prompt, setPrompt] = useState(routePrompt || null);
@@ -108,8 +111,11 @@ export default function PromptAnswerScreen({ route, navigation }) {
   const heat = prompt?.heat || 1;
   const catGradient = HEAT_LEVEL_GRADIENTS[heat] || HEAT_LEVEL_GRADIENTS[1];
   const isEditingAnswer = mode === 'edit' || !!existingAnswer;
-  const headerTitle = isEditingAnswer ? "Edit" : "Answer";
-  const canSave = answer.trim().length > 0 && !isSaving;
+  const isDailyBetweenUsAnswer = isTodayBetweenUsPrompt(prompt);
+  const answerIsLocked = isDailyBetweenUsAnswer && !!existingAnswer;
+  const headerTitle = answerIsLocked ? "Saved" : isEditingAnswer ? "Edit" : "Answer";
+  const saveButtonLabel = answerIsLocked ? "Saved" : isEditingAnswer ? "Update" : "Lock In";
+  const canSave = answer.trim().length > 0 && !isSaving && !answerIsLocked;
 
   const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
 
@@ -192,6 +198,29 @@ export default function PromptAnswerScreen({ route, navigation }) {
       if (row?.answer) {
         setExistingAnswer(row);
         setAnswer(row.answer);
+        if (isTodayBetweenUsPrompt(prompt) && row?.partnerAnswer) {
+          const revealParams = {
+            prompt: {
+              id: prompt.id,
+              text: prompt.text,
+              dateKey: prompt.dateKey,
+              heat: prompt.heat,
+              category: prompt.category,
+            },
+            userAnswer: {
+              answer: row.answer,
+              isRevealed: !!(row.isRevealed || row.is_revealed),
+            },
+            partnerAnswer: row.partnerAnswer,
+            bothAnswered: true,
+          };
+
+          if (typeof navigation.replace === 'function') {
+            navigation.replace('Reveal', revealParams);
+          } else {
+            navigation.navigate('Reveal', revealParams);
+          }
+        }
         return;
       }
     } catch { /* DataLayer not yet initialized — fall through */ }
@@ -202,7 +231,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
         setAnswer(saved.answer);
       }
     }
-  }, [prompt]);
+  }, [navigation, prompt]);
 
   useEffect(() => {
     if (prompt) loadExistingAnswer();
@@ -220,6 +249,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
   const handleSave = async () => {
     const finalText = answer.trim();
     if (!finalText || !prompt?.id || !prompt?.dateKey || savingRef.current) return;
+    if (answerIsLocked) return;
 
     if (finalText.length > MAX_LEN) {
       Alert.alert(
@@ -297,6 +327,16 @@ export default function PromptAnswerScreen({ route, navigation }) {
           if (__DEV__) console.warn('[PromptAnswer] Usage status refresh failed:', usageError?.message);
         }
       }
+
+      if ((state?.coupleId || userProfile?.coupleId) && isFirstResponse) {
+        const myName = getMyDisplayName(userProfile, state?.userProfile, user?.displayName || null);
+        import('../services/PartnerNotifications').then(({ default: PN }) =>
+          PN.promptAnswered?.(myName, prompt.id)
+        ).catch((notifyError) => {
+          if (__DEV__) console.warn('[PromptAnswer] Partner prompt notification failed:', notifyError?.message);
+        });
+      }
+
       notification(NotificationFeedbackType.Success);
 
       if (syncedAnswer?.partnerAnswer) {
@@ -358,7 +398,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
             <ActivityIndicator size="small" color={t.primary} />
           ) : (
             <Text style={[styles.headerSaveButtonText, { color: canSave ? t.primary : t.subtext }]}>
-              {isEditingAnswer ? 'Update' : 'Save'}
+              {saveButtonLabel}
             </Text>
           )}
         </TouchableOpacity>
@@ -386,7 +426,9 @@ export default function PromptAnswerScreen({ route, navigation }) {
       >
         <View style={[styles.inputSurface, { backgroundColor: t.surfaceGlass, borderColor: t.border }]}>
           <View style={styles.charCountRow}>
-            <Text style={[styles.inputLabel, { color: t.primary }]}>ANSWER</Text>
+            <Text style={[styles.inputLabel, { color: t.primary }]}>
+              {answerIsLocked ? 'ANSWER SAVED' : 'ANSWER'}
+            </Text>
             {answer.length > 0 ? (
               <Text style={[styles.charCount, { color: answer.length >= MAX_LEN ? t.primary : withAlpha(t.subtext, 0.7) }]}>
                 {answer.length}/{MAX_LEN}
@@ -400,7 +442,8 @@ export default function PromptAnswerScreen({ route, navigation }) {
             placeholder="Write your answer..."
             placeholderTextColor={withAlpha(t.text, 0.35)}
             multiline
-            autoFocus
+            autoFocus={!answerIsLocked}
+            editable={!answerIsLocked}
             selectionColor={t.primary}
             style={[styles.textInput, { color: t.text }]}
             maxLength={MAX_LEN}

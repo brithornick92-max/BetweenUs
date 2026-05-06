@@ -29,7 +29,7 @@ Your app has been simplified! Here's the complete list of what was changed:
 ### 3. **hooks/useProgressiveDisclosure.js**
 - ✅ Removed threshold: `relationshipClimate`
 - ✅ Removed threshold: `yearReflection`
-- ✅ Kept: `quickActions`, `memoryLane`, `softNudge`, `momentSignal`, `surpriseTonight`
+- ✅ Kept: `quickActions`, `memoryLane`, `softNudge`, `momentSignal`
 
 ### 4. **navigation/lazyScreens.js**
 - ✅ Updated export: `SavedMoments` → `OurStory`

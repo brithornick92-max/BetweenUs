@@ -21,7 +21,6 @@ import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { promptStorage } from "../utils/storage";
 import { DataLayer } from "../services/localfirst";
-import PartnerNotifications from "../services/PartnerNotifications";
 import { SPACING } from "../utils/theme";
 import { getMyDisplayName, getPartnerDisplayName } from '../utils/profileNames';
 import Button from "../components/Button";
@@ -230,7 +229,7 @@ export default function RevealScreen({ route, navigation }) {
     waiting_for_partner: {
       eyebrow: 'SAVED PRIVATELY',
       title: 'A reveal is forming',
-      primaryLabel: `Let ${partnerName} know`,
+      primaryLabel: 'Answer saved',
     },
     ready_to_reveal: {
       eyebrow: 'PRIVATE REVEAL',
@@ -244,13 +243,6 @@ export default function RevealScreen({ route, navigation }) {
       secondaryLabel: 'Plan something from this',
     },
   }[revealStage];
-
-  const handleNudgePartner = async () => {
-    if (!prompt?.id) return;
-    selection();
-    await PartnerNotifications.promptAnswered(myName, prompt.id);
-    notification(NotificationFeedbackType.Success);
-  };
 
   const handleSaveMoment = () => {
     selection();
@@ -318,7 +310,8 @@ export default function RevealScreen({ route, navigation }) {
 
               <Button
                 title={revealCopy.primaryLabel}
-                onPress={revealStage === 'waiting_for_partner' ? handleNudgePartner : handleReveal}
+                onPress={handleReveal}
+                disabled={revealStage === 'waiting_for_partner'}
                 style={styles.revealAction}
               />
               

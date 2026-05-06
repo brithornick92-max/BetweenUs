@@ -32,7 +32,6 @@ import { PremiumFeature } from '../utils/featureFlags';
 import { promptStorage, storage, STORAGE_KEYS } from '../utils/storage';
 import { SPACING } from '../utils/theme';
 import { useTheme } from '../context/ThemeContext';
-import SurpriseTonight from '../components/SurpriseTonight';
 import MilestoneCard from '../components/MilestoneCard';
 import WelcomeBack from '../components/WelcomeBack';
 import OfflineIndicator from '../components/OfflineIndicator';
@@ -84,6 +83,7 @@ function deriveRitualState({ isLinked, myAnswer, partnerAnswer, isRevealed }) {
   if (isRevealed) return 'revealed';
   if (myAnswer && partnerAnswer) return 'both_answered_ready';
   if (myAnswer) return 'answered_waiting';
+  if (isLinked && partnerAnswer) return 'partner_answered';
   if (isLinked) return 'linked_unanswered';
   return 'solo_unanswered';
 }
@@ -142,7 +142,6 @@ export default function HomeScreen({ navigation }) {
 
   const [myAnswer, setMyAnswer] = useState('');
   const [partnerAnswer, setPartnerAnswer] = useState('');
-  const [isNudgeSent, setIsNudgeSent] = useState(false);
   const [isRevealed, setIsRevealed] = useState(false);
   const [inlineText, setInlineText] = useState('');
   const [isSavingInline, setIsSavingInline] = useState(false);
@@ -160,7 +159,8 @@ export default function HomeScreen({ navigation }) {
   const disclosure = useProgressiveDisclosure(answeredCount);
   const preferredName = getMyDisplayName(userProfile, state?.userProfile, user?.displayName || null);
   const partnerLabel = getPartnerDisplayName(userProfile, state?.userProfile, 'your partner');
-  const isLinked = !!state?.coupleId;
+  const coupleId = state?.coupleId || userProfile?.coupleId || null;
+  const isLinked = !!coupleId;
 
   // Entrance animations
   const headerAnim = useRef(new Animated.Value(0)).current;
@@ -397,6 +397,7 @@ export default function HomeScreen({ navigation }) {
         const partnerQuoteCount = getPartnerPromptQuoteCandidateCount(shared || []);
         const canShowQuote = canShowPartnerPromptQuote({
           answeredCount: partnerQuoteCount,
+          minAnswers: 1,
         });
 
         if (!canShowQuote) {
@@ -499,7 +500,7 @@ export default function HomeScreen({ navigation }) {
   // ── Real-time: refresh partnerAnswer when partner submits a prompt answer ──
   useFocusEffect(
     useCallback(() => {
-      if (!promptReady || !state?.coupleId) return undefined;
+      if (!promptReady || !coupleId) return undefined;
 
       let channelRef = null;
       let cancelled = false;
@@ -511,14 +512,14 @@ export default function HomeScreen({ navigation }) {
           if (!sb || cancelled) return;
 
           const channel = sb
-            .channel(`partner_prompt_${state.coupleId}`)
+            .channel(`partner_prompt_${coupleId}`)
             .on(
               'postgres_changes',
               {
                 event: '*',
                 schema: 'public',
                 table: 'couple_data',
-                filter: `couple_id=eq.${state.coupleId}`,
+                filter: `couple_id=eq.${coupleId}`,
               },
               (payload) => {
                 const row = payload.new || payload.old;
@@ -564,7 +565,7 @@ export default function HomeScreen({ navigation }) {
           channelRef = null;
         }
       };
-    }, [state?.coupleId, prompt?.id, promptReady, todayKey, user?.id, user?.uid])
+    }, [coupleId, prompt?.id, promptReady, todayKey, user?.id, user?.uid])
   );
 
   const bothAnswered = !!myAnswer.trim() && !!partnerAnswer.trim();
@@ -590,18 +591,25 @@ export default function HomeScreen({ navigation }) {
       primaryLabel: "Answer today's question",
       secondaryLabel: null,
     },
+    partner_answered: {
+      eyebrow: 'PARTNER SAVED',
+      title: promptReady ? prompt.text : `A small moment for you and ${partnerLabel}`,
+      body: `${partnerLabel} saved their answer. Lock in yours to reveal.`,
+      primaryLabel: "Answer today's question",
+      secondaryLabel: null,
+    },
     answered_waiting: {
       eyebrow: 'SAVED FOR REVEAL',
       title: promptReady ? prompt.text : `A small moment for you and ${partnerLabel}`,
-      body: null,
-      primaryLabel: 'Their turn',
-      secondaryLabel: 'Edit my answer',
+      body: `Your answer is saved and locked in. Waiting for ${partnerLabel}.`,
+      primaryLabel: 'Answer saved',
+      secondaryLabel: null,
     },
     both_answered_ready: {
       eyebrow: 'PRIVATE REVEAL',
       title: 'Your private reveal is ready',
       body: null,
-      primaryLabel: 'Reveal together',
+      primaryLabel: 'Both answers saved - reveal',
       secondaryLabel: null,
     },
     revealed: {
@@ -701,6 +709,14 @@ export default function HomeScreen({ navigation }) {
         }
       }
 
+      if (coupleId && !myAnswer) {
+        import('../services/PartnerNotifications').then(({ default: PN }) =>
+          PN.promptAnswered?.(preferredName, prompt.id)
+        ).catch((notifyError) => {
+          if (__DEV__) console.warn('[Home] Partner prompt notification failed:', notifyError?.message);
+        });
+      }
+
       notification(NotificationFeedbackType.Success);
       setMyAnswer(finalText);
       setPartnerAnswer(nextPartnerAnswer);
@@ -749,6 +765,8 @@ export default function HomeScreen({ navigation }) {
     isPremium,
     myAnswer,
     partnerAnswer,
+    coupleId,
+    preferredName,
     showPaywall,
     loadUsageStatus,
     todayKey,
@@ -763,18 +781,6 @@ export default function HomeScreen({ navigation }) {
     }
 
     if (ritualState === 'answered_waiting') {
-      try {
-        const { default: PN } = await import('../services/PartnerNotifications');
-        await PN.promptAnswered(preferredName, prompt.id);
-        notification(NotificationFeedbackType.Success);
-        setIsNudgeSent(true);
-        setTimeout(() => setIsNudgeSent(false), 3000);
-      } catch (error) {
-        if (__DEV__) console.warn('[HomeScreen] Partner prompt nudge failed:', error?.message);
-        notification(NotificationFeedbackType.Error);
-        Alert.alert('Not sent', "We couldn't send the nudge. Please try again.");
-      }
-
       return;
     }
 
@@ -833,15 +839,17 @@ export default function HomeScreen({ navigation }) {
   const primaryCTALabel = useMemo(() => {
     if (!promptReady) return 'Customize Content';
 
-    if ((ritualState === 'solo_unanswered' || ritualState === 'linked_unanswered') && inlineText.trim()) {
-      return isSavingInline ? 'Saving...' : 'Save my answer';
+    if (
+      (ritualState === 'solo_unanswered'
+        || ritualState === 'linked_unanswered'
+        || ritualState === 'partner_answered')
+      && inlineText.trim()
+    ) {
+      return isSavingInline ? 'Locking in...' : 'Lock in my answer';
     }
 
-    if (ritualState === 'answered_waiting' && isNudgeSent) {
-      return 'Sent';
-    }
     return ritualCopy?.primaryLabel || "Answer today's question";
-  }, [promptReady, ritualCopy, ritualState, inlineText, isSavingInline, isNudgeSent]);
+  }, [promptReady, ritualCopy, ritualState, inlineText, isSavingInline]);
 
   const statusText = useMemo(() => {
     if (!promptReady) return null;
@@ -1019,7 +1027,9 @@ export default function HomeScreen({ navigation }) {
                   <View style={styles.statusLine1}>
                     <Icon
                       name={
-                        ritualState === 'both_answered_ready' || ritualState === 'revealed'
+                        (ritualState === 'both_answered_ready'
+                          || ritualState === 'revealed'
+                          || ritualState === 'partner_answered')
                           ? 'checkmark-outline'
                           : ritualState === 'answered_waiting'
                             ? 'time-outline'
@@ -1044,12 +1054,17 @@ export default function HomeScreen({ navigation }) {
 
               {/* Solid High-Contrast Editorial CTA */}
               <TouchableOpacity
-                style={styles.cta}
+                style={[
+                  styles.cta,
+                  ritualState === 'answered_waiting' && styles.ctaMuted,
+                ]}
                 activeOpacity={0.85}
                 onPress={handlePrimaryCTA}
                 onPressIn={() => impact(ImpactFeedbackStyle.Light)}
+                disabled={ritualState === 'answered_waiting'}
                 accessibilityRole="button"
                 accessibilityLabel={primaryCTALabel}
+                accessibilityState={{ disabled: ritualState === 'answered_waiting' }}
               >
                 <Text style={styles.ctaLabel}>{primaryCTALabel}</Text>
               </TouchableOpacity>
@@ -1122,7 +1137,7 @@ export default function HomeScreen({ navigation }) {
 
           <View style={{ height: homeLayout.spacing.gap }} />
 
-          {/* ── Memory Lane Throwback ── */}
+          {/* ── Partner Quote ── */}
           {throwback && (
             <View style={styles.memoryLaneCard}>
               <View style={styles.memoryLaneHeader}>
@@ -1152,8 +1167,6 @@ export default function HomeScreen({ navigation }) {
           )}
 
           <View style={{ height: homeLayout.type === 'compact' ? SPACING.md : SPACING.lg }} />
-
-          {disclosure.surpriseTonight && <SurpriseTonight navigation={navigation} />}
 
           {/* ── Soft Upgrade Nudge (free users with 3+ shared moments) ── */}
           {disclosure.softNudge && !isPremium && answeredCount >= 3 && (
@@ -1407,6 +1420,9 @@ const createStyles = (t, isDark) => StyleSheet.create({
     borderRadius: 28,
     backgroundColor: t.text,
     gap: 8,
+  },
+  ctaMuted: {
+    opacity: 0.72,
   },
   ctaLabel: {
     fontFamily: systemFont,

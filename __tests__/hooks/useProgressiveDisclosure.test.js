@@ -7,7 +7,6 @@ const THRESHOLDS = {
   relationshipClimate: { days: 5, answers: 5 },
   memoryLane:          { days: 5, answers: 4 },
   momentSignal:        { days: 7, answers: 6 },
-  surpriseTonight:     { days: 10, answers: 8 },
   yearReflection:      { days: 14, answers: 10 },
   softNudge:           { days: 3, answers: 3 },
 };
@@ -50,11 +49,10 @@ describe('Progressive Disclosure', () => {
 
   it('answer count can unlock before day threshold', () => {
     expect(isUnlocked('momentSignal', 0, 6)).toBe(true);
-    expect(isUnlocked('surpriseTonight', 0, 8)).toBe(true);
   });
 
   it('thresholds ordered by increasing days', () => {
-    const ordered = ['quickActions', 'softNudge', 'relationshipClimate', 'memoryLane', 'momentSignal', 'surpriseTonight', 'yearReflection'];
+    const ordered = ['quickActions', 'softNudge', 'relationshipClimate', 'memoryLane', 'momentSignal', 'yearReflection'];
     for (let i = 1; i < ordered.length; i++) {
       expect(THRESHOLDS[ordered[i]].days).toBeGreaterThanOrEqual(THRESHOLDS[ordered[i - 1]].days);
     }
