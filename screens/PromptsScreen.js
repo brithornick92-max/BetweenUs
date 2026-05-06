@@ -211,14 +211,17 @@ function applyRawBoundaryFilter(items, bounds) {
   });
 }
 
-async function getLocalPromptAnswerRows() {
+async function getLocalPromptAnswerRows(userId = null) {
   const byDate = await promptStorage.getAll();
+  const scope = userId ? { userId, allowUnowned: false } : null;
 
   return Object.entries(byDate || {}).flatMap(([dateKey, answersByPrompt]) =>
-    Object.values(answersByPrompt || {}).map((answer) => ({
-      ...answer,
-      dateKey: answer?.dateKey || dateKey,
-    }))
+    Object.values(answersByPrompt || {})
+      .filter((answer) => promptStorage.isAnswerVisibleForScope(answer, scope))
+      .map((answer) => ({
+        ...answer,
+        dateKey: answer?.dateKey || dateKey,
+      }))
   );
 }
 
@@ -244,6 +247,7 @@ export default function PromptsScreen({ navigation }) {
   const shuffleBusyRef = useRef(false);
   const shuffleTimeoutRef = useRef(null);
   const shuffleAnim = useSharedValue(0);
+  const activePromptUserId = user?.id || user?.uid || null;
 
   const t = useMemo(() => isDark ? {
     background: '#0A0A0A',
@@ -305,7 +309,7 @@ export default function PromptsScreen({ navigation }) {
       const allPrompts = ALL_BUNDLED.map(normalizePrompt);
       const [dataLayerPromptAnswers, localPromptAnswers, restoredPromptIds] = await Promise.all([
         DataLayer.getPromptAnswers?.({ limit: 1000 }).catch(() => []),
-        getLocalPromptAnswerRows().catch(() => []),
+        getLocalPromptAnswerRows(activePromptUserId).catch(() => []),
         getRestoredDeckItemIds(CONTENT_TYPES.PROMPTS),
       ]);
       const recentPromptAnswers = [
@@ -349,7 +353,7 @@ export default function PromptsScreen({ navigation }) {
     } finally {
       setLoading(false);
     }
-  }, [contentAnchorDate, contentProfile, isPremium, user?.id, user?.uid, userProfile, rawBoundaries]);
+  }, [activePromptUserId, contentAnchorDate, contentProfile, isPremium, user?.id, user?.uid, userProfile, rawBoundaries]);
 
   useEffect(() => {
     loadPrompts();

@@ -53,18 +53,22 @@ import {
 
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
 
+const FALLBACK_QUIZ_QUESTIONS = [
+  { id: 'q001', text: 'What would {partner} order on a spontaneous date night out?', category: 'personality', icon: 'restaurant-outline' },
+  { id: 'q002', text: 'What song is always stuck in {partner}\'s head?', category: 'personality', icon: 'musical-notes-outline' },
+  { id: 'q003', text: 'If {partner} had a whole free Saturday, how would they spend it?', category: 'personality', icon: 'sunny-outline' },
+];
+
 // Load quiz questions - 365 unique questions for daily rotation
 const loadQuizQuestions = () => {
   try {
     const data = require('../content/quizQuestions.json');
-    return data.questions || [];
+    return Array.isArray(data.questions) && data.questions.length
+      ? data.questions
+      : FALLBACK_QUIZ_QUESTIONS;
   } catch {
     // Fallback questions if file doesn't exist
-    return [
-      { id: 'q001', text: 'What would {partner} order on a spontaneous date night out?', category: 'personality', icon: 'restaurant-outline' },
-      { id: 'q002', text: 'What song is always stuck in {partner}\'s head?', category: 'personality', icon: 'musical-notes-outline' },
-      { id: 'q003', text: 'If {partner} had a whole free Saturday, how would they spend it?', category: 'personality', icon: 'sunny-outline' },
-    ];
+    return FALLBACK_QUIZ_QUESTIONS;
   }
 };
 
@@ -75,6 +79,8 @@ const QUIZ_QUESTIONS = loadQuizQuestions();
 const TODAY_QUIZ_KEY = '@betweenus:cache:quizDateKey';
 const TODAY_QUIZ_QUESTION_KEY = '@betweenus:cache:quizQuestionId';
 const MY_QUIZ_ANSWER_KEY = '@betweenus:cache:quizMyAnswer';
+const MS_PER_DAY = 24 * 60 * 60 * 1000;
+const DAILY_QUIZ_ROTATION_ANCHOR_UTC = Date.UTC(2026, 0, 1);
 
 export function getQuizPromptId(questionId) {
   return `quiz:${questionId}`;
@@ -102,16 +108,34 @@ function getTodayKey() {
 }
 
 export function getDailyQuestion(dateKey) {
-  // Deterministic question selection based on date so both partners see same question
-  let hash = 0;
-  for (let i = 0; i < dateKey.length; i++) {
-    hash = (hash * 31 + dateKey.charCodeAt(i)) & 0xffffffff;
-  }
-  return QUIZ_QUESTIONS[Math.abs(hash) % QUIZ_QUESTIONS.length];
+  // Deterministic sequential rotation so the 365-question catalog is used
+  // before repeating, while shared couple selection still wins when present.
+  const questionIndex = getStableQuestionIndex(dateKey, QUIZ_QUESTIONS.length);
+  return QUIZ_QUESTIONS[questionIndex];
 }
 
 export function getQuizQuestionById(questionId) {
   return QUIZ_QUESTIONS.find((question) => question.id === questionId) || null;
+}
+
+function getStableQuestionIndex(dateKey, totalQuestions) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateKey || ''));
+
+  if (match) {
+    const [, year, month, day] = match;
+    const dayUtc = Date.UTC(Number(year), Number(month) - 1, Number(day));
+
+    if (!Number.isNaN(dayUtc)) {
+      const offset = Math.floor((dayUtc - DAILY_QUIZ_ROTATION_ANCHOR_UTC) / MS_PER_DAY);
+      return ((offset % totalQuestions) + totalQuestions) % totalQuestions;
+    }
+  }
+
+  let hash = 0;
+  for (let i = 0; i < String(dateKey || '').length; i++) {
+    hash = (hash * 31 + String(dateKey).charCodeAt(i)) & 0xffffffff;
+  }
+  return Math.abs(hash) % totalQuestions;
 }
 
 function substitutePartnerName(text, partnerName) {

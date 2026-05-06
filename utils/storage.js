@@ -84,6 +84,32 @@ const ensureArray = (value) => (Array.isArray(value) ? value : []);
 const ensureObject = (value) => (
   value && typeof value === "object" && !Array.isArray(value) ? value : {}
 );
+const normalizeOwnerId = (value) => (
+  value == null || value === "" ? null : String(value)
+);
+const getPromptAnswerOwnerId = (entry) => normalizeOwnerId(
+  entry?.userId || entry?.user_id || entry?.ownerUserId || entry?.createdBy || entry?.created_by
+);
+const parsePromptAnswerScope = (scope) => {
+  if (!scope) return { userId: null, allowUnowned: true };
+  if (typeof scope === "string") return { userId: normalizeOwnerId(scope), allowUnowned: false };
+
+  return {
+    userId: normalizeOwnerId(scope.userId || scope.user_id || scope.ownerUserId),
+    allowUnowned: scope.allowUnowned !== false,
+  };
+};
+const isPromptAnswerVisibleForScope = (entry, scope) => {
+  if (!entry) return false;
+
+  const { userId, allowUnowned } = parsePromptAnswerScope(scope);
+  if (!userId) return true;
+
+  const ownerId = getPromptAnswerOwnerId(entry);
+  if (!ownerId) return allowUnowned;
+
+  return ownerId === userId;
+};
 const toTimestampMs = (value) => {
   if (typeof value === "number" && Number.isFinite(value)) return value;
   if (typeof value === "string" && value.trim()) {
@@ -176,9 +202,16 @@ export const promptStorage = {
   async getAll() {
     return ensureObject(await storage.get(STORAGE_KEYS.PROMPT_ANSWERS, {}));
   },
-  async getAnswer(dateKey, promptId) {
+  async getAnswer(dateKey, promptId, scope = null) {
     const all = await this.getAll();
-    return all?.[dateKey]?.[promptId] || null;
+    const entry = all?.[dateKey]?.[promptId] || null;
+    return isPromptAnswerVisibleForScope(entry, scope) ? entry : null;
+  },
+  async getAnswerForUser(dateKey, promptId, userId) {
+    return this.getAnswer(dateKey, promptId, { userId, allowUnowned: false });
+  },
+  isAnswerVisibleForScope(entry, scope = null) {
+    return isPromptAnswerVisibleForScope(entry, scope);
   },
   async setAnswer(dateKey, promptId, payload) {
     const all = await this.getAll();
@@ -186,6 +219,11 @@ export const promptStorage = {
     const answerData = typeof payload === "string"
       ? { answer: payload, timestamp: Date.now() }
       : { ...(payload || {}), timestamp: payload?.timestamp || Date.now() };
+    const ownerId = getPromptAnswerOwnerId(answerData);
+    if (ownerId) {
+      answerData.userId = ownerId;
+      answerData.user_id = ownerId;
+    }
     byDate[promptId] = { ...answerData, promptId };
     all[dateKey] = byDate;
     await storage.set(STORAGE_KEYS.PROMPT_ANSWERS, all);

@@ -116,6 +116,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
   const headerTitle = answerIsLocked ? "Saved" : isEditingAnswer ? "Edit" : "Answer";
   const saveButtonLabel = answerIsLocked ? "Saved" : isEditingAnswer ? "Update" : "Lock In";
   const canSave = answer.trim().length > 0 && !isSaving && !answerIsLocked;
+  const activePromptUserId = user?.id || user?.uid || state?.userId || null;
 
   const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
 
@@ -192,6 +193,8 @@ export default function PromptAnswerScreen({ route, navigation }) {
 
   const loadExistingAnswer = useCallback(async () => {
     if (!prompt?.id) return;
+    setExistingAnswer(null);
+    setAnswer("");
     // Supabase-backed DataLayer is authoritative; cache is display-only fallback.
     try {
       const row = await DataLayer.getPromptAnswerForToday(prompt.id, prompt.dateKey);
@@ -225,13 +228,15 @@ export default function PromptAnswerScreen({ route, navigation }) {
       }
     } catch { /* DataLayer not yet initialized — fall through */ }
     if (prompt.dateKey) {
-      const saved = await promptStorage.getAnswer(prompt.dateKey, prompt.id);
+      const saved = activePromptUserId
+        ? await promptStorage.getAnswerForUser(prompt.dateKey, prompt.id, activePromptUserId)
+        : await promptStorage.getAnswer(prompt.dateKey, prompt.id);
       if (saved?.answer) {
         setExistingAnswer(saved);
         setAnswer(saved.answer);
       }
     }
-  }, [navigation, prompt]);
+  }, [activePromptUserId, navigation, prompt]);
 
   useEffect(() => {
     if (prompt) loadExistingAnswer();
@@ -301,6 +306,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
         const isSyncedRevealed = !!(syncedAnswer?.isRevealed || syncedAnswer?.is_revealed);
         await promptStorage.setAnswer(prompt.dateKey, prompt.id, {
           answer: finalText,
+          userId: activePromptUserId || undefined,
           timestamp: Date.now(),
           isRevealed: isSyncedRevealed || existingAnswer?.isRevealed || false,
         });

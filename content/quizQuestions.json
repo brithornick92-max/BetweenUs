@@ -278,7 +278,7 @@
     },
     {
       "id": "q047",
-      "text": "What's {partner}'s secret talent?",
+      "text": "What talent does {partner} have that people tend to underestimate?",
       "category": "personality",
       "icon": "star-outline"
     },
@@ -392,1803 +392,1803 @@
     },
     {
       "id": "q066",
-      "text": "What book would {partner} recommend to everyone?",
+      "text": "What is the very first thing {partner} does after waking up?",
       "category": "personality",
-      "icon": "book-outline"
+      "icon": "sunny-outline"
     },
     {
       "id": "q067",
-      "text": "What makes {partner} feel most loved by you?",
-      "category": "love",
-      "icon": "heart-circle-outline"
+      "text": "How many alarms does {partner} usually need before getting out of bed?",
+      "category": "personality",
+      "icon": "sunny-outline"
     },
     {
       "id": "q068",
-      "text": "What's {partner}'s biggest pet peeve?",
+      "text": "Does {partner} prefer morning showers to wake up or night showers to decompress?",
       "category": "personality",
-      "icon": "warning-outline"
+      "icon": "sunny-outline"
     },
     {
       "id": "q069",
-      "text": "What would {partner}'s perfect vacation look like?",
-      "category": "future",
-      "icon": "airplane-outline"
+      "text": "Which daily chore does {partner} quietly dislike the most?",
+      "category": "personality",
+      "icon": "sunny-outline"
     },
     {
       "id": "q070",
-      "text": "What's a risk {partner} has always wanted to take?",
-      "category": "deep",
-      "icon": "trending-up-outline"
+      "text": "Which household chore does {partner} find surprisingly relaxing?",
+      "category": "personality",
+      "icon": "sunny-outline"
     },
     {
       "id": "q071",
-      "text": "What does {partner} consider their greatest strength?",
+      "text": "What is {partner}'s exact go-to coffee or morning tea order?",
       "category": "personality",
-      "icon": "fitness-outline"
+      "icon": "sunny-outline"
     },
     {
       "id": "q072",
-      "text": "What memory with you makes {partner} smile the most?",
-      "category": "love",
-      "icon": "happy-outline"
+      "text": "How does {partner} physically show stress after a chaotic day?",
+      "category": "personality",
+      "icon": "sunny-outline"
     },
     {
       "id": "q073",
-      "text": "What would {partner} do if they won the lottery?",
-      "category": "playful",
-      "icon": "cash-outline"
+      "text": "What is the first thing {partner} does after walking through the door at home?",
+      "category": "personality",
+      "icon": "sunny-outline"
     },
     {
       "id": "q074",
-      "text": "What's {partner}'s morning routine like?",
+      "text": "How much quiet alone time does {partner} genuinely need to recharge each week?",
       "category": "personality",
       "icon": "sunny-outline"
     },
     {
       "id": "q075",
-      "text": "What does {partner} value most about quality time together?",
-      "category": "love",
-      "icon": "time-outline"
+      "text": "What is {partner}'s favorite comfortable outfit for lounging at home?",
+      "category": "personality",
+      "icon": "sunny-outline"
     },
     {
       "id": "q076",
-      "text": "What's {partner}'s go-to karaoke song?",
-      "category": "playful",
-      "icon": "mic-outline"
+      "text": "Does {partner} prefer total darkness or a little ambient light while sleeping?",
+      "category": "personality",
+      "icon": "sunny-outline"
     },
     {
       "id": "q077",
-      "text": "What does {partner} daydream about?",
-      "category": "future",
-      "icon": "cloud-outline"
+      "text": "Does {partner} sleep best in a cool room with blankets or a warmer room?",
+      "category": "personality",
+      "icon": "sunny-outline"
     },
     {
       "id": "q078",
-      "text": "What habit would {partner} love to build?",
-      "category": "future",
-      "icon": "checkmark-circle-outline"
+      "text": "Which side of the bed does {partner} naturally gravitate toward?",
+      "category": "personality",
+      "icon": "sunny-outline"
     },
     {
       "id": "q079",
-      "text": "What's {partner}'s favorite thing about themselves?",
-      "category": "deep",
-      "icon": "ribbon-outline"
+      "text": "How does {partner} feel about having the TV on while falling asleep?",
+      "category": "personality",
+      "icon": "sunny-outline"
     },
     {
       "id": "q080",
-      "text": "What makes {partner} feel understood?",
-      "category": "deep",
-      "icon": "people-circle-outline"
+      "text": "What is one item {partner} has a hard time falling asleep without?",
+      "category": "personality",
+      "icon": "sunny-outline"
     },
     {
       "id": "q081",
-      "text": "What book would {partner} recommend to everyone?",
+      "text": "Does {partner} prefer a structured weekend schedule or spontaneous days?",
       "category": "personality",
-      "icon": "book-outline"
+      "icon": "sunny-outline"
     },
     {
       "id": "q082",
-      "text": "What makes {partner} feel most loved by you?",
-      "category": "love",
-      "icon": "heart-circle-outline"
+      "text": "What is {partner}'s favorite day of the week, and why?",
+      "category": "personality",
+      "icon": "sunny-outline"
     },
     {
       "id": "q083",
-      "text": "What's {partner}'s biggest pet peeve?",
+      "text": "How does {partner} prefer to receive bad news: right away by text or later face-to-face?",
       "category": "personality",
-      "icon": "warning-outline"
+      "icon": "sunny-outline"
     },
     {
       "id": "q084",
-      "text": "What would {partner}'s perfect vacation look like?",
-      "category": "future",
-      "icon": "airplane-outline"
+      "text": "What is {partner}'s first reaction when an app or device stops working?",
+      "category": "personality",
+      "icon": "sunny-outline"
     },
     {
       "id": "q085",
-      "text": "What's a risk {partner} has always wanted to take?",
-      "category": "deep",
-      "icon": "trending-up-outline"
+      "text": "How early does {partner} like to arrive for flights, appointments, or reservations?",
+      "category": "personality",
+      "icon": "sunny-outline"
     },
     {
       "id": "q086",
-      "text": "What does {partner} consider their greatest strength?",
+      "text": "What is {partner}'s go-to method for remembering important dates or tasks?",
       "category": "personality",
-      "icon": "fitness-outline"
+      "icon": "sunny-outline"
     },
     {
       "id": "q087",
-      "text": "What memory with you makes {partner} smile the most?",
-      "category": "love",
-      "icon": "happy-outline"
+      "text": "Does {partner} tackle difficult tasks early or wait until a deadline gets close?",
+      "category": "personality",
+      "icon": "sunny-outline"
     },
     {
       "id": "q088",
-      "text": "What would {partner} do if they won the lottery?",
-      "category": "playful",
-      "icon": "cash-outline"
+      "text": "How does {partner} prefer to communicate during the workday: text, call, or quiet?",
+      "category": "personality",
+      "icon": "sunny-outline"
     },
     {
       "id": "q089",
-      "text": "What's {partner}'s morning routine like?",
+      "text": "How does {partner} react when someone interrupts their focus?",
       "category": "personality",
       "icon": "sunny-outline"
     },
     {
       "id": "q090",
-      "text": "What does {partner} value most about quality time together?",
-      "category": "love",
-      "icon": "time-outline"
+      "text": "Where does {partner} look first when they lose their keys or phone?",
+      "category": "personality",
+      "icon": "sunny-outline"
     },
     {
       "id": "q091",
-      "text": "What's {partner}'s go-to karaoke song?",
-      "category": "playful",
-      "icon": "mic-outline"
+      "text": "Does {partner} prefer a meticulously organized workspace or organized chaos?",
+      "category": "personality",
+      "icon": "sunny-outline"
     },
     {
       "id": "q092",
-      "text": "What does {partner} daydream about?",
-      "category": "future",
-      "icon": "cloud-outline"
+      "text": "How does {partner} usually respond when a stranger makes small talk in public?",
+      "category": "personality",
+      "icon": "sunny-outline"
     },
     {
       "id": "q093",
-      "text": "What habit would {partner} love to build?",
-      "category": "future",
-      "icon": "checkmark-circle-outline"
+      "text": "What app does {partner} mindlessly scroll when they want to turn their brain off?",
+      "category": "personality",
+      "icon": "sunny-outline"
     },
     {
       "id": "q094",
-      "text": "What's {partner}'s favorite thing about themselves?",
-      "category": "deep",
-      "icon": "ribbon-outline"
+      "text": "Does {partner} prefer physical books, audiobooks, or digital reading?",
+      "category": "personality",
+      "icon": "sunny-outline"
     },
     {
       "id": "q095",
-      "text": "What makes {partner} feel understood?",
-      "category": "deep",
-      "icon": "people-circle-outline"
+      "text": "What is {partner}'s usual reaction when plans change at the last minute?",
+      "category": "personality",
+      "icon": "sunny-outline"
     },
     {
       "id": "q096",
-      "text": "What book would {partner} recommend to everyone?",
+      "text": "How does {partner} like to celebrate a small everyday win?",
       "category": "personality",
-      "icon": "book-outline"
+      "icon": "sunny-outline"
     },
     {
       "id": "q097",
-      "text": "What makes {partner} feel most loved by you?",
-      "category": "love",
-      "icon": "heart-circle-outline"
+      "text": "How does {partner} handle dense, frustrating traffic?",
+      "category": "personality",
+      "icon": "sunny-outline"
     },
     {
       "id": "q098",
-      "text": "What's {partner}'s biggest pet peeve?",
+      "text": "How does {partner} prefer to listen to music: headphones, speakers, or in the car?",
       "category": "personality",
-      "icon": "warning-outline"
+      "icon": "sunny-outline"
     },
     {
       "id": "q099",
-      "text": "What would {partner}'s perfect vacation look like?",
-      "category": "future",
-      "icon": "airplane-outline"
+      "text": "Does {partner} tend to run hot or cold throughout the day?",
+      "category": "personality",
+      "icon": "sunny-outline"
     },
     {
       "id": "q100",
-      "text": "What's a risk {partner} has always wanted to take?",
-      "category": "deep",
-      "icon": "trending-up-outline"
+      "text": "How does {partner} react when they realize they forgot something important?",
+      "category": "personality",
+      "icon": "sunny-outline"
     },
     {
       "id": "q101",
-      "text": "What does {partner} consider their greatest strength?",
+      "text": "Does {partner} keep notifications on or live in Do Not Disturb mode?",
       "category": "personality",
-      "icon": "fitness-outline"
+      "icon": "sunny-outline"
     },
     {
       "id": "q102",
-      "text": "What memory with you makes {partner} smile the most?",
-      "category": "love",
-      "icon": "happy-outline"
+      "text": "What grooming or skincare step does {partner} rarely skip?",
+      "category": "personality",
+      "icon": "sunny-outline"
     },
     {
       "id": "q103",
-      "text": "What would {partner} do if they won the lottery?",
-      "category": "playful",
-      "icon": "cash-outline"
+      "text": "Does {partner} pack for trips early or at the last possible minute?",
+      "category": "personality",
+      "icon": "sunny-outline"
     },
     {
       "id": "q104",
-      "text": "What's {partner}'s morning routine like?",
+      "text": "What temperature does {partner} try to set the thermostat to?",
       "category": "personality",
       "icon": "sunny-outline"
     },
     {
       "id": "q105",
-      "text": "What does {partner} value most about quality time together?",
-      "category": "love",
-      "icon": "time-outline"
+      "text": "How does {partner} react when they notice a bug in the house?",
+      "category": "personality",
+      "icon": "sunny-outline"
     },
     {
       "id": "q106",
-      "text": "What's {partner}'s go-to karaoke song?",
-      "category": "playful",
-      "icon": "mic-outline"
+      "text": "Does {partner} prefer to drive or be the passenger on a long road trip?",
+      "category": "personality",
+      "icon": "sunny-outline"
     },
     {
       "id": "q107",
-      "text": "What does {partner} daydream about?",
-      "category": "future",
-      "icon": "cloud-outline"
+      "text": "What is {partner}'s go-to strategy when they cannot fall asleep?",
+      "category": "personality",
+      "icon": "sunny-outline"
     },
     {
       "id": "q108",
-      "text": "What habit would {partner} love to build?",
-      "category": "future",
-      "icon": "checkmark-circle-outline"
+      "text": "What is {partner}'s ultimate comfort food meal?",
+      "category": "playful",
+      "icon": "restaurant-outline"
     },
     {
       "id": "q109",
-      "text": "What's {partner}'s favorite thing about themselves?",
-      "category": "deep",
-      "icon": "ribbon-outline"
+      "text": "When customizing a burger or sandwich, what ingredient does {partner} always remove?",
+      "category": "playful",
+      "icon": "restaurant-outline"
     },
     {
       "id": "q110",
-      "text": "What makes {partner} feel understood?",
-      "category": "deep",
-      "icon": "people-circle-outline"
+      "text": "Does {partner} prefer iced drinks with regular ice, light ice, or no ice?",
+      "category": "playful",
+      "icon": "restaurant-outline"
     },
     {
       "id": "q111",
-      "text": "What book would {partner} recommend to everyone?",
-      "category": "personality",
-      "icon": "book-outline"
+      "text": "What is {partner}'s go-to fast-food order when they are exhausted?",
+      "category": "playful",
+      "icon": "restaurant-outline"
     },
     {
       "id": "q112",
-      "text": "What makes {partner} feel most loved by you?",
-      "category": "love",
-      "icon": "heart-circle-outline"
+      "text": "What pizza topping does {partner} refuse to eat?",
+      "category": "playful",
+      "icon": "restaurant-outline"
     },
     {
       "id": "q113",
-      "text": "What's {partner}'s biggest pet peeve?",
-      "category": "personality",
-      "icon": "warning-outline"
+      "text": "What cuisine does {partner} prefer for a celebratory date night?",
+      "category": "playful",
+      "icon": "restaurant-outline"
     },
     {
       "id": "q114",
-      "text": "What would {partner}'s perfect vacation look like?",
-      "category": "future",
-      "icon": "airplane-outline"
+      "text": "Does {partner} reach for sweet, savory, or salty snacks during a movie?",
+      "category": "playful",
+      "icon": "restaurant-outline"
     },
     {
       "id": "q115",
-      "text": "What's a risk {partner} has always wanted to take?",
-      "category": "deep",
-      "icon": "trending-up-outline"
+      "text": "What is {partner}'s perfect order at their favorite sit-down restaurant?",
+      "category": "playful",
+      "icon": "restaurant-outline"
     },
     {
       "id": "q116",
-      "text": "What does {partner} consider their greatest strength?",
-      "category": "personality",
-      "icon": "fitness-outline"
+      "text": "How does {partner} prefer steak or a favorite protein cooked?",
+      "category": "playful",
+      "icon": "restaurant-outline"
     },
     {
       "id": "q117",
-      "text": "What memory with you makes {partner} smile the most?",
-      "category": "love",
-      "icon": "happy-outline"
+      "text": "What is {partner}'s favorite ice cream or dessert flavor?",
+      "category": "playful",
+      "icon": "restaurant-outline"
     },
     {
       "id": "q118",
-      "text": "What would {partner} do if they won the lottery?",
+      "text": "If {partner} had to eat one meal every day, what would it be?",
       "category": "playful",
-      "icon": "cash-outline"
+      "icon": "restaurant-outline"
     },
     {
       "id": "q119",
-      "text": "What's {partner}'s morning routine like?",
-      "category": "personality",
-      "icon": "sunny-outline"
+      "text": "Does {partner} follow recipes closely or improvise while cooking?",
+      "category": "playful",
+      "icon": "restaurant-outline"
     },
     {
       "id": "q120",
-      "text": "What does {partner} value most about quality time together?",
-      "category": "love",
-      "icon": "time-outline"
+      "text": "What food texture does {partner} have the hardest time with?",
+      "category": "playful",
+      "icon": "restaurant-outline"
     },
     {
       "id": "q121",
-      "text": "What's {partner}'s go-to karaoke song?",
+      "text": "How does {partner} feel about very spicy food?",
       "category": "playful",
-      "icon": "mic-outline"
+      "icon": "restaurant-outline"
     },
     {
       "id": "q122",
-      "text": "What does {partner} daydream about?",
-      "category": "future",
-      "icon": "cloud-outline"
+      "text": "What alcoholic or non-alcoholic drink does {partner} like ordering at a nice bar?",
+      "category": "playful",
+      "icon": "restaurant-outline"
     },
     {
       "id": "q123",
-      "text": "What habit would {partner} love to build?",
-      "category": "future",
-      "icon": "checkmark-circle-outline"
+      "text": "Does {partner} prefer a heavy breakfast or something light and quick?",
+      "category": "playful",
+      "icon": "restaurant-outline"
     },
     {
       "id": "q124",
-      "text": "What's {partner}'s favorite thing about themselves?",
-      "category": "deep",
-      "icon": "ribbon-outline"
+      "text": "When choosing takeout, what place does {partner} almost always suggest?",
+      "category": "playful",
+      "icon": "restaurant-outline"
     },
     {
       "id": "q125",
-      "text": "What makes {partner} feel understood?",
-      "category": "deep",
-      "icon": "people-circle-outline"
+      "text": "Does {partner} prefer dinner at the table, on the couch, or somewhere else?",
+      "category": "playful",
+      "icon": "restaurant-outline"
     },
     {
       "id": "q126",
-      "text": "What book would {partner} recommend to everyone?",
-      "category": "personality",
-      "icon": "book-outline"
+      "text": "What road-trip gas station snack does {partner} usually want?",
+      "category": "playful",
+      "icon": "restaurant-outline"
     },
     {
       "id": "q127",
-      "text": "What makes {partner} feel most loved by you?",
-      "category": "love",
-      "icon": "heart-circle-outline"
+      "text": "How does {partner} feel about sharing food when you eat out together?",
+      "category": "playful",
+      "icon": "restaurant-outline"
     },
     {
       "id": "q128",
-      "text": "What's {partner}'s biggest pet peeve?",
-      "category": "personality",
-      "icon": "warning-outline"
+      "text": "What vegetable does {partner} tend to pick out of a dish?",
+      "category": "playful",
+      "icon": "restaurant-outline"
     },
     {
       "id": "q129",
-      "text": "What would {partner}'s perfect vacation look like?",
-      "category": "future",
-      "icon": "airplane-outline"
+      "text": "Does {partner} prefer still water, sparkling water, or tap water?",
+      "category": "playful",
+      "icon": "restaurant-outline"
     },
     {
       "id": "q130",
-      "text": "What's a risk {partner} has always wanted to take?",
-      "category": "deep",
-      "icon": "trending-up-outline"
+      "text": "What seasonal holiday dish or treat does {partner} love most?",
+      "category": "playful",
+      "icon": "restaurant-outline"
     },
     {
       "id": "q131",
-      "text": "What does {partner} consider their greatest strength?",
-      "category": "personality",
-      "icon": "fitness-outline"
+      "text": "If {partner} could hire a private chef, what meal would they request first?",
+      "category": "playful",
+      "icon": "restaurant-outline"
     },
     {
       "id": "q132",
-      "text": "What memory with you makes {partner} smile the most?",
-      "category": "love",
-      "icon": "happy-outline"
+      "text": "Does {partner} prefer baking dessert from scratch or buying from a bakery?",
+      "category": "playful",
+      "icon": "restaurant-outline"
     },
     {
       "id": "q133",
-      "text": "What would {partner} do if they won the lottery?",
+      "text": "What is {partner}'s favorite type of pasta dish?",
       "category": "playful",
-      "icon": "cash-outline"
+      "icon": "restaurant-outline"
     },
     {
       "id": "q134",
-      "text": "What's {partner}'s morning routine like?",
-      "category": "personality",
-      "icon": "sunny-outline"
+      "text": "How does {partner} handle food served at the wrong temperature?",
+      "category": "playful",
+      "icon": "restaurant-outline"
     },
     {
       "id": "q135",
-      "text": "What does {partner} value most about quality time together?",
-      "category": "love",
-      "icon": "time-outline"
+      "text": "What unusual food combination does {partner} secretly enjoy?",
+      "category": "playful",
+      "icon": "restaurant-outline"
     },
     {
       "id": "q136",
-      "text": "What's {partner}'s go-to karaoke song?",
+      "text": "Does {partner} prefer a casual noisy diner or a quiet high-end restaurant?",
       "category": "playful",
-      "icon": "mic-outline"
+      "icon": "restaurant-outline"
     },
     {
       "id": "q137",
-      "text": "What does {partner} daydream about?",
-      "category": "future",
-      "icon": "cloud-outline"
+      "text": "What fruit does {partner} like most, and how do they like it prepared?",
+      "category": "playful",
+      "icon": "restaurant-outline"
     },
     {
       "id": "q138",
-      "text": "What habit would {partner} love to build?",
-      "category": "future",
-      "icon": "checkmark-circle-outline"
+      "text": "At an amusement park, what classic snack does {partner} want to buy?",
+      "category": "playful",
+      "icon": "restaurant-outline"
     },
     {
       "id": "q139",
-      "text": "What's {partner}'s favorite thing about themselves?",
-      "category": "deep",
-      "icon": "ribbon-outline"
+      "text": "How does {partner} prefer eggs cooked on a slow morning?",
+      "category": "playful",
+      "icon": "restaurant-outline"
     },
     {
       "id": "q140",
-      "text": "What makes {partner} feel understood?",
-      "category": "deep",
-      "icon": "people-circle-outline"
+      "text": "What chocolate or candy brand does {partner} reach for first?",
+      "category": "playful",
+      "icon": "restaurant-outline"
     },
     {
       "id": "q141",
-      "text": "What book would {partner} recommend to everyone?",
-      "category": "personality",
-      "icon": "book-outline"
+      "text": "Does {partner} prefer three full meals or smaller snacks throughout the day?",
+      "category": "playful",
+      "icon": "restaurant-outline"
     },
     {
       "id": "q142",
-      "text": "What makes {partner} feel most loved by you?",
-      "category": "love",
-      "icon": "heart-circle-outline"
+      "text": "What childhood food did {partner} love then but avoid now?",
+      "category": "playful",
+      "icon": "restaurant-outline"
     },
     {
       "id": "q143",
-      "text": "What's {partner}'s biggest pet peeve?",
-      "category": "personality",
-      "icon": "warning-outline"
+      "text": "What type of bread or pastry does {partner} love most?",
+      "category": "playful",
+      "icon": "restaurant-outline"
     },
     {
       "id": "q144",
-      "text": "What would {partner}'s perfect vacation look like?",
+      "text": "Does {partner} prefer hosting dinner or being a guest?",
+      "category": "playful",
+      "icon": "restaurant-outline"
+    },
+    {
+      "id": "q145",
+      "text": "What cuisine does {partner} want delivered on a rainy night?",
+      "category": "playful",
+      "icon": "restaurant-outline"
+    },
+    {
+      "id": "q146",
+      "text": "How does {partner} feel about breakfast foods for dinner?",
+      "category": "playful",
+      "icon": "restaurant-outline"
+    },
+    {
+      "id": "q147",
+      "text": "What condiment does {partner} put on almost everything?",
+      "category": "playful",
+      "icon": "restaurant-outline"
+    },
+    {
+      "id": "q148",
+      "text": "Does {partner} prefer a buffet-style meal or a plated multi-course dinner?",
+      "category": "playful",
+      "icon": "restaurant-outline"
+    },
+    {
+      "id": "q149",
+      "text": "What does {partner} order from a classic coffee shop pastry case?",
+      "category": "playful",
+      "icon": "restaurant-outline"
+    },
+    {
+      "id": "q150",
+      "text": "How does {partner} react when a restaurant gets their order wrong?",
+      "category": "playful",
+      "icon": "restaurant-outline"
+    },
+    {
+      "id": "q151",
+      "text": "What protein does {partner} like most, and how should it be prepared?",
+      "category": "playful",
+      "icon": "restaurant-outline"
+    },
+    {
+      "id": "q152",
+      "text": "For an anniversary dessert, what would {partner} hope you share?",
+      "category": "playful",
+      "icon": "restaurant-outline"
+    },
+    {
+      "id": "q153",
+      "text": "At a huge amusement park, what ride would {partner} head to first?",
       "category": "future",
       "icon": "airplane-outline"
     },
     {
-      "id": "q145",
-      "text": "What's a risk {partner} has always wanted to take?",
-      "category": "deep",
-      "icon": "trending-up-outline"
-    },
-    {
-      "id": "q146",
-      "text": "What does {partner} consider their greatest strength?",
-      "category": "personality",
-      "icon": "fitness-outline"
-    },
-    {
-      "id": "q147",
-      "text": "What memory with you makes {partner} smile the most?",
-      "category": "love",
-      "icon": "happy-outline"
-    },
-    {
-      "id": "q148",
-      "text": "What would {partner} do if they won the lottery?",
-      "category": "playful",
-      "icon": "cash-outline"
-    },
-    {
-      "id": "q149",
-      "text": "What's {partner}'s morning routine like?",
-      "category": "personality",
-      "icon": "sunny-outline"
-    },
-    {
-      "id": "q150",
-      "text": "What does {partner} value most about quality time together?",
-      "category": "love",
-      "icon": "time-outline"
-    },
-    {
-      "id": "q151",
-      "text": "What's {partner}'s go-to karaoke song?",
-      "category": "playful",
-      "icon": "mic-outline"
-    },
-    {
-      "id": "q152",
-      "text": "What does {partner} daydream about?",
-      "category": "future",
-      "icon": "cloud-outline"
-    },
-    {
-      "id": "q153",
-      "text": "What habit would {partner} love to build?",
-      "category": "future",
-      "icon": "checkmark-circle-outline"
-    },
-    {
       "id": "q154",
-      "text": "What's {partner}'s favorite thing about themselves?",
-      "category": "deep",
-      "icon": "ribbon-outline"
+      "text": "Does {partner} prefer fast roller coasters or immersive dark rides?",
+      "category": "future",
+      "icon": "airplane-outline"
     },
     {
       "id": "q155",
-      "text": "What makes {partner} feel understood?",
-      "category": "deep",
-      "icon": "people-circle-outline"
+      "text": "What is {partner}'s dream vacation destination?",
+      "category": "future",
+      "icon": "airplane-outline"
     },
     {
       "id": "q156",
-      "text": "What book would {partner} recommend to everyone?",
-      "category": "personality",
-      "icon": "book-outline"
+      "text": "Does {partner} prefer a beach vacation or an active city trip?",
+      "category": "future",
+      "icon": "airplane-outline"
     },
     {
       "id": "q157",
-      "text": "What makes {partner} feel most loved by you?",
-      "category": "love",
-      "icon": "heart-circle-outline"
+      "text": "How does {partner} handle the stress of a busy airport?",
+      "category": "future",
+      "icon": "airplane-outline"
     },
     {
       "id": "q158",
-      "text": "What's {partner}'s biggest pet peeve?",
-      "category": "personality",
-      "icon": "warning-outline"
+      "text": "What travel essential does {partner} hate flying without?",
+      "category": "future",
+      "icon": "airplane-outline"
     },
     {
       "id": "q159",
-      "text": "What would {partner}'s perfect vacation look like?",
+      "text": "Does {partner} prefer a resort hotel or a secluded rental home?",
       "category": "future",
       "icon": "airplane-outline"
     },
     {
       "id": "q160",
-      "text": "What's a risk {partner} has always wanted to take?",
-      "category": "deep",
-      "icon": "trending-up-outline"
+      "text": "What souvenir does {partner} like bringing back from a new city?",
+      "category": "future",
+      "icon": "airplane-outline"
     },
     {
       "id": "q161",
-      "text": "What does {partner} consider their greatest strength?",
-      "category": "personality",
-      "icon": "fitness-outline"
+      "text": "How does {partner} feel about spontaneous day trips?",
+      "category": "future",
+      "icon": "airplane-outline"
     },
     {
       "id": "q162",
-      "text": "What memory with you makes {partner} smile the most?",
-      "category": "love",
-      "icon": "happy-outline"
+      "text": "What is the most beautiful natural landscape {partner} has seen in person?",
+      "category": "future",
+      "icon": "airplane-outline"
     },
     {
       "id": "q163",
-      "text": "What would {partner} do if they won the lottery?",
-      "category": "playful",
-      "icon": "cash-outline"
+      "text": "If you two had an RV, where would {partner} want to drive first?",
+      "category": "future",
+      "icon": "airplane-outline"
     },
     {
       "id": "q164",
-      "text": "What's {partner}'s morning routine like?",
-      "category": "personality",
-      "icon": "sunny-outline"
+      "text": "Does {partner} prefer tropical heat or crisp snowy destinations?",
+      "category": "future",
+      "icon": "airplane-outline"
     },
     {
       "id": "q165",
-      "text": "What does {partner} value most about quality time together?",
-      "category": "love",
-      "icon": "time-outline"
+      "text": "What does {partner} like doing on an open vacation day with no itinerary?",
+      "category": "future",
+      "icon": "airplane-outline"
     },
     {
       "id": "q166",
-      "text": "What's {partner}'s go-to karaoke song?",
-      "category": "playful",
-      "icon": "mic-outline"
+      "text": "Does {partner} prefer guided tours or exploring independently?",
+      "category": "future",
+      "icon": "airplane-outline"
     },
     {
       "id": "q167",
-      "text": "What does {partner} daydream about?",
+      "text": "Does {partner} prefer historical museums or local nightlife?",
       "category": "future",
-      "icon": "cloud-outline"
+      "icon": "airplane-outline"
     },
     {
       "id": "q168",
-      "text": "What habit would {partner} love to build?",
+      "text": "What is {partner}'s favorite theme park or attraction they have visited?",
       "category": "future",
-      "icon": "checkmark-circle-outline"
+      "icon": "airplane-outline"
     },
     {
       "id": "q169",
-      "text": "What's {partner}'s favorite thing about themselves?",
-      "category": "deep",
-      "icon": "ribbon-outline"
+      "text": "How does {partner} handle jet lag?",
+      "category": "future",
+      "icon": "airplane-outline"
     },
     {
       "id": "q170",
-      "text": "What makes {partner} feel understood?",
-      "category": "deep",
-      "icon": "people-circle-outline"
+      "text": "Does {partner} unpack right away at a hotel or live out of a suitcase?",
+      "category": "future",
+      "icon": "airplane-outline"
     },
     {
       "id": "q171",
-      "text": "What book would {partner} recommend to everyone?",
-      "category": "personality",
-      "icon": "book-outline"
+      "text": "What adventurous activity would {partner} genuinely try on a trip?",
+      "category": "future",
+      "icon": "airplane-outline"
     },
     {
       "id": "q172",
-      "text": "What makes {partner} feel most loved by you?",
-      "category": "love",
-      "icon": "heart-circle-outline"
+      "text": "Does {partner} prefer camping in a tent or staying in a comfortable cabin?",
+      "category": "future",
+      "icon": "airplane-outline"
     },
     {
       "id": "q173",
-      "text": "What's {partner}'s biggest pet peeve?",
-      "category": "personality",
-      "icon": "warning-outline"
+      "text": "Does {partner} prefer window seats or aisle seats on a plane?",
+      "category": "future",
+      "icon": "airplane-outline"
     },
     {
       "id": "q174",
-      "text": "What would {partner}'s perfect vacation look like?",
+      "text": "How does {partner} find the best local restaurants while traveling?",
       "category": "future",
       "icon": "airplane-outline"
     },
     {
       "id": "q175",
-      "text": "What's a risk {partner} has always wanted to take?",
-      "category": "deep",
-      "icon": "trending-up-outline"
+      "text": "If stranded in a new city without a map, how would {partner} react?",
+      "category": "future",
+      "icon": "airplane-outline"
     },
     {
       "id": "q176",
-      "text": "What does {partner} consider their greatest strength?",
-      "category": "personality",
-      "icon": "fitness-outline"
+      "text": "Does {partner} prefer swimming in the ocean, a lake, or a hotel pool?",
+      "category": "future",
+      "icon": "airplane-outline"
     },
     {
       "id": "q177",
-      "text": "What memory with you makes {partner} smile the most?",
-      "category": "love",
-      "icon": "happy-outline"
+      "text": "How does {partner} feel about cruises versus flying directly somewhere?",
+      "category": "future",
+      "icon": "airplane-outline"
     },
     {
       "id": "q178",
-      "text": "What would {partner} do if they won the lottery?",
-      "category": "playful",
-      "icon": "cash-outline"
+      "text": "If {partner} could teleport to any landmark right now, where would they go?",
+      "category": "future",
+      "icon": "airplane-outline"
     },
     {
       "id": "q179",
-      "text": "What's {partner}'s morning routine like?",
-      "category": "personality",
-      "icon": "sunny-outline"
+      "text": "Does {partner} capture travel memories with photos, videos, or by staying present?",
+      "category": "future",
+      "icon": "airplane-outline"
     },
     {
       "id": "q180",
-      "text": "What does {partner} value most about quality time together?",
-      "category": "love",
-      "icon": "time-outline"
+      "text": "At a water park, how bold would {partner} be about the tallest slide?",
+      "category": "future",
+      "icon": "airplane-outline"
     },
     {
       "id": "q181",
-      "text": "What's {partner}'s go-to karaoke song?",
-      "category": "playful",
-      "icon": "mic-outline"
+      "text": "Does {partner} prefer train travel or flying for medium-distance trips?",
+      "category": "future",
+      "icon": "airplane-outline"
     },
     {
       "id": "q182",
-      "text": "What does {partner} daydream about?",
+      "text": "How does {partner} like spending an evening in a brand-new city?",
       "category": "future",
-      "icon": "cloud-outline"
+      "icon": "airplane-outline"
     },
     {
       "id": "q183",
-      "text": "What habit would {partner} love to build?",
+      "text": "How does {partner} react when luggage goes missing or gets delayed?",
       "category": "future",
-      "icon": "checkmark-circle-outline"
+      "icon": "airplane-outline"
     },
     {
       "id": "q184",
-      "text": "What's {partner}'s favorite thing about themselves?",
-      "category": "deep",
-      "icon": "ribbon-outline"
+      "text": "If you won a trip to Europe, which three countries would {partner} pick first?",
+      "category": "future",
+      "icon": "airplane-outline"
     },
     {
       "id": "q185",
-      "text": "What makes {partner} feel understood?",
-      "category": "deep",
-      "icon": "people-circle-outline"
+      "text": "Does {partner} wake up early on vacation or sleep in as late as possible?",
+      "category": "future",
+      "icon": "airplane-outline"
     },
     {
       "id": "q186",
-      "text": "What book would {partner} recommend to everyone?",
-      "category": "personality",
-      "icon": "book-outline"
+      "text": "What live entertainment does {partner} like seeing while traveling?",
+      "category": "future",
+      "icon": "airplane-outline"
     },
     {
       "id": "q187",
-      "text": "What makes {partner} feel most loved by you?",
-      "category": "love",
-      "icon": "heart-circle-outline"
+      "text": "Does {partner} prefer returning to the same vacation spot or always going somewhere new?",
+      "category": "future",
+      "icon": "airplane-outline"
     },
     {
       "id": "q188",
-      "text": "What's {partner}'s biggest pet peeve?",
-      "category": "personality",
-      "icon": "warning-outline"
+      "text": "What piece of luggage or travel accessory does {partner} rely on most?",
+      "category": "future",
+      "icon": "airplane-outline"
     },
     {
       "id": "q189",
-      "text": "What would {partner}'s perfect vacation look like?",
+      "text": "On a long hike, what role would {partner} naturally take?",
       "category": "future",
       "icon": "airplane-outline"
     },
     {
       "id": "q190",
-      "text": "What's a risk {partner} has always wanted to take?",
-      "category": "deep",
-      "icon": "trending-up-outline"
+      "text": "How does {partner} handle sudden bad weather on vacation?",
+      "category": "future",
+      "icon": "airplane-outline"
     },
     {
       "id": "q191",
-      "text": "What does {partner} consider their greatest strength?",
-      "category": "personality",
-      "icon": "fitness-outline"
+      "text": "Does {partner} prefer luxury shopping or local handmade finds while traveling?",
+      "category": "future",
+      "icon": "airplane-outline"
     },
     {
       "id": "q192",
-      "text": "What memory with you makes {partner} smile the most?",
-      "category": "love",
-      "icon": "happy-outline"
+      "text": "How does {partner} feel about minute-by-minute travel itineraries?",
+      "category": "future",
+      "icon": "airplane-outline"
     },
     {
       "id": "q193",
-      "text": "What would {partner} do if they won the lottery?",
-      "category": "playful",
-      "icon": "cash-outline"
+      "text": "What local custom or cultural detail has fascinated {partner} while traveling?",
+      "category": "future",
+      "icon": "airplane-outline"
     },
     {
       "id": "q194",
-      "text": "What's {partner}'s morning routine like?",
-      "category": "personality",
-      "icon": "sunny-outline"
+      "text": "What is {partner}'s most irrational everyday fear?",
+      "category": "deep",
+      "icon": "sparkles-outline"
     },
     {
       "id": "q195",
-      "text": "What does {partner} value most about quality time together?",
-      "category": "love",
-      "icon": "time-outline"
+      "text": "How does {partner} define the difference between a good day and a great day?",
+      "category": "deep",
+      "icon": "sparkles-outline"
     },
     {
       "id": "q196",
-      "text": "What's {partner}'s go-to karaoke song?",
-      "category": "playful",
-      "icon": "mic-outline"
+      "text": "What core value does {partner} refuse to compromise on?",
+      "category": "deep",
+      "icon": "sparkles-outline"
     },
     {
       "id": "q197",
-      "text": "What does {partner} daydream about?",
-      "category": "future",
-      "icon": "cloud-outline"
+      "text": "How does {partner} process jealousy or envy when it shows up?",
+      "category": "deep",
+      "icon": "sparkles-outline"
     },
     {
       "id": "q198",
-      "text": "What habit would {partner} love to build?",
-      "category": "future",
-      "icon": "checkmark-circle-outline"
+      "text": "How does {partner} like to be comforted during a hard season?",
+      "category": "deep",
+      "icon": "sparkles-outline"
     },
     {
       "id": "q199",
-      "text": "What's {partner}'s favorite thing about themselves?",
+      "text": "What belief has {partner} changed their mind about in the last few years?",
       "category": "deep",
-      "icon": "ribbon-outline"
+      "icon": "sparkles-outline"
     },
     {
       "id": "q200",
-      "text": "What makes {partner} feel understood?",
+      "text": "Does {partner} lean more toward realism or optimism?",
       "category": "deep",
-      "icon": "people-circle-outline"
+      "icon": "sparkles-outline"
     },
     {
       "id": "q201",
-      "text": "What book would {partner} recommend to everyone?",
-      "category": "personality",
-      "icon": "book-outline"
+      "text": "What life choice does {partner} see as especially defining?",
+      "category": "deep",
+      "icon": "sparkles-outline"
     },
     {
       "id": "q202",
-      "text": "What makes {partner} feel most loved by you?",
-      "category": "love",
-      "icon": "heart-circle-outline"
+      "text": "How does {partner} feel about aging and getting older?",
+      "category": "deep",
+      "icon": "sparkles-outline"
     },
     {
       "id": "q203",
-      "text": "What's {partner}'s biggest pet peeve?",
-      "category": "personality",
-      "icon": "warning-outline"
+      "text": "What personality trait is {partner} actively trying to improve?",
+      "category": "deep",
+      "icon": "sparkles-outline"
     },
     {
       "id": "q204",
-      "text": "What would {partner}'s perfect vacation look like?",
-      "category": "future",
-      "icon": "airplane-outline"
+      "text": "When does {partner} feel most fully like themselves?",
+      "category": "deep",
+      "icon": "sparkles-outline"
     },
     {
       "id": "q205",
-      "text": "What's a risk {partner} has always wanted to take?",
+      "text": "How does {partner} handle failing at something important?",
       "category": "deep",
-      "icon": "trending-up-outline"
+      "icon": "sparkles-outline"
     },
     {
       "id": "q206",
-      "text": "What does {partner} consider their greatest strength?",
-      "category": "personality",
-      "icon": "fitness-outline"
+      "text": "Does {partner} find it easier to forgive others or themselves?",
+      "category": "deep",
+      "icon": "sparkles-outline"
     },
     {
       "id": "q207",
-      "text": "What memory with you makes {partner} smile the most?",
-      "category": "love",
-      "icon": "happy-outline"
+      "text": "How does {partner} define success beyond money or career?",
+      "category": "deep",
+      "icon": "sparkles-outline"
     },
     {
       "id": "q208",
-      "text": "What would {partner} do if they won the lottery?",
-      "category": "playful",
-      "icon": "cash-outline"
+      "text": "What boundary has helped {partner} protect their peace?",
+      "category": "deep",
+      "icon": "sparkles-outline"
     },
     {
       "id": "q209",
-      "text": "What's {partner}'s morning routine like?",
-      "category": "personality",
-      "icon": "sunny-outline"
+      "text": "How does {partner} react when someone else is treated unfairly?",
+      "category": "deep",
+      "icon": "sparkles-outline"
     },
     {
       "id": "q210",
-      "text": "What does {partner} value most about quality time together?",
-      "category": "love",
-      "icon": "time-outline"
+      "text": "Does {partner} recharge emotionally by being alone or with favorite people?",
+      "category": "deep",
+      "icon": "sparkles-outline"
     },
     {
       "id": "q211",
-      "text": "What's {partner}'s go-to karaoke song?",
-      "category": "playful",
-      "icon": "mic-outline"
+      "text": "What does {partner} need to hear from you when they feel overwhelmed?",
+      "category": "deep",
+      "icon": "sparkles-outline"
     },
     {
       "id": "q212",
-      "text": "What does {partner} daydream about?",
-      "category": "future",
-      "icon": "cloud-outline"
+      "text": "How does {partner} feel about fate, destiny, and coincidence?",
+      "category": "deep",
+      "icon": "sparkles-outline"
     },
     {
       "id": "q213",
-      "text": "What habit would {partner} love to build?",
-      "category": "future",
-      "icon": "checkmark-circle-outline"
+      "text": "What memory brings {partner} instant happy tears?",
+      "category": "deep",
+      "icon": "sparkles-outline"
     },
     {
       "id": "q214",
-      "text": "What's {partner}'s favorite thing about themselves?",
+      "text": "How does {partner} balance independence with wanting to be cared for?",
       "category": "deep",
-      "icon": "ribbon-outline"
+      "icon": "sparkles-outline"
     },
     {
       "id": "q215",
-      "text": "What makes {partner} feel understood?",
+      "text": "Does {partner} process emotions more through logic or intuition?",
       "category": "deep",
-      "icon": "people-circle-outline"
+      "icon": "sparkles-outline"
     },
     {
       "id": "q216",
-      "text": "What book would {partner} recommend to everyone?",
-      "category": "personality",
-      "icon": "book-outline"
+      "text": "What beautiful moment has shaped {partner}'s faith in people?",
+      "category": "deep",
+      "icon": "sparkles-outline"
     },
     {
       "id": "q217",
-      "text": "What makes {partner} feel most loved by you?",
-      "category": "love",
-      "icon": "heart-circle-outline"
+      "text": "How does {partner} recover after a hard argument?",
+      "category": "deep",
+      "icon": "sparkles-outline"
     },
     {
       "id": "q218",
-      "text": "What's {partner}'s biggest pet peeve?",
-      "category": "personality",
-      "icon": "warning-outline"
+      "text": "What realization has {partner} had because of your relationship?",
+      "category": "deep",
+      "icon": "sparkles-outline"
     },
     {
       "id": "q219",
-      "text": "What would {partner}'s perfect vacation look like?",
-      "category": "future",
-      "icon": "airplane-outline"
+      "text": "What art, music, or writing has changed how {partner} sees the world?",
+      "category": "deep",
+      "icon": "sparkles-outline"
     },
     {
       "id": "q220",
-      "text": "What's a risk {partner} has always wanted to take?",
+      "text": "How does {partner} feel about leaving a legacy?",
       "category": "deep",
-      "icon": "trending-up-outline"
+      "icon": "sparkles-outline"
     },
     {
       "id": "q221",
-      "text": "What does {partner} consider their greatest strength?",
-      "category": "personality",
-      "icon": "fitness-outline"
+      "text": "What does unconditional love look like to {partner}?",
+      "category": "deep",
+      "icon": "sparkles-outline"
     },
     {
       "id": "q222",
-      "text": "What memory with you makes {partner} smile the most?",
-      "category": "love",
-      "icon": "happy-outline"
+      "text": "How does {partner} show empathy when they do not fully understand?",
+      "category": "deep",
+      "icon": "sparkles-outline"
     },
     {
       "id": "q223",
-      "text": "What would {partner} do if they won the lottery?",
-      "category": "playful",
-      "icon": "cash-outline"
+      "text": "What bold ambition is {partner} almost nervous to say out loud?",
+      "category": "deep",
+      "icon": "sparkles-outline"
     },
     {
       "id": "q224",
-      "text": "What's {partner}'s morning routine like?",
-      "category": "personality",
-      "icon": "sunny-outline"
+      "text": "How does {partner} feel about vulnerability, and what helps them open up?",
+      "category": "deep",
+      "icon": "sparkles-outline"
     },
     {
       "id": "q225",
-      "text": "What does {partner} value most about quality time together?",
-      "category": "love",
-      "icon": "time-outline"
+      "text": "What is one of the most peaceful moments {partner} has ever had?",
+      "category": "deep",
+      "icon": "sparkles-outline"
     },
     {
       "id": "q226",
-      "text": "What's {partner}'s go-to karaoke song?",
-      "category": "playful",
-      "icon": "mic-outline"
+      "text": "What physical feature of yours does {partner} compliment the most?",
+      "category": "love",
+      "icon": "heart-outline"
     },
     {
       "id": "q227",
-      "text": "What does {partner} daydream about?",
-      "category": "future",
-      "icon": "cloud-outline"
+      "text": "How does {partner} like to be kissed when the mood is tender versus passionate?",
+      "category": "love",
+      "icon": "heart-outline"
     },
     {
       "id": "q228",
-      "text": "What habit would {partner} love to build?",
-      "category": "future",
-      "icon": "checkmark-circle-outline"
+      "text": "What is {partner}'s favorite non-sexual way for you two to physically connect?",
+      "category": "love",
+      "icon": "heart-outline"
     },
     {
       "id": "q229",
-      "text": "What's {partner}'s favorite thing about themselves?",
-      "category": "deep",
-      "icon": "ribbon-outline"
+      "text": "Which outfit of yours does {partner} find especially attractive?",
+      "category": "love",
+      "icon": "heart-outline"
     },
     {
       "id": "q230",
-      "text": "What makes {partner} feel understood?",
-      "category": "deep",
-      "icon": "people-circle-outline"
+      "text": "Does {partner} prefer when you take romantic initiative or when they initiate?",
+      "category": "love",
+      "icon": "heart-outline"
     },
     {
       "id": "q231",
-      "text": "What book would {partner} recommend to everyone?",
-      "category": "personality",
-      "icon": "book-outline"
+      "text": "What detail from your earliest dating days does {partner} remember most clearly?",
+      "category": "love",
+      "icon": "heart-outline"
     },
     {
       "id": "q232",
-      "text": "What makes {partner} feel most loved by you?",
+      "text": "How does {partner} feel about public displays of affection?",
       "category": "love",
-      "icon": "heart-circle-outline"
+      "icon": "heart-outline"
     },
     {
       "id": "q233",
-      "text": "What's {partner}'s biggest pet peeve?",
-      "category": "personality",
-      "icon": "warning-outline"
+      "text": "What subtle signal does {partner} use when they want more closeness?",
+      "category": "love",
+      "icon": "heart-outline"
     },
     {
       "id": "q234",
-      "text": "What would {partner}'s perfect vacation look like?",
-      "category": "future",
-      "icon": "airplane-outline"
+      "text": "Does {partner} prefer a slow romantic build-up or spontaneous affection?",
+      "category": "love",
+      "icon": "heart-outline"
     },
     {
       "id": "q235",
-      "text": "What's a risk {partner} has always wanted to take?",
-      "category": "deep",
-      "icon": "trending-up-outline"
+      "text": "What compliment helps {partner} feel confident in their body?",
+      "category": "love",
+      "icon": "heart-outline"
     },
     {
       "id": "q236",
-      "text": "What does {partner} consider their greatest strength?",
-      "category": "personality",
-      "icon": "fitness-outline"
+      "text": "What is {partner}'s favorite cuddling position on the couch?",
+      "category": "love",
+      "icon": "heart-outline"
     },
     {
       "id": "q237",
-      "text": "What memory with you makes {partner} smile the most?",
+      "text": "How does {partner} want to be held after a stressful day?",
       "category": "love",
-      "icon": "happy-outline"
+      "icon": "heart-outline"
     },
     {
       "id": "q238",
-      "text": "What would {partner} do if they won the lottery?",
-      "category": "playful",
-      "icon": "cash-outline"
+      "text": "What romantic gesture from you does {partner} still think about?",
+      "category": "love",
+      "icon": "heart-outline"
     },
     {
       "id": "q239",
-      "text": "What's {partner}'s morning routine like?",
-      "category": "personality",
-      "icon": "sunny-outline"
+      "text": "Does {partner} prefer gifts, acts of service, or words of affirmation?",
+      "category": "love",
+      "icon": "heart-outline"
     },
     {
       "id": "q240",
-      "text": "What does {partner} value most about quality time together?",
+      "text": "What romantic scenario has {partner} admitted sounds exciting?",
       "category": "love",
-      "icon": "time-outline"
+      "icon": "heart-outline"
     },
     {
       "id": "q241",
-      "text": "What's {partner}'s go-to karaoke song?",
-      "category": "playful",
-      "icon": "mic-outline"
+      "text": "Where have you and {partner} shared a romantic moment that they still remember?",
+      "category": "love",
+      "icon": "heart-outline"
     },
     {
       "id": "q242",
-      "text": "What does {partner} daydream about?",
-      "category": "future",
-      "icon": "cloud-outline"
+      "text": "Does {partner} prefer morning closeness or late-night closeness?",
+      "category": "love",
+      "icon": "heart-outline"
     },
     {
       "id": "q243",
-      "text": "What habit would {partner} love to build?",
-      "category": "future",
-      "icon": "checkmark-circle-outline"
+      "text": "What sensory detail helps {partner} feel romantic: lighting, music, or scent?",
+      "category": "love",
+      "icon": "heart-outline"
     },
     {
       "id": "q244",
-      "text": "What's {partner}'s favorite thing about themselves?",
-      "category": "deep",
-      "icon": "ribbon-outline"
+      "text": "How does {partner} respond to gentle touch when they are relaxed?",
+      "category": "love",
+      "icon": "heart-outline"
     },
     {
       "id": "q245",
-      "text": "What makes {partner} feel understood?",
-      "category": "deep",
-      "icon": "people-circle-outline"
+      "text": "What is {partner}'s favorite memory from your best date night?",
+      "category": "love",
+      "icon": "heart-outline"
     },
     {
       "id": "q246",
-      "text": "What book would {partner} recommend to everyone?",
-      "category": "personality",
-      "icon": "book-outline"
+      "text": "How does {partner} feel about planning romantic time versus letting it happen naturally?",
+      "category": "love",
+      "icon": "heart-outline"
     },
     {
       "id": "q247",
-      "text": "What makes {partner} feel most loved by you?",
+      "text": "What new romantic experience did {partner} love trying with you?",
       "category": "love",
-      "icon": "heart-circle-outline"
+      "icon": "heart-outline"
     },
     {
       "id": "q248",
-      "text": "What's {partner}'s biggest pet peeve?",
-      "category": "personality",
-      "icon": "warning-outline"
+      "text": "Does {partner} prefer deep eye contact or getting lost in the moment?",
+      "category": "love",
+      "icon": "heart-outline"
     },
     {
       "id": "q249",
-      "text": "What would {partner}'s perfect vacation look like?",
-      "category": "future",
-      "icon": "airplane-outline"
+      "text": "What romantic risk or adventure has thrilled {partner} most?",
+      "category": "love",
+      "icon": "heart-outline"
     },
     {
       "id": "q250",
-      "text": "What's a risk {partner} has always wanted to take?",
-      "category": "deep",
-      "icon": "trending-up-outline"
+      "text": "How does {partner} like you to communicate during emotionally intense moments?",
+      "category": "love",
+      "icon": "heart-outline"
     },
     {
       "id": "q251",
-      "text": "What does {partner} consider their greatest strength?",
-      "category": "personality",
-      "icon": "fitness-outline"
+      "text": "What is {partner}'s favorite way for you to initiate affection without words?",
+      "category": "love",
+      "icon": "heart-outline"
     },
     {
       "id": "q252",
-      "text": "What memory with you makes {partner} smile the most?",
+      "text": "How does {partner} feel about vulnerable conversations after physical closeness?",
       "category": "love",
-      "icon": "happy-outline"
+      "icon": "heart-outline"
     },
     {
       "id": "q253",
-      "text": "What would {partner} do if they won the lottery?",
-      "category": "playful",
-      "icon": "cash-outline"
+      "text": "What non-physical trait of yours does {partner} find most attractive?",
+      "category": "love",
+      "icon": "heart-outline"
     },
     {
       "id": "q254",
-      "text": "What's {partner}'s morning routine like?",
-      "category": "personality",
-      "icon": "sunny-outline"
+      "text": "How does {partner} express jealousy if someone flirts with you?",
+      "category": "love",
+      "icon": "heart-outline"
     },
     {
       "id": "q255",
-      "text": "What does {partner} value most about quality time together?",
+      "text": "When did {partner} realize they had fallen in love with you?",
       "category": "love",
-      "icon": "time-outline"
+      "icon": "heart-outline"
     },
     {
       "id": "q256",
-      "text": "What's {partner}'s go-to karaoke song?",
-      "category": "playful",
-      "icon": "mic-outline"
+      "text": "Does {partner} prefer sleeping intertwined or on their own side of the bed?",
+      "category": "love",
+      "icon": "heart-outline"
     },
     {
       "id": "q257",
-      "text": "What does {partner} daydream about?",
-      "category": "future",
-      "icon": "cloud-outline"
+      "text": "What is {partner}'s favorite way to celebrate an anniversary?",
+      "category": "love",
+      "icon": "heart-outline"
     },
     {
       "id": "q258",
-      "text": "What habit would {partner} love to build?",
-      "category": "future",
-      "icon": "checkmark-circle-outline"
+      "text": "What subtle thing do you do that makes {partner} feel protected?",
+      "category": "love",
+      "icon": "heart-outline"
     },
     {
       "id": "q259",
-      "text": "What's {partner}'s favorite thing about themselves?",
-      "category": "deep",
-      "icon": "ribbon-outline"
+      "text": "How does {partner} want to keep your spark alive years from now?",
+      "category": "love",
+      "icon": "heart-outline"
     },
     {
       "id": "q260",
-      "text": "What makes {partner} feel understood?",
-      "category": "deep",
-      "icon": "people-circle-outline"
+      "text": "What is the most meaningful compliment {partner} has given you?",
+      "category": "love",
+      "icon": "heart-outline"
     },
     {
       "id": "q261",
-      "text": "What book would {partner} recommend to everyone?",
-      "category": "personality",
-      "icon": "book-outline"
+      "text": "Does {partner} prefer quiet intimate conversation or dancing in a crowded room?",
+      "category": "love",
+      "icon": "heart-outline"
     },
     {
       "id": "q262",
-      "text": "What makes {partner} feel most loved by you?",
+      "text": "What song or artist reminds {partner} of your romance?",
       "category": "love",
-      "icon": "heart-circle-outline"
+      "icon": "heart-outline"
     },
     {
       "id": "q263",
-      "text": "What's {partner}'s biggest pet peeve?",
-      "category": "personality",
-      "icon": "warning-outline"
+      "text": "How does {partner} react to a thoughtful surprise date night?",
+      "category": "love",
+      "icon": "heart-outline"
     },
     {
       "id": "q264",
-      "text": "What would {partner}'s perfect vacation look like?",
-      "category": "future",
-      "icon": "airplane-outline"
+      "text": "How does {partner} feel about a secluded couples retreat?",
+      "category": "love",
+      "icon": "heart-outline"
     },
     {
       "id": "q265",
-      "text": "What's a risk {partner} has always wanted to take?",
-      "category": "deep",
-      "icon": "trending-up-outline"
+      "text": "What is the most romantic thing {partner} believes they have done for you?",
+      "category": "love",
+      "icon": "heart-outline"
     },
     {
       "id": "q266",
-      "text": "What does {partner} consider their greatest strength?",
-      "category": "personality",
-      "icon": "fitness-outline"
+      "text": "Does {partner} prefer whispered affection or confident affection from across the room?",
+      "category": "love",
+      "icon": "heart-outline"
     },
     {
       "id": "q267",
-      "text": "What memory with you makes {partner} smile the most?",
+      "text": "What is {partner}'s favorite way for you to help them unwind at the end of the day?",
       "category": "love",
-      "icon": "happy-outline"
+      "icon": "heart-outline"
     },
     {
       "id": "q268",
-      "text": "What would {partner} do if they won the lottery?",
-      "category": "playful",
-      "icon": "cash-outline"
+      "text": "How does {partner} define the difference between physical closeness and connected intimacy?",
+      "category": "love",
+      "icon": "heart-outline"
     },
     {
       "id": "q269",
-      "text": "What's {partner}'s morning routine like?",
-      "category": "personality",
-      "icon": "sunny-outline"
+      "text": "What emotional need helps {partner} feel safest in intimate moments?",
+      "category": "love",
+      "icon": "heart-outline"
     },
     {
       "id": "q270",
-      "text": "What does {partner} value most about quality time together?",
+      "text": "When you two are perfectly in sync, what emotion does {partner} radiate most?",
       "category": "love",
-      "icon": "time-outline"
+      "icon": "heart-outline"
     },
     {
       "id": "q271",
-      "text": "What's {partner}'s go-to karaoke song?",
-      "category": "playful",
-      "icon": "mic-outline"
+      "text": "What career goal is {partner} most actively working toward?",
+      "category": "future",
+      "icon": "briefcase-outline"
     },
     {
       "id": "q272",
-      "text": "What does {partner} daydream about?",
+      "text": "Does {partner} prefer leading a team or working independently as a skilled contributor?",
       "category": "future",
-      "icon": "cloud-outline"
+      "icon": "briefcase-outline"
     },
     {
       "id": "q273",
-      "text": "What habit would {partner} love to build?",
+      "text": "How does {partner} handle intense deadlines at work?",
       "category": "future",
-      "icon": "checkmark-circle-outline"
+      "icon": "briefcase-outline"
     },
     {
       "id": "q274",
-      "text": "What's {partner}'s favorite thing about themselves?",
-      "category": "deep",
-      "icon": "ribbon-outline"
+      "text": "What part of {partner}'s work or daily routine is most satisfying to them?",
+      "category": "future",
+      "icon": "briefcase-outline"
     },
     {
       "id": "q275",
-      "text": "What makes {partner} feel understood?",
-      "category": "deep",
-      "icon": "people-circle-outline"
+      "text": "If money were irrelevant, what alternate career would {partner} explore?",
+      "category": "future",
+      "icon": "briefcase-outline"
     },
     {
       "id": "q276",
-      "text": "What book would {partner} recommend to everyone?",
-      "category": "personality",
-      "icon": "book-outline"
+      "text": "What working environment helps {partner} focus best: silence, music, or background noise?",
+      "category": "future",
+      "icon": "briefcase-outline"
     },
     {
       "id": "q277",
-      "text": "What makes {partner} feel most loved by you?",
-      "category": "love",
-      "icon": "heart-circle-outline"
+      "text": "What is the most tedious part of {partner}'s profession or routine?",
+      "category": "future",
+      "icon": "briefcase-outline"
     },
     {
       "id": "q278",
-      "text": "What's {partner}'s biggest pet peeve?",
-      "category": "personality",
-      "icon": "warning-outline"
+      "text": "How does {partner} celebrate a big professional win?",
+      "category": "future",
+      "icon": "briefcase-outline"
     },
     {
       "id": "q279",
-      "text": "What would {partner}'s perfect vacation look like?",
+      "text": "Does {partner} disconnect from technology on weekends or stay plugged in?",
       "category": "future",
-      "icon": "airplane-outline"
+      "icon": "briefcase-outline"
     },
     {
       "id": "q280",
-      "text": "What's a risk {partner} has always wanted to take?",
-      "category": "deep",
-      "icon": "trending-up-outline"
+      "text": "How does {partner} react to thoughtful criticism on work they care about?",
+      "category": "future",
+      "icon": "briefcase-outline"
     },
     {
       "id": "q281",
-      "text": "What does {partner} consider their greatest strength?",
-      "category": "personality",
-      "icon": "fitness-outline"
+      "text": "How does {partner} organize their digital life: folders, tags, or chaos?",
+      "category": "future",
+      "icon": "briefcase-outline"
     },
     {
       "id": "q282",
-      "text": "What memory with you makes {partner} smile the most?",
-      "category": "love",
-      "icon": "happy-outline"
+      "text": "Does {partner} prefer remote work or being around people in a shared workspace?",
+      "category": "future",
+      "icon": "briefcase-outline"
     },
     {
       "id": "q283",
-      "text": "What would {partner} do if they won the lottery?",
-      "category": "playful",
-      "icon": "cash-outline"
+      "text": "How does {partner} handle networking at an intimidating professional event?",
+      "category": "future",
+      "icon": "briefcase-outline"
     },
     {
       "id": "q284",
-      "text": "What's {partner}'s morning routine like?",
-      "category": "personality",
-      "icon": "sunny-outline"
+      "text": "Does {partner} prefer dark mode or light mode on their devices?",
+      "category": "future",
+      "icon": "briefcase-outline"
     },
     {
       "id": "q285",
-      "text": "What does {partner} value most about quality time together?",
-      "category": "love",
-      "icon": "time-outline"
+      "text": "What professional failure changed how {partner} approaches work?",
+      "category": "future",
+      "icon": "briefcase-outline"
     },
     {
       "id": "q286",
-      "text": "What's {partner}'s go-to karaoke song?",
-      "category": "playful",
-      "icon": "mic-outline"
+      "text": "How does {partner} feel about hustle culture versus work-life balance?",
+      "category": "future",
+      "icon": "briefcase-outline"
     },
     {
       "id": "q287",
-      "text": "What does {partner} daydream about?",
+      "text": "If {partner} had to present to a large audience tomorrow, how would they prepare tonight?",
       "category": "future",
-      "icon": "cloud-outline"
+      "icon": "briefcase-outline"
     },
     {
       "id": "q288",
-      "text": "What habit would {partner} love to build?",
+      "text": "Does {partner} learn best through structured courses or hands-on experimentation?",
       "category": "future",
-      "icon": "checkmark-circle-outline"
+      "icon": "briefcase-outline"
     },
     {
       "id": "q289",
-      "text": "What's {partner}'s favorite thing about themselves?",
-      "category": "deep",
-      "icon": "ribbon-outline"
+      "text": "What advice does {partner} give someone just starting in their field?",
+      "category": "future",
+      "icon": "briefcase-outline"
     },
     {
       "id": "q290",
-      "text": "What makes {partner} feel understood?",
-      "category": "deep",
-      "icon": "people-circle-outline"
+      "text": "How does {partner} feel about unplugged, off-the-grid vacations?",
+      "category": "future",
+      "icon": "briefcase-outline"
     },
     {
       "id": "q291",
-      "text": "What book would {partner} recommend to everyone?",
-      "category": "personality",
-      "icon": "book-outline"
+      "text": "What difficult problem is {partner} proud of solving?",
+      "category": "future",
+      "icon": "briefcase-outline"
     },
     {
       "id": "q292",
-      "text": "What makes {partner} feel most loved by you?",
-      "category": "love",
-      "icon": "heart-circle-outline"
+      "text": "Does {partner} see career as part of their identity or mainly as a means to an end?",
+      "category": "future",
+      "icon": "briefcase-outline"
     },
     {
       "id": "q293",
-      "text": "What's {partner}'s biggest pet peeve?",
-      "category": "personality",
-      "icon": "warning-outline"
+      "text": "If {partner} were in charge, what workplace policy would they create first?",
+      "category": "future",
+      "icon": "briefcase-outline"
     },
     {
       "id": "q294",
-      "text": "What would {partner}'s perfect vacation look like?",
+      "text": "Does {partner} prefer written work communication or quick calls?",
       "category": "future",
-      "icon": "airplane-outline"
+      "icon": "briefcase-outline"
     },
     {
       "id": "q295",
-      "text": "What's a risk {partner} has always wanted to take?",
-      "category": "deep",
-      "icon": "trending-up-outline"
+      "text": "How does {partner} procrastinate when stuck on a hard work problem?",
+      "category": "future",
+      "icon": "briefcase-outline"
     },
     {
       "id": "q296",
-      "text": "What does {partner} consider their greatest strength?",
-      "category": "personality",
-      "icon": "fitness-outline"
+      "text": "How does {partner} transition out of work mode at home?",
+      "category": "future",
+      "icon": "briefcase-outline"
     },
     {
       "id": "q297",
-      "text": "What memory with you makes {partner} smile the most?",
-      "category": "love",
-      "icon": "happy-outline"
+      "text": "If {partner} kept only one social app, which one would survive?",
+      "category": "future",
+      "icon": "briefcase-outline"
     },
     {
       "id": "q298",
-      "text": "What would {partner} do if they won the lottery?",
-      "category": "playful",
-      "icon": "cash-outline"
+      "text": "What mentor or professional connection has meant a lot to {partner}?",
+      "category": "future",
+      "icon": "briefcase-outline"
     },
     {
       "id": "q299",
-      "text": "What's {partner}'s morning routine like?",
-      "category": "personality",
-      "icon": "sunny-outline"
+      "text": "Does {partner} prefer ambitious startup energy or stable established workplaces?",
+      "category": "future",
+      "icon": "briefcase-outline"
     },
     {
       "id": "q300",
-      "text": "What does {partner} value most about quality time together?",
-      "category": "love",
-      "icon": "time-outline"
+      "text": "What abandoned project does {partner} secretly want to finish?",
+      "category": "future",
+      "icon": "briefcase-outline"
     },
     {
       "id": "q301",
-      "text": "What's {partner}'s go-to karaoke song?",
-      "category": "playful",
-      "icon": "mic-outline"
+      "text": "How does {partner} handle working with someone whose work style is opposite theirs?",
+      "category": "future",
+      "icon": "briefcase-outline"
     },
     {
       "id": "q302",
-      "text": "What does {partner} daydream about?",
+      "text": "Does {partner} prefer open-plan offices or private quiet spaces?",
       "category": "future",
-      "icon": "cloud-outline"
+      "icon": "briefcase-outline"
     },
     {
       "id": "q303",
-      "text": "What habit would {partner} love to build?",
+      "text": "What professional milestone would make {partner} feel like they made it?",
       "category": "future",
-      "icon": "checkmark-circle-outline"
+      "icon": "briefcase-outline"
     },
     {
       "id": "q304",
-      "text": "What's {partner}'s favorite thing about themselves?",
-      "category": "deep",
-      "icon": "ribbon-outline"
+      "text": "How does {partner} want their professional legacy to be remembered?",
+      "category": "future",
+      "icon": "briefcase-outline"
     },
     {
       "id": "q305",
-      "text": "What makes {partner} feel understood?",
-      "category": "deep",
-      "icon": "people-circle-outline"
+      "text": "What aesthetic, design style, or color palette makes {partner} feel calm?",
+      "category": "personality",
+      "icon": "color-palette-outline"
     },
     {
       "id": "q306",
-      "text": "What book would {partner} recommend to everyone?",
+      "text": "What harmless odd habit does {partner} have when no one is watching?",
       "category": "personality",
-      "icon": "book-outline"
+      "icon": "color-palette-outline"
     },
     {
       "id": "q307",
-      "text": "What makes {partner} feel most loved by you?",
-      "category": "love",
-      "icon": "heart-circle-outline"
+      "text": "Does {partner} prefer musky scents or light fresh aromas at home?",
+      "category": "personality",
+      "icon": "color-palette-outline"
     },
     {
       "id": "q308",
-      "text": "What's {partner}'s biggest pet peeve?",
+      "text": "What clothing item has {partner} owned for years and refused to throw away?",
       "category": "personality",
-      "icon": "warning-outline"
+      "icon": "color-palette-outline"
     },
     {
       "id": "q309",
-      "text": "What would {partner}'s perfect vacation look like?",
-      "category": "future",
-      "icon": "airplane-outline"
+      "text": "Does {partner} prefer bold maximalist decor or calm minimalist textures?",
+      "category": "personality",
+      "icon": "color-palette-outline"
     },
     {
       "id": "q310",
-      "text": "What's a risk {partner} has always wanted to take?",
-      "category": "deep",
-      "icon": "trending-up-outline"
+      "text": "How does {partner} arrange pillows or blankets on the bed?",
+      "category": "personality",
+      "icon": "color-palette-outline"
     },
     {
       "id": "q311",
-      "text": "What does {partner} consider their greatest strength?",
+      "text": "How would {partner} describe their fashion sense in three words?",
       "category": "personality",
-      "icon": "fitness-outline"
+      "icon": "color-palette-outline"
     },
     {
       "id": "q312",
-      "text": "What memory with you makes {partner} smile the most?",
-      "category": "love",
-      "icon": "happy-outline"
+      "text": "Does {partner} prefer delicate jewelry or bold statement pieces?",
+      "category": "personality",
+      "icon": "color-palette-outline"
     },
     {
       "id": "q313",
-      "text": "What would {partner} do if they won the lottery?",
-      "category": "playful",
-      "icon": "cash-outline"
+      "text": "How does {partner} react to being asked to join a choreographed social media trend?",
+      "category": "personality",
+      "icon": "color-palette-outline"
     },
     {
       "id": "q314",
-      "text": "What's {partner}'s morning routine like?",
+      "text": "What niche topic will {partner} defend in a casual debate?",
       "category": "personality",
-      "icon": "sunny-outline"
+      "icon": "color-palette-outline"
     },
     {
       "id": "q315",
-      "text": "What does {partner} value most about quality time together?",
-      "category": "love",
-      "icon": "time-outline"
+      "text": "How does {partner} feel about mismatched socks or wrinkled errand clothes?",
+      "category": "personality",
+      "icon": "color-palette-outline"
     },
     {
       "id": "q316",
-      "text": "What's {partner}'s go-to karaoke song?",
-      "category": "playful",
-      "icon": "mic-outline"
+      "text": "What weather does {partner} love watching from a cozy window?",
+      "category": "personality",
+      "icon": "color-palette-outline"
     },
     {
       "id": "q317",
-      "text": "What does {partner} daydream about?",
-      "category": "future",
-      "icon": "cloud-outline"
+      "text": "Does {partner} prefer physical planners and pens or keeping everything digital?",
+      "category": "personality",
+      "icon": "color-palette-outline"
     },
     {
       "id": "q318",
-      "text": "What habit would {partner} love to build?",
-      "category": "future",
-      "icon": "checkmark-circle-outline"
+      "text": "What texture combination does {partner} find visually beautiful?",
+      "category": "personality",
+      "icon": "color-palette-outline"
     },
     {
       "id": "q319",
-      "text": "What's {partner}'s favorite thing about themselves?",
-      "category": "deep",
-      "icon": "ribbon-outline"
+      "text": "How does {partner} organize apps on their phone home screen?",
+      "category": "personality",
+      "icon": "color-palette-outline"
     },
     {
       "id": "q320",
-      "text": "What makes {partner} feel understood?",
-      "category": "deep",
-      "icon": "people-circle-outline"
+      "text": "What irrational superstition does {partner} still partly believe?",
+      "category": "personality",
+      "icon": "color-palette-outline"
     },
     {
       "id": "q321",
-      "text": "What book would {partner} recommend to everyone?",
+      "text": "If {partner} were an interior design trend, what would they be?",
       "category": "personality",
-      "icon": "book-outline"
+      "icon": "color-palette-outline"
     },
     {
       "id": "q322",
-      "text": "What makes {partner} feel most loved by you?",
-      "category": "love",
-      "icon": "heart-circle-outline"
+      "text": "Does {partner} prefer loud bass-heavy music or soft ambient sound when driving alone?",
+      "category": "personality",
+      "icon": "color-palette-outline"
     },
     {
       "id": "q323",
-      "text": "What's {partner}'s biggest pet peeve?",
+      "text": "How does {partner} care for favorite sweaters or delicate clothes?",
       "category": "personality",
-      "icon": "warning-outline"
+      "icon": "color-palette-outline"
     },
     {
       "id": "q324",
-      "text": "What would {partner}'s perfect vacation look like?",
-      "category": "future",
-      "icon": "airplane-outline"
+      "text": "Does {partner} prefer practical gifts or romantic sentimental ones?",
+      "category": "personality",
+      "icon": "color-palette-outline"
     },
     {
       "id": "q325",
-      "text": "What's a risk {partner} has always wanted to take?",
-      "category": "deep",
-      "icon": "trending-up-outline"
+      "text": "What physical gesture does {partner} make while concentrating?",
+      "category": "personality",
+      "icon": "color-palette-outline"
     },
     {
       "id": "q326",
-      "text": "What does {partner} consider their greatest strength?",
+      "text": "Does {partner} buy lifetime-quality items or inexpensive replaceable things?",
       "category": "personality",
-      "icon": "fitness-outline"
+      "icon": "color-palette-outline"
     },
     {
       "id": "q327",
-      "text": "What memory with you makes {partner} smile the most?",
-      "category": "love",
-      "icon": "happy-outline"
+      "text": "What season does {partner} most enjoy dressing for?",
+      "category": "personality",
+      "icon": "color-palette-outline"
     },
     {
       "id": "q328",
-      "text": "What would {partner} do if they won the lottery?",
-      "category": "playful",
-      "icon": "cash-outline"
+      "text": "How does {partner} feel about a no-shoes-in-the-house rule?",
+      "category": "personality",
+      "icon": "color-palette-outline"
     },
     {
       "id": "q329",
-      "text": "What's {partner}'s morning routine like?",
+      "text": "What pop-culture aesthetic does {partner} wish would come back?",
       "category": "personality",
-      "icon": "sunny-outline"
+      "icon": "color-palette-outline"
     },
     {
       "id": "q330",
-      "text": "What does {partner} value most about quality time together?",
-      "category": "love",
-      "icon": "time-outline"
+      "text": "Does {partner} prefer manicured gardens or wild natural landscapes?",
+      "category": "personality",
+      "icon": "color-palette-outline"
     },
     {
       "id": "q331",
-      "text": "What's {partner}'s go-to karaoke song?",
-      "category": "playful",
-      "icon": "mic-outline"
+      "text": "What item does {partner} keep buying but rarely use?",
+      "category": "personality",
+      "icon": "color-palette-outline"
     },
     {
       "id": "q332",
-      "text": "What does {partner} daydream about?",
-      "category": "future",
-      "icon": "cloud-outline"
+      "text": "How does {partner} react to wearing stiff formal clothing all evening?",
+      "category": "personality",
+      "icon": "color-palette-outline"
     },
     {
       "id": "q333",
-      "text": "What habit would {partner} love to build?",
-      "category": "future",
-      "icon": "checkmark-circle-outline"
+      "text": "What scent gives {partner} an instant headache?",
+      "category": "personality",
+      "icon": "color-palette-outline"
     },
     {
       "id": "q334",
-      "text": "What's {partner}'s favorite thing about themselves?",
-      "category": "deep",
-      "icon": "ribbon-outline"
+      "text": "Does {partner} prefer polished photos or blurry candid memories?",
+      "category": "personality",
+      "icon": "color-palette-outline"
     },
     {
       "id": "q335",
-      "text": "What makes {partner} feel understood?",
-      "category": "deep",
-      "icon": "people-circle-outline"
+      "text": "How does {partner} customize technology: cases, stickers, or keeping it bare?",
+      "category": "personality",
+      "icon": "color-palette-outline"
     },
     {
       "id": "q336",
-      "text": "What book would {partner} recommend to everyone?",
+      "text": "How does {partner} feel about bright neon colors in a living space?",
       "category": "personality",
-      "icon": "book-outline"
+      "icon": "color-palette-outline"
     },
     {
       "id": "q337",
-      "text": "What makes {partner} feel most loved by you?",
-      "category": "love",
-      "icon": "heart-circle-outline"
+      "text": "What grooming or aesthetic step does {partner} skip when running late?",
+      "category": "personality",
+      "icon": "color-palette-outline"
     },
     {
       "id": "q338",
-      "text": "What's {partner}'s biggest pet peeve?",
+      "text": "Does {partner} prefer online shopping or browsing a curated store in person?",
       "category": "personality",
-      "icon": "warning-outline"
+      "icon": "color-palette-outline"
     },
     {
       "id": "q339",
-      "text": "What would {partner}'s perfect vacation look like?",
-      "category": "future",
-      "icon": "airplane-outline"
+      "text": "What fabric or texture does {partner} like against their skin while sleeping?",
+      "category": "personality",
+      "icon": "color-palette-outline"
     },
     {
       "id": "q340",
-      "text": "What's a risk {partner} has always wanted to take?",
-      "category": "deep",
-      "icon": "trending-up-outline"
+      "text": "Does {partner} prefer perfectly centered art or abstract off-balance placement?",
+      "category": "personality",
+      "icon": "color-palette-outline"
     },
     {
       "id": "q341",
-      "text": "What does {partner} consider their greatest strength?",
+      "text": "What accessory makes {partner} feel incomplete without it?",
       "category": "personality",
-      "icon": "fitness-outline"
+      "icon": "color-palette-outline"
     },
     {
       "id": "q342",
-      "text": "What memory with you makes {partner} smile the most?",
-      "category": "love",
-      "icon": "happy-outline"
+      "text": "Does {partner} prefer weighted blankets or light breathable sheets?",
+      "category": "personality",
+      "icon": "color-palette-outline"
     },
     {
       "id": "q343",
-      "text": "What would {partner} do if they won the lottery?",
-      "category": "playful",
-      "icon": "cash-outline"
+      "text": "How does {partner} pick an outfit for an important event?",
+      "category": "personality",
+      "icon": "color-palette-outline"
     },
     {
       "id": "q344",
-      "text": "What's {partner}'s morning routine like?",
+      "text": "How does {partner} react to assembling furniture from scratch?",
       "category": "personality",
-      "icon": "sunny-outline"
+      "icon": "color-palette-outline"
     },
     {
       "id": "q345",
-      "text": "What does {partner} value most about quality time together?",
-      "category": "love",
-      "icon": "time-outline"
+      "text": "What tiny design detail makes {partner} instantly love a restaurant or cafe?",
+      "category": "personality",
+      "icon": "color-palette-outline"
     },
     {
       "id": "q346",
-      "text": "What's {partner}'s go-to karaoke song?",
-      "category": "playful",
-      "icon": "mic-outline"
+      "text": "Does {partner} prefer structured bags or soft slouchy ones?",
+      "category": "personality",
+      "icon": "color-palette-outline"
     },
     {
       "id": "q347",
-      "text": "What does {partner} daydream about?",
-      "category": "future",
-      "icon": "cloud-outline"
+      "text": "How does {partner} like displaying collections or hobbies at home?",
+      "category": "personality",
+      "icon": "color-palette-outline"
     },
     {
       "id": "q348",
-      "text": "What habit would {partner} love to build?",
-      "category": "future",
-      "icon": "checkmark-circle-outline"
+      "text": "Does {partner} prefer vintage-looking items or brand-new pristine ones?",
+      "category": "personality",
+      "icon": "color-palette-outline"
     },
     {
       "id": "q349",
-      "text": "What's {partner}'s favorite thing about themselves?",
-      "category": "deep",
-      "icon": "ribbon-outline"
+      "text": "What visual motif or shape does {partner} doodle most often?",
+      "category": "personality",
+      "icon": "color-palette-outline"
     },
     {
       "id": "q350",
-      "text": "What makes {partner} feel understood?",
-      "category": "deep",
-      "icon": "people-circle-outline"
+      "text": "Does {partner} prefer a curated social feed or a raw unfiltered one?",
+      "category": "personality",
+      "icon": "color-palette-outline"
     },
     {
       "id": "q351",
-      "text": "What book would {partner} recommend to everyone?",
+      "text": "What design choice ruins an otherwise beautiful room for {partner}?",
       "category": "personality",
-      "icon": "book-outline"
+      "icon": "color-palette-outline"
     },
     {
       "id": "q352",
-      "text": "What makes {partner} feel most loved by you?",
+      "text": "How does {partner} define a thriving relationship?",
       "category": "love",
-      "icon": "heart-circle-outline"
+      "icon": "infinite-outline"
     },
     {
       "id": "q353",
-      "text": "What's {partner}'s biggest pet peeve?",
-      "category": "personality",
-      "icon": "warning-outline"
+      "text": "What dream does {partner} have for your life together ten years from now?",
+      "category": "love",
+      "icon": "infinite-outline"
     },
     {
       "id": "q354",
-      "text": "What would {partner}'s perfect vacation look like?",
-      "category": "future",
-      "icon": "airplane-outline"
+      "text": "What retirement environment would {partner} imagine for you two?",
+      "category": "love",
+      "icon": "infinite-outline"
     },
     {
       "id": "q355",
-      "text": "What's a risk {partner} has always wanted to take?",
-      "category": "deep",
-      "icon": "trending-up-outline"
+      "text": "What tradition would {partner} want to turn into a lasting part of your story?",
+      "category": "love",
+      "icon": "infinite-outline"
     },
     {
       "id": "q356",
-      "text": "What does {partner} consider their greatest strength?",
-      "category": "personality",
-      "icon": "fitness-outline"
+      "text": "How would {partner} want to use shared resources if money felt secure?",
+      "category": "love",
+      "icon": "infinite-outline"
     },
     {
       "id": "q357",
-      "text": "What memory with you makes {partner} smile the most?",
+      "text": "What lesson about love does {partner} hope your relationship represents?",
       "category": "love",
-      "icon": "happy-outline"
+      "icon": "infinite-outline"
     },
     {
       "id": "q358",
-      "text": "What would {partner} do if they won the lottery?",
-      "category": "playful",
-      "icon": "cash-outline"
+      "text": "How does {partner} want you two to handle aging while keeping romance alive?",
+      "category": "love",
+      "icon": "infinite-outline"
     },
     {
       "id": "q359",
-      "text": "What's {partner}'s morning routine like?",
-      "category": "personality",
-      "icon": "sunny-outline"
+      "text": "How does {partner} want to keep emotional intimacy from becoming routine?",
+      "category": "love",
+      "icon": "infinite-outline"
     },
     {
       "id": "q360",
-      "text": "What does {partner} value most about quality time together?",
+      "text": "What shared ambition has {partner} not yet turned into a plan?",
       "category": "love",
-      "icon": "time-outline"
+      "icon": "infinite-outline"
     },
     {
       "id": "q361",
-      "text": "What's {partner}'s go-to karaoke song?",
-      "category": "playful",
-      "icon": "mic-outline"
+      "text": "What legacy of loyalty or resilience does {partner} hope you leave behind together?",
+      "category": "love",
+      "icon": "infinite-outline"
     },
     {
       "id": "q362",
-      "text": "What does {partner} daydream about?",
-      "category": "future",
-      "icon": "cloud-outline"
+      "text": "How does {partner} want to balance individual ambition with protecting home life?",
+      "category": "love",
+      "icon": "infinite-outline"
     },
     {
       "id": "q363",
-      "text": "What habit would {partner} love to build?",
-      "category": "future",
-      "icon": "checkmark-circle-outline"
+      "text": "What quiet vow does {partner} hold about protecting your connection?",
+      "category": "love",
+      "icon": "infinite-outline"
     },
     {
       "id": "q364",
-      "text": "What's {partner}'s favorite thing about themselves?",
-      "category": "deep",
-      "icon": "ribbon-outline"
+      "text": "What era or memory from your story is {partner} proudest of?",
+      "category": "love",
+      "icon": "infinite-outline"
     },
     {
       "id": "q365",
-      "text": "What makes {partner} feel understood?",
-      "category": "deep",
-      "icon": "people-circle-outline"
+      "text": "When everything else fades, why does {partner} keep choosing you?",
+      "category": "love",
+      "icon": "infinite-outline"
     }
   ]
 }

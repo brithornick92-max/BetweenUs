@@ -161,6 +161,7 @@ export default function HomeScreen({ navigation }) {
   const partnerLabel = getPartnerDisplayName(userProfile, state?.userProfile, 'your partner');
   const coupleId = state?.coupleId || userProfile?.coupleId || null;
   const isLinked = !!coupleId;
+  const activePromptUserId = user?.id || user?.uid || state?.userId || null;
 
   // Entrance animations
   const headerAnim = useRef(new Animated.Value(0)).current;
@@ -309,6 +310,13 @@ export default function HomeScreen({ navigation }) {
   );
 
   useEffect(() => {
+    setMyAnswer('');
+    setPartnerAnswer('');
+    setIsRevealed(false);
+    setInlineText('');
+  }, [activePromptUserId, prompt.id, todayKey]);
+
+  useEffect(() => {
     let active = true;
 
     (async () => {
@@ -325,7 +333,9 @@ export default function HomeScreen({ navigation }) {
           return;
         }
 
-        const saved = await promptStorage.getAnswer(todayKey, prompt.id);
+        const saved = activePromptUserId
+          ? await promptStorage.getAnswerForUser(todayKey, prompt.id, activePromptUserId)
+          : await promptStorage.getAnswer(todayKey, prompt.id);
         if (!active) return;
 
         setMyAnswer(saved?.content || saved?.answer || '');
@@ -339,7 +349,7 @@ export default function HomeScreen({ navigation }) {
     return () => {
       active = false;
     };
-  }, [prompt.id, promptReady, todayKey]);
+  }, [activePromptUserId, prompt.id, promptReady, todayKey]);
 
   useFocusEffect(
     useCallback(() => {
@@ -359,7 +369,9 @@ export default function HomeScreen({ navigation }) {
             return;
           }
 
-          const saved = await promptStorage.getAnswer(todayKey, prompt.id);
+          const saved = activePromptUserId
+            ? await promptStorage.getAnswerForUser(todayKey, prompt.id, activePromptUserId)
+            : await promptStorage.getAnswer(todayKey, prompt.id);
           if (!active) return;
 
           setMyAnswer(saved?.content || saved?.answer || '');
@@ -373,7 +385,7 @@ export default function HomeScreen({ navigation }) {
       return () => {
         active = false;
       };
-    }, [prompt.id, promptReady, todayKey])
+    }, [activePromptUserId, prompt.id, promptReady, todayKey])
   );
 
   useEffect(() => {
@@ -623,7 +635,7 @@ export default function HomeScreen({ navigation }) {
 
   const handleInlineSave = useCallback(async () => {
     const finalText = inlineText.trim();
-    const activeUserId = user?.uid || user?.id;
+    const activeUserId = activePromptUserId;
     if (!finalText || !prompt?.id || !activeUserId || savingInlineRef.current) return;
 
     savingInlineRef.current = true;
@@ -687,6 +699,7 @@ export default function HomeScreen({ navigation }) {
 
       await promptStorage.setAnswer(todayKey, prompt.id, {
         answer: finalText,
+        userId: activePromptUserId || undefined,
         timestamp: Date.now(),
         isRevealed: nextRevealed,
       });
@@ -759,6 +772,7 @@ export default function HomeScreen({ navigation }) {
     }
   }, [
     inlineText,
+    activePromptUserId,
     prompt,
     user,
     userProfile,
@@ -1156,11 +1170,11 @@ export default function HomeScreen({ navigation }) {
 
               <Text style={styles.memoryLaneDate}>
                 {throwback.date_key
-                  ? `${throwback.isOnThisDay ? 'On this day, ' : ''}${partnerLabel} answered · ${new Date(`${throwback.date_key}T00:00:00`).toLocaleDateString('en-US', {
+                  ? new Date(`${throwback.date_key}T00:00:00`).toLocaleDateString('en-US', {
                     month: 'long',
                     day: 'numeric',
                     year: 'numeric',
-                  })}`
+                  })
                   : ''}
               </Text>
             </View>
@@ -1210,6 +1224,10 @@ export default function HomeScreen({ navigation }) {
 
 const systemFont = Platform.select({ ios: 'System', android: 'Roboto' });
 const DARK_TODAY_BETWEEN_US_CARD = '#131016';
+const SETTINGS_PROFILE_CARD_DARK = '#1C1C1E';
+const SETTINGS_PROFILE_CARD_LIGHT = '#FFFFFF';
+const SETTINGS_PROFILE_BORDER_DARK = 'rgba(255,255,255,0.04)';
+const SETTINGS_PROFILE_BORDER_LIGHT = 'rgba(0,0,0,0.03)';
 
 const createStyles = (t, isDark) => StyleSheet.create({
   root: { flex: 1 },
@@ -1548,8 +1566,8 @@ const createStyles = (t, isDark) => StyleSheet.create({
     marginTop: SPACING.md,
     borderRadius: 24,
     borderWidth: 1,
-    borderColor: t.border,
-    backgroundColor: isDark ? DARK_TODAY_BETWEEN_US_CARD : t.surface,
+    borderColor: isDark ? SETTINGS_PROFILE_BORDER_DARK : SETTINGS_PROFILE_BORDER_LIGHT,
+    backgroundColor: isDark ? SETTINGS_PROFILE_CARD_DARK : SETTINGS_PROFILE_CARD_LIGHT,
     padding: SPACING.xl,
     ...Platform.select({
       ios: {
@@ -1587,7 +1605,8 @@ const createStyles = (t, isDark) => StyleSheet.create({
     color: t.text,
     marginBottom: SPACING.lg,
     textAlign: 'center',
-    alignSelf: 'center',
+    alignSelf: 'stretch',
+    flexShrink: 1,
   },
   memoryLaneDate: {
     fontFamily: systemFont,

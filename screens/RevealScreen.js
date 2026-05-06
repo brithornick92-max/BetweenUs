@@ -29,6 +29,7 @@ export default function RevealScreen({ route, navigation }) {
   const { state } = useAppContext();
   const { user, userProfile } = useAuth();
   const { colors, isDark } = useTheme();
+  const activePromptUserId = user?.id || user?.uid || state?.userId || null;
 
   // Safety check
   useEffect(() => {
@@ -112,9 +113,12 @@ export default function RevealScreen({ route, navigation }) {
       }
       // Also update promptStorage as a local display/cache fallback
       if (prompt.dateKey) {
-        const existing = await promptStorage.getAnswer(prompt.dateKey, prompt.id);
+        const existing = activePromptUserId
+          ? await promptStorage.getAnswerForUser(prompt.dateKey, prompt.id, activePromptUserId)
+          : await promptStorage.getAnswer(prompt.dateKey, prompt.id);
         await promptStorage.setAnswer(prompt.dateKey, prompt.id, {
           ...(existing || userAnswer || {}),
+          userId: activePromptUserId || undefined,
           isRevealed: true,
           revealAt: Date.now(),
         });

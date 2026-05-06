@@ -114,6 +114,23 @@ describe('CouplesQuizScreen', () => {
     expect(getDailyQuestion(afterRolloverKey).id).not.toBe(getDailyQuestion(beforeRolloverKey).id);
   });
 
+  it('uses every Daily Quiz question before repeating the rotation', () => {
+    const questions = require('../../content/quizQuestions.json').questions;
+    const seenQuestionIds = new Set();
+
+    for (let offset = 0; offset < questions.length; offset += 1) {
+      const date = new Date(Date.UTC(2026, 0, 1 + offset));
+      const dateKey = date.toISOString().slice(0, 10);
+      seenQuestionIds.add(getDailyQuestion(dateKey).id);
+    }
+
+    const repeatDate = new Date(Date.UTC(2026, 0, 1 + questions.length));
+    const repeatDateKey = repeatDate.toISOString().slice(0, 10);
+
+    expect(seenQuestionIds.size).toBe(questions.length);
+    expect(getDailyQuestion(repeatDateKey).id).toBe(getDailyQuestion('2026-01-01').id);
+  });
+
   it('keeps a cached Daily Quiz question fixed for the current 4am app day', async () => {
     const navigation = createNavigation();
     const todayKey = getDailyContentDateKey();
