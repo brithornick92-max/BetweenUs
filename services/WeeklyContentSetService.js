@@ -4,7 +4,7 @@
  * MODEL: Each user gets their own content schedule starting from signup date
  * 
  * FREE USERS (CUMULATIVE):
- * - Week 0: 20 prompts, 20 dates, 5 positions
+ * - Week 0: 20 prompts, 20 date ideas, 5 positions
  * - Each week after: +5 prompts, +5 dates, +1 position
  * - The library grows over time instead of rotating away old cards
  * 

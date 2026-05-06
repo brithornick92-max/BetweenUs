@@ -134,7 +134,7 @@ const FAQ_DATA = [
     questions: [
       {
         q: 'What\'s included in Premium?',
-        a: 'Premium users start with 100 prompts, 100 date ideas, and 10 sex positions, keep adding 15 prompts, 15 date ideas, and 3 sex positions each week from the day premium starts, include the Vibe Signal screen, and unlock the full Keepsake archive beyond the last 30 days. The rest of the core experience stays available on free. One subscription covers both linked partners after entitlement sync completes.',
+        a: 'Premium starts with 100 prompts, 100 date ideas, and 10 sex positions, then adds 15 prompts, 15 date ideas, and 3 sex positions each week from the day premium starts. It also includes the Vibe Signal screen and unlocks the full Keepsake archive beyond the last 30 days. The rest of the core experience stays available on the free plan. One subscription covers both linked partners after entitlement sync completes.',
       },
       {
         q: 'How do I subscribe?',

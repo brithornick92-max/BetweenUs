@@ -24,7 +24,7 @@ Yes. Between Us is designed to be inclusive of adults across orientations, ident
 
 ### How much does it cost?
 
-- **Free version:** Free users start with 20 prompts, 20 dates, and 5 sex positions, then receive 5 more prompts, 5 more dates, and 1 more sex position each personal week. Calendar, journal, partner linking, heartbeat/sync, and supported data export are included. Keepsake history is available one month at a time.
+- **Free version:** Free users start with 20 prompts, 20 date ideas, and 5 sex positions, then receive 5 more prompts, 5 more date ideas, and 1 more sex position each personal week. Calendar, journal, partner linking, heartbeat/sync, and supported data export are included. Keepsake history is available one month at a time.
 - **Premium Monthly:** fallback display price $7.99/month
 - **Premium Yearly:** fallback display price $49.99/year
 
@@ -243,8 +243,8 @@ Account deletion is permanent and cannot be undone once completed. Active accoun
 
 Check that:
 
-- Notifications are enabled in app settings
-- Notifications are allowed in device settings
+- Notifications are enabled in the app settings
+- Notifications are allowed in the device settings
 - Do Not Disturb or Focus modes are not blocking notifications
 - Your device has network access
 

@@ -201,7 +201,7 @@ const TermsScreen = ({ navigation, route }) => {
                 Free and Premium Features:{'\n'}
                 • Free users can access the app's core couple features, including prompts, notes, date ideas, shared calendar, Keepsake, app lock, and recaps{'\n'}
                 • Free users start with 20 prompts, 20 date ideas, and 5 sex positions, and the free library grows by 5 prompts, 5 date ideas, and 1 sex position each week from the signup day; free Keepsake access is limited to the most recent 30 days of supported shared content{'\n'}
-                • Premium users start with 100 prompts, 100 date ideas, and 10 sex positions, add 15 prompts, 15 date ideas, and 3 sex positions each week from the day premium starts, and include the Vibe Signal screen plus the full Keepsake archive beyond the free 30-day window{'\n'}
+                • Premium starts with 100 prompts, 100 date ideas, and 10 sex positions, then adds 15 prompts, 15 date ideas, and 3 sex positions each week from the day premium starts. It also includes the Vibe Signal screen plus the full Keepsake archive beyond the free 30-day window{'\n'}
                 • One premium subscription is intended to cover both linked partners after entitlement sync completes{'\n\n'}
                 Current pricing:{'\n'}
                 • Monthly: {FALLBACK_PRICES.monthly}{'\n'}

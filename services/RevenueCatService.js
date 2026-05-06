@@ -118,7 +118,7 @@ class RevenueCatService {
             Purchases.getCustomerInfo(),
             'RevenueCatService.initialCustomerInfo'
           );
-          console.log('Available Available entitlement keys:', Object.keys(customerInfo?.entitlements?.active ?? {}));
+          console.log('Available entitlement keys:', Object.keys(customerInfo?.entitlements?.active ?? {}));
         } catch (error) {
           if (__DEV__) console.log('Could not fetch initial customer info:', error?.message);
         }

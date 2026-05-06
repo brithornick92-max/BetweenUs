@@ -11,6 +11,8 @@ const {
   getKeepsakeEntriesForTier,
 } = require('../../screens/OurStoryScreen');
 const { KEEPSAKE_CATEGORY_COLORS } = require('../../config/constants');
+const datesCatalog = require('../../content/dates.json');
+const positionsCatalog = require('../../content/intimacy-positions.json');
 
 describe('OurStory Keepsake entry building', () => {
   it('includes prompts, snapshots, standalone memories, dates tried, and positions tried', async () => {
@@ -246,15 +248,197 @@ describe('OurStory Keepsake entry building', () => {
     expect(entries.some((entry) => entry.sourceId === 'ip001')).toBe(true);
 
     const dateEntry = entries.find((entry) => entry.kind === 'date');
-    expect(dateEntry.body).toBe('Took a peaceful walk and picked a few favorite photos together.');
+    expect(dateEntry.body).toBe('The two of you took a peaceful walk and picked a few favorite photos together.');
     expect(dateEntry.meta).toContain('45 min');
     expect(dateEntry.meta).toContain('Out');
 
     const positionEntry = entries.find((entry) => entry.kind === 'position_tried');
     expect(positionEntry.eyebrow).toBe('Sex position tried');
-    expect(positionEntry.body).toBe('Tried a face-to-face seated sex position that felt grounded, emotionally close, and easy to stay with.');
+    expect(positionEntry.body).toBe('You both explored a face-to-face seated sex position that felt grounded, emotionally close, and easy to stay with.');
     expect(positionEntry.body).not.toMatch(/intimacy position/i);
     expect(positionEntry.meta).toBe('TENDER');
+  });
+
+  it('writes tried date and tried position keepsakes as completed couple actions', async () => {
+    const entries = await buildKeepsakeEntriesFromSources({
+      keepsakeSettingsRaw: {
+        prompts: false,
+        memories: true,
+        dates: true,
+        positions: true,
+      },
+      personalMemories: [
+        {
+          id: 'date-memory-1',
+          type: 'date_tried',
+          content: JSON.stringify({
+            kind: 'date_history',
+            dateId: 'd103',
+            title: 'Outdoor Hammock',
+          }),
+          created_at: '2026-04-28T12:05:00.000Z',
+        },
+        {
+          id: 'position-memory-1',
+          type: 'intimacy_tried',
+          content: JSON.stringify({
+            kind: 'intimacy_tried',
+            positionId: 'ip001',
+            title: 'Close Hold',
+          }),
+          created_at: '2026-04-28T12:06:00.000Z',
+        },
+      ],
+      resolveMedia: async () => null,
+    });
+
+    const dateEntry = entries.find((entry) => entry.kind === 'date');
+    expect(dateEntry.body).toBe('The two of you unwound together in a hammock, taking turns reading aloud from a captivating book and sharing quiet moments in nature\'s embrace.');
+    expect(dateEntry.body).not.toMatch(/^You took\b|^Unwind\b|^Unwound\b|taking turned/i);
+
+    const positionEntry = entries.find((entry) => entry.kind === 'position_tried');
+    expect(positionEntry.body).toMatch(/^(The two of you|Together, you|You both|As a couple, you) explored /);
+    expect(positionEntry.body).not.toMatch(/^You tried\b|^Tried\b|intimacy position/i);
+  });
+
+  it('varies tried date and tried position keepsake openers', async () => {
+    const entries = await buildKeepsakeEntriesFromSources({
+      keepsakeSettingsRaw: {
+        prompts: false,
+        memories: true,
+        dates: true,
+        positions: true,
+      },
+      personalMemories: [
+        {
+          id: 'date-memory-1',
+          type: 'date_tried',
+          content: JSON.stringify({
+            kind: 'date_history',
+            dateId: 'd004',
+            title: 'Golden Hour Photos',
+          }),
+          created_at: '2026-04-28T12:01:00.000Z',
+        },
+        {
+          id: 'date-memory-2',
+          type: 'date_tried',
+          content: JSON.stringify({
+            kind: 'date_history',
+            dateId: 'd013',
+            title: 'Next Year Letters',
+          }),
+          created_at: '2026-04-28T12:02:00.000Z',
+        },
+        {
+          id: 'position-memory-1',
+          type: 'intimacy_tried',
+          content: JSON.stringify({
+            kind: 'intimacy_tried',
+            positionId: 'ip001',
+            title: 'Close Hold',
+          }),
+          created_at: '2026-04-28T12:03:00.000Z',
+        },
+        {
+          id: 'position-memory-2',
+          type: 'intimacy_tried',
+          content: JSON.stringify({
+            kind: 'intimacy_tried',
+            positionId: 'ip002',
+            title: 'The Mirror',
+          }),
+          created_at: '2026-04-28T12:04:00.000Z',
+        },
+        {
+          id: 'position-memory-3',
+          type: 'intimacy_tried',
+          content: JSON.stringify({
+            kind: 'intimacy_tried',
+            positionId: 'ip003',
+            title: 'The Anchor',
+          }),
+          created_at: '2026-04-28T12:05:00.000Z',
+        },
+      ],
+      resolveMedia: async () => null,
+    });
+
+    const dateOpeners = entries
+      .filter((entry) => entry.kind === 'date')
+      .map((entry) => entry.body.match(/^(The two of you|Together, you|You both|As a couple, you)\b/)?.[1])
+      .filter(Boolean);
+    const positionOpeners = entries
+      .filter((entry) => entry.kind === 'position_tried')
+      .map((entry) => entry.body.match(/^(The two of you|Together, you|You both|As a couple, you|This became a shared exploration)\b/)?.[1])
+      .filter(Boolean);
+
+    expect(new Set(dateOpeners).size).toBeGreaterThan(1);
+    expect(new Set(positionOpeners).size).toBeGreaterThan(1);
+
+    entries
+      .filter((entry) => entry.kind === 'date' || entry.kind === 'position_tried')
+      .forEach((entry) => {
+        expect(entry.body).not.toMatch(/^You took\b|^You tried\b|^Took\b|^Tried\b/i);
+      });
+  });
+
+  it('keeps catalog-wide tried keepsake copy grammatical and past-tense', async () => {
+    const dateRows = (datesCatalog.items || []).map((date, index) => ({
+      id: `date-memory-${date.id}`,
+      type: 'date_tried',
+      content: JSON.stringify({
+        kind: 'date_history',
+        dateId: date.id,
+        title: date.title,
+      }),
+      created_at: `2026-04-28T12:${String(index % 60).padStart(2, '0')}:00.000Z`,
+    }));
+    const positionRows = (positionsCatalog.items || []).map((position, index) => ({
+      id: `position-memory-${position.id}`,
+      type: 'intimacy_tried',
+      content: JSON.stringify({
+        kind: 'intimacy_tried',
+        positionId: position.id,
+        title: position.title,
+        commonName: position.commonName || null,
+      }),
+      created_at: `2026-04-29T12:${String(index % 60).padStart(2, '0')}:00.000Z`,
+    }));
+
+    const entries = await buildKeepsakeEntriesFromSources({
+      keepsakeSettingsRaw: {
+        prompts: false,
+        memories: true,
+        dates: true,
+        positions: true,
+      },
+      personalMemories: [...dateRows, ...positionRows],
+      resolveMedia: async () => null,
+    });
+
+    const triedEntries = entries.filter((entry) => entry.kind === 'date' || entry.kind === 'position_tried');
+
+    expect(triedEntries).toHaveLength((datesCatalog.items || []).length + (positionsCatalog.items || []).length);
+
+    triedEntries.forEach((entry) => {
+      expect(entry.body).not.toMatch(/^You took\b|^You tried\b|^Took\b|^Tried\b|^Unwind\b|^Explore\b/i);
+      expect(entry.body).not.toMatch(/\btaking turned\b|\bsex sex position\b|\byou you\b/i);
+      expect(entry.body).not.toMatch(/\b(is|are|can)\b/i);
+      expect(entry.body).not.toMatch(/\b(\w+)\s+\1\b/i);
+    });
+
+    entries
+      .filter((entry) => entry.kind === 'date')
+      .forEach((entry) => {
+        expect(entry.body).not.toMatch(/\b(each lost round brings|each of you brings|what moves you|relationship supports)\b/i);
+      });
+
+    entries
+      .filter((entry) => entry.kind === 'position_tried')
+      .forEach((entry) => {
+        expect(entry.body).not.toMatch(/\b(that stays|lead changes|who leads|that blends|that shifts|that supports|that carries|hands add|that emphasizes|that brings)\b/i);
+      });
   });
 
   it('includes saved dates and favorite positions from memory rows', async () => {

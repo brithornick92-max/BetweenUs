@@ -306,6 +306,76 @@ function capitalizeFirst(value) {
   return text ? text.charAt(0).toUpperCase() + text.slice(1) : '';
 }
 
+function stableCopyVariantIndex(seed, count) {
+  const text = String(seed || '');
+  if (!text || count <= 1) return 0;
+
+  let hash = 0;
+  for (let i = 0; i < text.length; i += 1) {
+    hash = ((hash << 5) - hash + text.charCodeAt(i)) | 0;
+  }
+
+  return Math.abs(hash) % count;
+}
+
+const DATE_TRIED_OPENERS = [
+  (action) => `The two of you ${lowercaseFirst(action)}.`,
+  (action) => `Together, you ${lowercaseFirst(action)}.`,
+  (action) => `You both ${lowercaseFirst(action)}.`,
+  (action) => `As a couple, you ${lowercaseFirst(action)}.`,
+];
+
+const DATE_TRIED_FALLBACKS = [
+  'The two of you did this date together.',
+  'Together, you made this date happen.',
+  'You both shared this date.',
+  'As a couple, you spent time with this date idea.',
+];
+
+const POSITION_TRIED_OPENERS = [
+  (phrase) => `The two of you explored ${phrase}.`,
+  (phrase) => `Together, you explored ${phrase}.`,
+  (phrase) => `You both explored ${phrase}.`,
+  (phrase) => `As a couple, you explored ${phrase}.`,
+  (phrase) => `This became a shared exploration of ${phrase}.`,
+];
+
+const POSITION_TRIED_FALLBACKS = [
+  'The two of you explored this sex position together.',
+  'Together, you explored this sex position.',
+  'You both explored this sex position.',
+  'As a couple, you explored this sex position.',
+];
+
+function getSourceCopySeed(source, row, fallback = '') {
+  return source?.id
+    || source?.dateId
+    || source?.date_id
+    || source?.positionId
+    || source?.position_id
+    || row?.id
+    || row?.dateId
+    || row?.date_id
+    || row?.positionId
+    || row?.position_id
+    || source?.title
+    || row?.title
+    || fallback;
+}
+
+function describeCoupleCompletedAction(value, seed = '') {
+  const action = cleanKeepsakeSentence(value);
+  if (!action) {
+    return DATE_TRIED_FALLBACKS[stableCopyVariantIndex(seed, DATE_TRIED_FALLBACKS.length)];
+  }
+
+  if (/^(the two of you)\b/i.test(action)) {
+    return `${capitalizeFirst(action)}.`;
+  }
+
+  return DATE_TRIED_OPENERS[stableCopyVariantIndex(seed, DATE_TRIED_OPENERS.length)](action);
+}
+
 const LEADING_ACTION_PAST = [
   [/^wake up\b/i, 'woke up'],
   [/^take turns\b/i, 'took turns'],
@@ -415,12 +485,16 @@ function makePastTenseLine(value) {
 
   if (!line) return '';
 
+  let changedLeadingAction = false;
   for (const [pattern, replacement] of LEADING_ACTION_PAST) {
     if (pattern.test(line)) {
       line = line.replace(pattern, replacement);
+      changedLeadingAction = true;
       break;
     }
   }
+
+  if (!changedLeadingAction) return '';
 
   line = line
     .replace(/\band leave\b/gi, 'and left')
@@ -432,8 +506,12 @@ function makePastTenseLine(value) {
     .replace(/\band share\b/gi, 'and shared')
     .replace(/\band find\b/gi, 'and found')
     .replace(/\band pick\b/gi, 'and picked')
+    .replace(/\binvent stories\b/gi, 'invented stories')
+    .replace(/\bshare what moves you\b/gi, 'shared what moved you')
     .replace(/\byou actually want to keep\b/gi, 'worth keeping')
     .replace(/\byou both\b/gi, 'you both')
+    .replace(/\beach of you brings\b/gi, 'each of you brought')
+    .replace(/\beach lost round brings\b/gi, 'each lost round brought')
     .replace(/\bfeels\b/gi, 'felt')
     .replace(/\bkeeps\b/gi, 'kept')
     .replace(/\bmakes\b/gi, 'made')
@@ -441,16 +519,19 @@ function makePastTenseLine(value) {
     .replace(/\bcreates\b/gi, 'created')
     .replace(/\boffers\b/gi, 'offered')
     .replace(/\bgives\b/gi, 'gave')
+    .replace(/\bbrings\b/gi, 'brought')
     .replace(/\buses\b/gi, 'used')
     .replace(/\badds\b/gi, 'added')
     .replace(/\bcenters\b/gi, 'centered')
     .replace(/\bturns\b/gi, 'turned')
+    .replace(/\bsupports\b/gi, 'supported')
     .replace(/\bhelps\b/gi, 'helped')
     .replace(/\blets\b/gi, 'let')
     .replace(/\bworks\b/gi, 'worked')
     .replace(/\bis\b/gi, 'was')
     .replace(/\bare\b/gi, 'were')
-    .replace(/\bcan\b/gi, 'could');
+    .replace(/\bcan\b/gi, 'could')
+    .replace(/\btaking turned\b/gi, 'taking turns');
 
   return `${capitalizeFirst(line)}.`;
 }
@@ -490,22 +571,23 @@ function getDateCopySource(row) {
 
 function buildDateKeepsakeLine(row, fallback = 'Date night') {
   const source = getDateCopySource(row);
+  const copySeed = getSourceCopySeed(source, row, fallback);
 
   if (source.title === 'Golden Hour Photos' || source.id === 'd004' || source.dateId === 'd004' || source.date_id === 'd004') {
-    return 'Took a peaceful walk and picked a few favorite photos together.';
+    return describeCoupleCompletedAction('Took a peaceful walk and picked a few favorite photos together.', copySeed);
   }
 
   if (source.title === 'Next Year Letters' || source.id === 'd013' || source.dateId === 'd013' || source.date_id === 'd013') {
-    return 'Wrote letters for next year and saved them to open together later.';
+    return describeCoupleCompletedAction('Wrote letters for next year and saved them to open together later.', copySeed);
   }
 
   const fromDescription = makePastTenseLine(source.description);
-  if (fromDescription) return fromDescription;
+  if (fromDescription) return describeCoupleCompletedAction(fromDescription, copySeed);
 
   const fromSteps = buildDateActionLineFromSteps(source.steps);
-  if (fromSteps) return fromSteps;
+  if (fromSteps) return describeCoupleCompletedAction(fromSteps, copySeed);
 
-  return buildDateDetails(row, fallback);
+  return DATE_TRIED_FALLBACKS[stableCopyVariantIndex(copySeed, DATE_TRIED_FALLBACKS.length)];
 }
 
 function buildSavedDateKeepsakeLine(row, fallback = 'Saved for later') {
@@ -560,6 +642,9 @@ function buildPositionPhrase(row) {
     .replace(/\bintimacy\b/gi, 'sex')
     .replace(/\bpleasure point\b/gi, 'pleasure');
 
+  phrase = phrase
+    .replace(/\bsex (hold|variation|alignment|shape|angle|embrace|rhythm|rock|cuddle)\b/i, 'sex position');
+
   if (!/\bsex position\b/i.test(phrase)) {
     if (/\bposition\b/i.test(phrase)) {
       phrase = phrase.replace(/\bposition\b/i, 'sex position');
@@ -579,25 +664,43 @@ function buildPositionPhrase(row) {
     .replace(/\bcreates\b/gi, 'created')
     .replace(/\boffers\b/gi, 'offered')
     .replace(/\bgives\b/gi, 'gave')
+    .replace(/\bbrings\b/gi, 'brought')
     .replace(/\buses\b/gi, 'used')
     .replace(/\badds\b/gi, 'added')
+    .replace(/\badd\b/gi, 'added')
     .replace(/\bcenters\b/gi, 'centered')
     .replace(/\bturns\b/gi, 'turned')
+    .replace(/\bstays\b/gi, 'stayed')
+    .replace(/\bcarries\b/gi, 'carried')
+    .replace(/\bemphasizes\b/gi, 'emphasized')
+    .replace(/\bchanges\b/gi, 'changed')
+    .replace(/\bleads\b/gi, 'led')
+    .replace(/\bsupports\b/gi, 'supported')
+    .replace(/\bopens\b/gi, 'opened')
+    .replace(/\bencourages\b/gi, 'encouraged')
+    .replace(/\bcombines\b/gi, 'combined')
+    .replace(/\bblends\b/gi, 'blended')
+    .replace(/\bshifts\b/gi, 'shifted')
     .replace(/\bhelps\b/gi, 'helped')
     .replace(/\blets\b/gi, 'let')
     .replace(/\bworks\b/gi, 'worked')
     .replace(/\bis\b/gi, 'was')
     .replace(/\bare\b/gi, 'were')
-    .replace(/\bcan\b/gi, 'could');
+    .replace(/\bcan\b/gi, 'could')
+    .replace(/\beasy to adjust\b/gi, 'easy-to-adjust')
+    .replace(/\beasy-to-adjust angle changes\b/gi, 'easy angle changes');
 
   return lowercaseFirst(phrase);
 }
 
 function buildPositionKeepsakeLine(row, fallback = 'Sex position') {
   const phrase = buildPositionPhrase(row);
-  if (phrase) return `Tried ${phrase}.`;
+  const copySeed = getSourceCopySeed(row, row, fallback);
+  if (phrase) {
+    return POSITION_TRIED_OPENERS[stableCopyVariantIndex(copySeed, POSITION_TRIED_OPENERS.length)](phrase);
+  }
 
-  return buildPositionDetails(row, fallback);
+  return POSITION_TRIED_FALLBACKS[stableCopyVariantIndex(copySeed, POSITION_TRIED_FALLBACKS.length)];
 }
 
 function buildSavedPositionKeepsakeLine(row, fallback = 'Saved sex position') {

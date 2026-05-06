@@ -132,7 +132,7 @@ function isRecurringPackage(pkg) {
   return true;
 }
 
-const SUBSCRIPTION_DISCLOSURE = "Payment is charged to your Apple ID at confirmation. Subscriptions renew automatically unless canceled at least 24 hours before the end of the current period. Your account may be charged for renewal within 24 hours before the current period ends. You can manage or cancel your subscription in App Store account settings.";
+const SUBSCRIPTION_DISCLOSURE = "Payment is charged to your Apple ID at confirmation. Subscriptions renew automatically unless canceled at least 24 hours before the end of the current period. Your account may be charged for renewal within 24 hours before the current period ends. You can manage or cancel your subscription in your App Store account settings.";
 
 const RevenueCatPaywall = ({ onDismiss, onPurchaseSuccess, navigation, route }) => {
   const { checkSubscriptionStatus } = useSubscription();
@@ -437,7 +437,7 @@ const RevenueCatPaywall = ({ onDismiss, onPurchaseSuccess, navigation, route }) 
 
               <View style={[styles.legalBlock, { borderColor: t.border }]}>
                 <Text style={[styles.legalText, { color: t.subtext }]}>
-                  Auto-renewing subscription. Cancel at least 24 hours before renewal in App Store account settings.
+                  Auto-renewing subscription. Cancel at least 24 hours before renewal in your App Store account settings.
                 </Text>
                 <View style={styles.legalLinksRow}>
                   <TouchableOpacity onPress={() => openLegalScreen("Terms")} activeOpacity={0.75}>
