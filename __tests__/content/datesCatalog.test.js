@@ -58,4 +58,12 @@ describe('dates catalog integrity', () => {
       expect(date.releaseWeek).toBeGreaterThanOrEqual(0);
     });
   });
+
+  it('keeps Outdoor Hammock copy grammatically correct', () => {
+    const outdoorHammock = items.find((date) => date.title === 'Outdoor Hammock');
+    expect(outdoorHammock).toBeTruthy();
+    expect(outdoorHammock.description).toContain('Unwind together in a hammock');
+    expect(outdoorHammock.description).toContain('taking turns reading aloud');
+    expect(outdoorHammock.description).not.toMatch(/\bUnwound\b|\btaking turned\b/i);
+  });
 });

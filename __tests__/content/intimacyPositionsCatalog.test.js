@@ -18,6 +18,12 @@ const REPEATED_TEMPLATE_PHRASES = [
   'comfort, connection, and shared rhythm',
 ];
 
+const MECHANICAL_GRAMMAR_PATTERNS = [
+  /\bThe draw is [^.?!]+?\b(?:can|creates?|brings?|gives?|adds?|heightens?|lets?|makes?)\b/i,
+  /\bWhat works is (?:it|the)\b/i,
+  /\bThis can feel good when it\b/i,
+];
+
 describe('intimacy positions catalog integrity', () => {
   const items = Array.isArray(positionsCatalog?.items) ? positionsCatalog.items : [];
 
@@ -81,6 +87,10 @@ describe('intimacy positions catalog integrity', () => {
 
       REPEATED_TEMPLATE_PHRASES.forEach((phrase) => {
         expect(searchableCopy).not.toContain(phrase);
+      });
+
+      MECHANICAL_GRAMMAR_PATTERNS.forEach((pattern) => {
+        expect(searchableCopy).not.toMatch(pattern);
       });
     });
   });

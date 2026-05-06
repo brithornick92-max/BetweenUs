@@ -134,7 +134,7 @@ function auditPositions() {
   pushHits(report.positions, 'issues', 'coercive or non-consent wording', items, positionFields, /\b(nonconsensual|without consent|no consent|ignore (their|your) (no|boundary)|pressure (them|me)|force (them|me|you))\b/i);
   pushHits(report.positions, 'issues', 'high-risk impact or breath wording', items, positionFields, /\b(choke|strangle|breath play|blood|knife|hit|slap|spank)\b/i);
   pushHits(report.positions, 'issues', 'awkward position phrasing', items, positionFields, /\b(easy to stay inside|washed-in quality|ceremonial in its intimacy|body feels held by the setup)\b/i);
-  pushHits(report.positions, 'issues', 'mechanical rewrite artifact', items, positionFields, /\b(The draw is it|The draw is the|What works is it|What works is the|This can feel good when it|when once|and because|very easy to adjust to small adjustments)\b/i);
+  pushHits(report.positions, 'issues', 'mechanical rewrite artifact', items, positionFields, /\b(The draw is it|The draw is the|The draw is [^.?!]+?\b(?:can|creates?|brings?|gives?|adds?|heightens?|lets?|makes?)\b|What works is it|What works is the|This can feel good when it|when once|and because|very easy to adjust to small adjustments)\b/i);
   pushHits(report.positions, 'review', 'absolute comfort language', items, positionFields, /\b(always|never|guaranteed|everyone|anyone can)\b/i);
   pushHits(report.positions, 'review', 'repeated why-people-like template', items, ['whyPeopleLikeIt'], /\bMany people like it because\b/i);
 }
