@@ -8,6 +8,7 @@ const DAILY_PROMPT_CACHE_KEY = '@betweenus:cache:dailyPromptSelection';
 const mockPromptCatalog = {
   blocked: { id: 'blocked', text: 'Blocked prompt', category: 'kinky', heat: 2 },
   allowed: { id: 'allowed', text: 'Allowed prompt', category: 'romance', heat: 2 },
+  stale: { id: 'stale', text: 'Stale local prompt', category: 'romance', heat: 1 },
 };
 
 let mockCurrentProfile = null;
@@ -131,7 +132,10 @@ jest.mock('../../services/localfirst', () => ({
 jest.mock('../../utils/contentLoader', () => ({
   FALLBACK_PROMPT: { id: 'fallback', text: 'Fallback prompt', category: 'romance', heat: 1 },
   getPromptById: jest.fn((id) => mockPromptCatalog[id] || null),
-  getTodayBetweenUsPrompts: jest.fn(() => Object.values(mockPromptCatalog)),
+  getTodayBetweenUsPrompts: jest.fn(() => [
+    mockPromptCatalog.blocked,
+    mockPromptCatalog.allowed,
+  ]),
 }));
 
 jest.mock('../../utils/promptHistory', () => ({
@@ -181,6 +185,22 @@ async function mountProvider() {
   });
 
   return tree;
+}
+
+function stableHash(value) {
+  const input = String(value || '');
+  let hash = 0;
+  for (let index = 0; index < input.length; index += 1) {
+    hash = ((hash << 5) - hash + input.charCodeAt(index)) | 0;
+  }
+  return Math.abs(hash);
+}
+
+function expectedCouplePromptId(dateKey, coupleId) {
+  const promptPool = [mockPromptCatalog.allowed, mockPromptCatalog.blocked]
+    .sort((a, b) => String(a.id).localeCompare(String(b.id)));
+  const index = stableHash(`${dateKey}:couple:${coupleId}:daily_prompt`) % promptPool.length;
+  return promptPool[index].id;
 }
 
 describe('ContentContext daily prompt stability', () => {
@@ -333,6 +353,65 @@ describe('ContentContext daily prompt stability', () => {
         dateKey: TODAY_KEY,
         scope: 'couple:couple-1',
         promptId: 'allowed',
+      }
+    );
+
+    tree.unmount();
+  });
+
+  it('uses one deterministic couple prompt when shared cloud selection is unavailable', async () => {
+    const coupleStateService = require('../../services/couple/CoupleStateService');
+    const contentCoupleService = require('../../services/content/ContentCoupleService');
+    const expectedPromptId = expectedCouplePromptId(TODAY_KEY, 'couple-1');
+
+    coupleStateService.getActiveCoupleId.mockResolvedValue('couple-1');
+    contentCoupleService.getSharedDailyPromptSelection.mockResolvedValue(null);
+    mockCurrentProfile = {
+      ...mockCurrentProfile,
+      boundaries: {
+        ...mockCurrentProfile.boundaries,
+        hiddenCategories: ['kinky'],
+      },
+    };
+    mockStorageGet.mockImplementation(async (key) => {
+      if (key === DAILY_PROMPT_CACHE_KEY) {
+        return {
+          dateKey: TODAY_KEY,
+          scope: 'couple:couple-1',
+          promptId: 'stale',
+        };
+      }
+      if (key === 'contentDeckRestores') {
+        return {
+          prompts: [],
+          dates: [],
+          positions: [],
+        };
+      }
+      return null;
+    });
+
+    const tree = await mountProvider();
+
+    let prompt;
+    await renderer.act(async () => {
+      prompt = await capturedContext.loadTodayPrompt();
+    });
+
+    expect(prompt.id).toBe(expectedPromptId);
+    expect(prompt.id).not.toBe('stale');
+    expect(contentCoupleService.saveSharedDailyPromptSelection).toHaveBeenCalledWith(
+      TODAY_KEY,
+      expectedPromptId,
+      'user-1',
+      expect.objectContaining({ fallbackCoupleId: 'couple-1' })
+    );
+    expect(mockStorageSet).toHaveBeenCalledWith(
+      DAILY_PROMPT_CACHE_KEY,
+      {
+        dateKey: TODAY_KEY,
+        scope: 'couple:couple-1',
+        promptId: expectedPromptId,
       }
     );
 

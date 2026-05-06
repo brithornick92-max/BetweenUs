@@ -51,6 +51,24 @@ function getStableHash(value) {
   return Math.abs(hash);
 }
 
+function getSharedPromptId(selection) {
+  return selection?.value?.promptId || selection?.promptId || null;
+}
+
+function selectCanonicalCoupleDailyPrompt(dateKey, scope) {
+  const promptPool = getTodayBetweenUsPrompts({
+    minHeatLevel: 1,
+    maxHeatLevel: 3,
+  })
+    .filter((prompt) => prompt?.id && typeof prompt.text === 'string' && prompt.text.trim())
+    .sort((a, b) => String(a.id).localeCompare(String(b.id)));
+
+  if (!promptPool.length) return FALLBACK_PROMPT;
+
+  const promptIndex = getStableHash(`${dateKey}:${scope}:daily_prompt`) % promptPool.length;
+  return promptPool[promptIndex];
+}
+
 function normalizeRelationshipStartDate(value) {
   if (!value) return null;
   const parsed = new Date(value);
@@ -216,13 +234,13 @@ export const ContentProvider = ({ children }) => {
       });
       const scope = getDailyPromptScope(user.uid, coupleId);
 
-      if (
+      if (!coupleId && (
         todayPrompt?.dateKey === today
         && todayPrompt?._dailyPromptScope === scope
         && todayPrompt?.id
         && typeof todayPrompt?.text === 'string'
         && todayPrompt.text.trim()
-      ) {
+      )) {
         PromptAllocator.setDailyPromptId(todayPrompt.id);
         return todayPrompt;
       }
@@ -234,21 +252,43 @@ export const ContentProvider = ({ children }) => {
           fallbackCoupleId: coupleId,
           ensureSession: ensureSupabaseSession,
         });
-        const sharedPromptId = sharedPromptSelection?.value?.promptId;
-        if (sharedPromptId) {
-          const sharedPrompt = getPromptById(sharedPromptId);
-          if (sharedPrompt?.text) {
-            await storage.set(DAILY_PROMPT_CACHE_KEY, {
-              dateKey: today,
-              scope,
-              promptId: sharedPromptId,
+        const sharedPromptId = getSharedPromptId(sharedPromptSelection);
+        let sharedPrompt = sharedPromptId ? getPromptById(sharedPromptId) : null;
+
+        if (!sharedPrompt?.text) {
+          sharedPrompt = selectCanonicalCoupleDailyPrompt(today, scope);
+          if (sharedPrompt?.id) {
+            await saveSharedDailyPromptSelection(today, sharedPrompt.id, user.uid, {
+              fallbackCoupleId: coupleId,
+              ensureSession: ensureSupabaseSession,
+            }).catch((error) => {
+              if (__DEV__) console.warn('[ContentContext] Shared daily prompt sync failed:', error?.message);
             });
-            const personalizedSharedPrompt = await personalizePrompt({ ...sharedPrompt, dateKey: today });
-            const resolvedSharedPrompt = { ...personalizedSharedPrompt, _dailyPromptScope: scope };
-            setTodayPrompt(resolvedSharedPrompt);
-            PromptAllocator.setDailyPromptId(sharedPrompt.id);
-            return resolvedSharedPrompt;
           }
+        }
+
+        if (sharedPrompt?.text) {
+          await storage.set(DAILY_PROMPT_CACHE_KEY, {
+            dateKey: today,
+            scope,
+            promptId: sharedPrompt.id,
+          });
+
+          if (
+            todayPrompt?.dateKey === today
+            && todayPrompt?._dailyPromptScope === scope
+            && todayPrompt?.id === sharedPrompt.id
+          ) {
+            PromptAllocator.setDailyPromptId(sharedPrompt.id);
+            return todayPrompt;
+          }
+
+          const personalizedSharedPrompt = await personalizePrompt({ ...sharedPrompt, dateKey: today });
+          const resolvedSharedPrompt = { ...personalizedSharedPrompt, _dailyPromptScope: scope };
+          setTodayPrompt(resolvedSharedPrompt);
+          PromptAllocator.setDailyPromptId(sharedPrompt.id);
+          updateWidgetPrompt(resolvedSharedPrompt.text || sharedPrompt.text).catch(() => {});
+          return resolvedSharedPrompt;
         }
       }
 
