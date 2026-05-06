@@ -53,6 +53,7 @@ import {
   trackFreeDateDetailUsage,
 } from '../utils/freePromptAnswerQuota';
 import { isItemInStableFreeWeeklyDeck } from '../utils/freeWeeklyDeckAccess';
+import { shouldFocusDateTimer } from '../utils/dateNightNavigation';
 
 const AUTO_LOG_THRESHOLD_SECONDS = 300; // 5 minutes
 
@@ -60,7 +61,9 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 
 export default function DateNightDetailScreen({ route, navigation }) {
-  const { date: routeDate, dateId } = route.params || {};
+  const routeParams = route.params || {};
+  const { date: routeDate, dateId } = routeParams;
+  const shouldFocusTimer = shouldFocusDateTimer(routeParams);
   const { colors, isDark } = useTheme();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
   const { user, userProfile } = useAuth();
@@ -74,6 +77,10 @@ export default function DateNightDetailScreen({ route, navigation }) {
   const [saveBusy, setSaveBusy] = useState(false);
   const [triedBusy, setTriedBusy] = useState(false);
   const [ratingBusy, setRatingBusy] = useState(false);
+  const scrollRef = useRef(null);
+  const timerYRef = useRef(null);
+  const timerFocusDoneRef = useRef(false);
+  const timerFocusTimeoutRef = useRef(null);
 
   // ─── SEXY RED x APPLE EDITORIAL THEME MAP ───
   const t = useMemo(() => ({
@@ -274,6 +281,44 @@ export default function DateNightDetailScreen({ route, navigation }) {
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, []);
 
+  useEffect(() => {
+    timerFocusDoneRef.current = false;
+    if (timerFocusTimeoutRef.current) {
+      clearTimeout(timerFocusTimeoutRef.current);
+      timerFocusTimeoutRef.current = null;
+    }
+  }, [date?.id, shouldFocusTimer]);
+
+  useEffect(() => () => {
+    if (timerFocusTimeoutRef.current) {
+      clearTimeout(timerFocusTimeoutRef.current);
+      timerFocusTimeoutRef.current = null;
+    }
+  }, []);
+
+  const focusTimerIfRequested = React.useCallback(() => {
+    if (!shouldFocusTimer || timerFocusDoneRef.current || !date || timerYRef.current == null) {
+      return;
+    }
+
+    timerFocusDoneRef.current = true;
+    if (timerFocusTimeoutRef.current) {
+      clearTimeout(timerFocusTimeoutRef.current);
+    }
+
+    timerFocusTimeoutRef.current = setTimeout(() => {
+      timerFocusTimeoutRef.current = null;
+      scrollRef.current?.scrollTo?.({
+        y: Math.max(timerYRef.current - 24, 0),
+        animated: true,
+      });
+    }, 80);
+  }, [date, shouldFocusTimer]);
+
+  useEffect(() => {
+    focusTimerIfRequested();
+  }, [focusTimerIfRequested]);
+
   // Drive the interval from a dedicated effect so it's never started
   // inside a setState updater (which can run multiple times in React 18).
   useEffect(() => {
@@ -428,7 +473,11 @@ export default function DateNightDetailScreen({ route, navigation }) {
       <GlowOrb color={t.primary} size={450} top={-100} left={SCREEN_WIDTH - 250} opacity={0.14} />
       <GlowOrb color={isDark ? 'rgba(255,255,255,0.6)' : t.background} size={350} top={650} left={-100} opacity={0.08} />
       
-      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        ref={scrollRef}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         
         {/* Editorial Hero Header */}
         <LinearGradient 
@@ -556,7 +605,13 @@ export default function DateNightDetailScreen({ route, navigation }) {
         </View>
 
         {/* Presence Module (Velvet Glass) */}
-        <View style={styles.modulePadding}>
+        <View
+          style={styles.modulePadding}
+          onLayout={(event) => {
+            timerYRef.current = event.nativeEvent.layout.y;
+            focusTimerIfRequested();
+          }}
+        >
           <BlurView intensity={isDark ? 30 : 50} tint={isDark ? "dark" : "light"} style={[styles.timerModule, { borderColor: t.border }]}>
             <Text style={[styles.moduleLabel, { color: t.subtext }]}>PRESENCE TIMER</Text>
             <Text style={[styles.timerValue, { color: t.text }]}>{formatTime(timeElapsed)}</Text>

@@ -58,6 +58,7 @@ import { resolveWeeklyContentAnchorDate } from '../utils/contentSchedule';
 import { getRestoredDeckItemIds } from '../utils/contentDeckRestores';
 import { buildStableWeeklySet } from '../utils/stableWeeklyContent';
 import { resolveWeeklyDeckItems } from '../utils/weeklyDeckVisibility';
+import { buildDateNightDetailParams } from '../utils/dateNightNavigation';
 
 const { width, height } = Dimensions.get('window');
 const CARD_W = width - 40;
@@ -685,7 +686,7 @@ export default function DateNightScreen({ navigation, route }) {
     setTopDateRevealed(dateDeckRevealsCards);
   }, [dateDeckRevealsCards]);
 
-  const openDate = useCallback(async (date) => {
+  const openDate = useCallback(async (date, options = {}) => {
     if (date?.isLockedPreview || date?.requiresPremium) {
       impact(ImpactFeedbackStyle.Medium);
       showPaywall?.(PremiumFeature.UNLIMITED_DATE_IDEAS);
@@ -727,7 +728,7 @@ export default function DateNightScreen({ navigation, route }) {
       }
     }
 
-    navigation.navigate('DateNightDetail', { date });
+    navigation.navigate('DateNightDetail', buildDateNightDetailParams(date, options));
   }, [freeDeckDateIds, isPremium, navigation, showPaywall, user, userId, userProfile]);
 
   const handleReset = useCallback(() => {
@@ -978,7 +979,7 @@ export default function DateNightScreen({ navigation, route }) {
                 partnerName={partnerName}
                 onSwipeRight={handleSwipeRight}
                 onSwipeLeft={handleSwipeLeft}
-                onPress={openDate}
+                onPress={(date) => openDate(date, { startAtTimer: true })}
                 onLongPress={handlePauseDate}
                 onReveal={handleDateReveal}
                 revealCards={dateDeckRevealsCards}

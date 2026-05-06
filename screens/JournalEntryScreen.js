@@ -314,11 +314,16 @@ export default function JournalEntryScreen({ navigation, route }) {
                     <VideoView
                       style={styles.imagePreview}
                       player={videoPlayer}
+                      contentFit="contain"
                       fullscreenOptions={{ enable: true }}
                       allowsPictureInPicture
                     />
                   ) : (
-                    <Image source={{ uri: mediaUri }} style={styles.imagePreview} />
+                    <Image
+                      source={{ uri: mediaUri }}
+                      style={styles.imagePreview}
+                      resizeMode="contain"
+                    />
                   )}
 
                   {isVideoMedia ? (
@@ -505,6 +510,7 @@ const createStyles = (colors) => StyleSheet.create({
     width: "100%",
     height: 220,
     borderRadius: 24,
+    backgroundColor: 'rgba(0,0,0,0.08)',
   },
   previewWrapper: {
     position: 'relative',

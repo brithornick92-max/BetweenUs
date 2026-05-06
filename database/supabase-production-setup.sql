@@ -1395,6 +1395,13 @@ BEGIN
                               notif_body  := sender_name || ' just sent a heartbeat';
     WHEN 'journal'       THEN notif_title := '📝 Journal Entry';
                               notif_body  := sender_name || ' shared a journal entry';
+                              notif_data := jsonb_build_object(
+                                'type', 'journal_shared',
+                                'route', 'journal',
+                                'id', NEW.id,
+                                'journal_id', NEW.id,
+                                'couple_id', NEW.couple_id
+                              );
     WHEN 'prompt_answer' THEN
       IF COALESCE(NEW.value::jsonb->>'promptId', '') LIKE 'quiz:%' THEN
         notif_title := 'Daily Quiz';
@@ -1421,6 +1428,13 @@ BEGIN
       ELSE
         notif_title := '📸 New Memory';
         notif_body := sender_name || ' shared a memory';
+        notif_data := jsonb_build_object(
+          'type', 'memory_saved',
+          'route', 'our-story',
+          'id', NEW.id,
+          'memory_id', NEW.id,
+          'couple_id', NEW.couple_id
+        );
       END IF;
     ELSE                      notif_title := '💕 Between Us';
                               notif_body  := sender_name || ' shared something new';

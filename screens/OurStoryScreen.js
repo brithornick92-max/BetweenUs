@@ -22,6 +22,7 @@ import {
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import ReAnimated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
+import { useVideoPlayer, VideoView } from 'expo-video';
 
 import Icon from '../components/Icon';
 import { useTheme } from '../context/ThemeContext';
@@ -71,6 +72,24 @@ const POSITION_BY_ID = new Map(POSITION_ITEMS.map((position) => [position.id, po
 const FREE_KEEPSAKE_ARCHIVE_DAYS = 30;
 const FREE_KEEPSAKE_LOAD_LIMIT = 10000;
 const PREMIUM_KEEPSAKE_LOAD_LIMIT = Infinity;
+
+function KeepsakeVideoPreview({ uri, style }) {
+  const player = useVideoPlayer(uri || null, (videoPlayer) => {
+    videoPlayer.loop = false;
+  });
+
+  if (!uri) return null;
+
+  return (
+    <VideoView
+      style={style}
+      player={player}
+      contentFit="contain"
+      nativeControls={false}
+      pointerEvents="none"
+    />
+  );
+}
 
 function normalizeKeepsakeSettings(settings) {
   return {
@@ -1691,14 +1710,20 @@ export default function OurStoryScreen() {
       >
         {isVideo ? (
           <View style={styles.snapshotVideoTile}>
-            <Icon
-              name="play-circle-outline"
-              size={options.small ? 30 : 46}
-              color="#FFF"
+            <KeepsakeVideoPreview
+              uri={media.uri}
+              style={styles.snapshotVideoPreview}
             />
-            {!options.small ? (
-              <Text style={styles.snapshotVideoText}>Video</Text>
-            ) : null}
+            <View pointerEvents="none" style={styles.snapshotVideoOverlay}>
+              <Icon
+                name="play-circle-outline"
+                size={options.small ? 30 : 46}
+                color="#FFF"
+              />
+              {!options.small ? (
+                <Text style={styles.snapshotVideoText}>Video</Text>
+              ) : null}
+            </View>
           </View>
         ) : (
           <Image
@@ -1852,7 +1877,7 @@ export default function OurStoryScreen() {
                 <View style={styles.cardEyebrowRow}>
                   <Icon name={item.icon} size={14} color={item.accent} />
                   <Text
-                    style={[styles.cardEyebrow, { color: t.primary }]}
+                    style={[styles.cardEyebrow, { color: item.accent || t.primary }]}
                     numberOfLines={1}
                     adjustsFontSizeToFit
                     minimumFontScale={0.78}
@@ -1890,10 +1915,16 @@ export default function OurStoryScreen() {
                         },
                       ]}
                     >
-                      <Icon name="play-circle-outline" size={34} color={item.accent} />
-                      <Text style={[styles.videoPreviewText, { color: item.accent }]}>
-                        Video
-                      </Text>
+                      <KeepsakeVideoPreview
+                        uri={item.media.uri}
+                        style={styles.videoPreviewMedia}
+                      />
+                      <View pointerEvents="none" style={styles.videoPreviewOverlay}>
+                        <Icon name="play-circle-outline" size={34} color={item.accent} />
+                        <Text style={[styles.videoPreviewText, { color: item.accent }]}>
+                          Video
+                        </Text>
+                      </View>
                     </View>
                   ) : (
                     <Image
@@ -2415,9 +2446,23 @@ const createStyles = (t, isDark) => StyleSheet.create({
   },
   snapshotVideoTile: {
     flex: 1,
+    position: 'relative',
+    overflow: 'hidden',
+    backgroundColor: 'rgba(0,0,0,0.54)',
+  },
+  snapshotVideoPreview: {
+    width: '100%',
+    height: '100%',
+  },
+  snapshotVideoOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(0,0,0,0.54)',
+    backgroundColor: 'rgba(0,0,0,0.18)',
     gap: 8,
   },
   snapshotVideoText: {
@@ -2462,9 +2507,24 @@ const createStyles = (t, isDark) => StyleSheet.create({
     height: 180,
     borderRadius: 18,
     borderWidth: StyleSheet.hairlineWidth,
+    position: 'relative',
+    overflow: 'hidden',
+    backgroundColor: 'rgba(0,0,0,0.14)',
+  },
+  videoPreviewMedia: {
+    width: '100%',
+    height: '100%',
+  },
+  videoPreviewOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
+    backgroundColor: 'rgba(255,255,255,0.08)',
   },
   videoPreviewText: {
     fontFamily: SYSTEM_FONT,

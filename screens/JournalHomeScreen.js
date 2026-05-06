@@ -14,6 +14,7 @@ import {
 import { useFocusEffect } from '@react-navigation/native';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { BlurView } from 'expo-blur';
+import { useVideoPlayer, VideoView } from 'expo-video';
 import Icon from '../components/Icon';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
@@ -26,6 +27,24 @@ import { getMyDisplayName, getPartnerDisplayName } from '../utils/profileNames';
 
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
 const SERIF_FONT = Platform.select({ ios: 'Georgia', android: 'serif' });
+
+function JournalVideoPreview({ uri, style }) {
+  const player = useVideoPlayer(uri || null, (videoPlayer) => {
+    videoPlayer.loop = false;
+  });
+
+  if (!uri) return null;
+
+  return (
+    <VideoView
+      style={style}
+      player={player}
+      contentFit="contain"
+      nativeControls={false}
+      pointerEvents="none"
+    />
+  );
+}
 
 function toDate(value) {
   if (!value) return null;
@@ -316,20 +335,28 @@ export default function JournalHomeScreen({ navigation }) {
             <Text style={styles.cardTitle}>{item.title}</Text>
 
             {item.mediaUri && item.mediaKind === 'video' ? (
-              <View style={styles.mediaIndicator}>
-                <Icon name="videocam-outline" size={14} color={item.accent} />
-                <Text style={[styles.mediaIndicatorText, { color: item.accent }]}>
-                  Video attached
-                </Text>
+              <View style={styles.journalMediaFrame}>
+                <JournalVideoPreview
+                  uri={item.mediaUri}
+                  style={styles.journalThumbnail}
+                />
+                <View pointerEvents="none" style={styles.mediaIndicatorOverlay}>
+                  <Icon name="videocam-outline" size={14} color="#FFF" />
+                  <Text style={styles.mediaIndicatorText}>
+                    Video attached
+                  </Text>
+                </View>
               </View>
             ) : null}
 
             {item.mediaUri && item.mediaKind !== 'video' ? (
-              <Image
-                source={{ uri: item.mediaUri }}
-                style={styles.journalThumbnail}
-                resizeMode="cover"
-              />
+              <View style={styles.journalMediaFrame}>
+                <Image
+                  source={{ uri: item.mediaUri }}
+                  style={styles.journalThumbnail}
+                  resizeMode="contain"
+                />
+              </View>
             ) : null}
           </View>
 
@@ -516,24 +543,35 @@ const createStyles = (t, isDark) => StyleSheet.create({
   cardContent: {
     width: '100%',
   },
-  journalThumbnail: {
+  journalMediaFrame: {
     width: '100%',
-    height: 150,
     borderRadius: 18,
     marginTop: SPACING.md,
+    overflow: 'hidden',
     backgroundColor: 'rgba(0,0,0,0.08)',
   },
-  mediaIndicator: {
+  journalThumbnail: {
+    width: '100%',
+    height: 190,
+  },
+  mediaIndicatorOverlay: {
+    position: 'absolute',
+    left: 12,
+    bottom: 12,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginTop: SPACING.sm,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    backgroundColor: 'rgba(0,0,0,0.62)',
   },
   mediaIndicatorText: {
     fontSize: 12,
     fontFamily: SYSTEM_FONT,
     fontWeight: '700',
     letterSpacing: 0.3,
+    color: '#FFF',
   },
   cardLowerContent: {
     paddingHorizontal: SPACING.xl,

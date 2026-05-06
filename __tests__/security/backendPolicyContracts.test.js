@@ -159,4 +159,18 @@ describe('backend security policy contracts', () => {
       expect(sql).toContain('VALUES (target_couple_id, redeemer_id');
     }
   });
+
+  test('partner activity notifications route to the right app surfaces', () => {
+    const productionSql = readRepoFile('database/supabase-production-setup.sql');
+    const migrationSql = readRepoFile('supabase/migrations/20260506180000_partner_activity_notification_routes.sql');
+
+    for (const sql of [productionSql, migrationSql]) {
+      expect(sql).toContain("'type', 'journal_shared'");
+      expect(sql).toContain("'route', 'journal'");
+      expect(sql).toContain("'type', 'prompt_answered'");
+      expect(sql).toContain("'route', 'prompt'");
+      expect(sql).toContain("'type', 'memory_saved'");
+      expect(sql).toContain("'route', 'our-story'");
+    }
+  });
 });

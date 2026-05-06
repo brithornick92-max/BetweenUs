@@ -117,6 +117,77 @@ describe('DeepLinkHandler.handleNotificationResponse', () => {
     expect(navigate).toHaveBeenCalledWith('PromptAnswer', { promptId: 'p-456' });
   });
 
+  it('routes URL-only notification taps from local notifications', () => {
+    const handled = DeepLinkHandler.handleNotificationResponse({
+      notification: {
+        request: {
+          content: {
+            data: {
+              url: 'betweenus://journal',
+            },
+          },
+        },
+      },
+    });
+
+    expect(handled).toBe(true);
+    expect(navigate).toHaveBeenCalledWith('JournalHome', {});
+  });
+
+  it('routes backend notifications with snake_case ids', () => {
+    const handled = DeepLinkHandler.handleNotificationResponse({
+      notification: {
+        request: {
+          content: {
+            data: {
+              route: 'prompt',
+              prompt_id: 'h2_042',
+            },
+          },
+        },
+      },
+    });
+
+    expect(handled).toBe(true);
+    expect(navigate).toHaveBeenCalledWith('PromptAnswer', { promptId: 'h2_042' });
+  });
+
+  it('infers routes from notification activity types when route is absent', () => {
+    const handled = DeepLinkHandler.handleNotificationResponse({
+      notification: {
+        request: {
+          content: {
+            data: {
+              type: 'memory_saved',
+              memory_id: 'mem-1',
+            },
+          },
+        },
+      },
+    });
+
+    expect(handled).toBe(true);
+    expect(navigate).toHaveBeenCalledWith('OurStory', {});
+  });
+
+  it('falls back to a safe URL when an external notification route is incomplete', () => {
+    const handled = DeepLinkHandler.handleNotificationResponse({
+      notification: {
+        request: {
+          content: {
+            data: {
+              route: 'prompt',
+              url: 'betweenus://prompt/p-url-1',
+            },
+          },
+        },
+      },
+    });
+
+    expect(handled).toBe(true);
+    expect(navigate).toHaveBeenCalledWith('PromptAnswer', { promptId: 'p-url-1' });
+  });
+
   it('routes saved-moments notification taps to Keepsake', () => {
     const handled = DeepLinkHandler.handleNotificationResponse({
       notification: {

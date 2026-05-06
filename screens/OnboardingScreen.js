@@ -880,32 +880,32 @@ export default function OnboardingScreen({ navigation }) {
         <View style={styles.prefSection}>
           <Text style={styles.groupLabel}>SHARED HEAT LEVEL</Text>
           <Text style={styles.prefSubtitle}>Choose the range you both want to see. Each range keeps at least three levels in rotation.</Text>
-          <View style={styles.groupCard}>
+          <View style={[styles.groupCard, styles.heatRangeCard]}>
             {HEAT_LEVEL_RANGE_PRESETS.map((h, index) => {
               const isActive = selectedHeatRangeId === h.id;
               const heatColor = HEAT_LEVEL_ACCENTS[h.accentLevel] || t.primary;
               return (
                 <View key={h.id}>
                   <TouchableOpacity
-                    style={styles.listOptionRow}
+                    style={[styles.listOptionRow, styles.heatRangeOptionRow]}
                     onPress={() => {
                       setSelectedHeatRangeId(h.id);
                       selection();
                     }}
                     activeOpacity={0.7}
                   >
-                    <View style={[styles.iconWrap, { backgroundColor: isActive ? heatColor + '15' : t.surfaceSecondary }]}>
+                    <View style={[styles.iconWrap, styles.heatRangeIconWrap, { backgroundColor: isActive ? heatColor + '15' : t.surfaceSecondary }]}>
                       <Icon name={h.icon} size={20} color={isActive ? heatColor : t.subtext} />
                     </View>
-                    <View style={{ flex: 1 }}>
+                    <View style={styles.heatRangeOptionContent}>
                       <Text style={[styles.listOptionName, { color: isActive ? heatColor : t.text }]}>
                         {h.title}
                       </Text>
-                      <Text style={styles.listOptionDesc} numberOfLines={1}>
+                      <Text style={[styles.listOptionDesc, styles.heatRangeOptionDesc]}>
                         {h.description}
                       </Text>
                     </View>
-                    {isActive && <Icon name="checkmark-outline" size={20} color={heatColor} />}
+                    {isActive && <Icon name="checkmark-outline" size={20} color={heatColor} style={styles.heatRangeCheckIcon} />}
                   </TouchableOpacity>
                   {index < HEAT_LEVEL_RANGE_PRESETS.length - 1 && <View style={styles.dividerIndent} />}
                 </View>
@@ -1340,6 +1340,9 @@ const createStyles = (t, isDark) => {
       marginBottom: SPACING.xxl,
       overflow: 'hidden',
     },
+    heatRangeCard: {
+      borderRadius: 24,
+    },
     inputRow: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -1469,12 +1472,29 @@ const createStyles = (t, isDark) => {
       padding: SPACING.lg,
       gap: 16,
     },
+    heatRangeOptionRow: {
+      alignItems: 'flex-start',
+      paddingHorizontal: SPACING.xl,
+      paddingVertical: SPACING.xl,
+      minHeight: 96,
+    },
     iconWrap: {
       width: 32,
       height: 32,
       borderRadius: 8, // Apple standard squircle icon wrapper
       alignItems: 'center',
       justifyContent: 'center',
+    },
+    heatRangeIconWrap: {
+      width: 40,
+      height: 40,
+      borderRadius: 12,
+      marginTop: 2,
+    },
+    heatRangeOptionContent: {
+      flex: 1,
+      flexShrink: 1,
+      paddingRight: SPACING.xs,
     },
     listOptionName: {
       fontSize: 16,
@@ -1484,6 +1504,13 @@ const createStyles = (t, isDark) => {
     listOptionDesc: {
       fontSize: 14,
       color: t.subtext,
+    },
+    heatRangeOptionDesc: {
+      lineHeight: 20,
+    },
+    heatRangeCheckIcon: {
+      marginTop: 10,
+      flexShrink: 0,
     },
 
     // ── Pairing Screen ──

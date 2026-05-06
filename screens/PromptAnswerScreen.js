@@ -257,6 +257,26 @@ export default function PromptAnswerScreen({ route, navigation }) {
     }
   };
 
+  const showSavedConfirmation = useCallback(({ savedToSharedLayer = true, updatedKeepsake = false } = {}) => new Promise((resolve) => {
+    const title = updatedKeepsake
+      ? "Keepsake Updated"
+      : isEditingAnswer
+        ? "Answer Updated"
+        : "Locked In";
+    const message = updatedKeepsake
+      ? "Your Keepsake choice was saved."
+      : savedToSharedLayer
+        ? "Your answer is saved. If notifications are enabled, your partner will know something is waiting."
+        : "Your answer is saved on this device and will sync when you're back online.";
+
+    Alert.alert(
+      title,
+      message,
+      [{ text: "Done", onPress: resolve }],
+      { onDismiss: resolve }
+    );
+  }), [isEditingAnswer]);
+
   const handleSave = async () => {
     const finalText = answer.trim();
     if (!finalText || !prompt?.id || !prompt?.dateKey || savingRef.current) return;
@@ -369,6 +389,12 @@ export default function PromptAnswerScreen({ route, navigation }) {
         return;
       }
 
+      savingRef.current = false;
+      setIsSaving(false);
+      await showSavedConfirmation({
+        savedToSharedLayer: !!syncedAnswer,
+        updatedKeepsake: answerIsLocked && keepsakeChanged,
+      });
       navigation.goBack();
     } catch {
       Alert.alert("We couldn't save your answer", "Please try again.");

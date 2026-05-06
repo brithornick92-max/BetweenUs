@@ -65,6 +65,7 @@ export default function MediaLightbox({ item, onClose, showCloseButton = false }
         <VideoView
           style={styles.lightboxMedia}
           player={player}
+          contentFit="contain"
           fullscreenOptions={{ enable: true }}
           allowsPictureInPicture
         />

@@ -43,7 +43,9 @@ describe('Journal sharing screens', () => {
     const tree = await renderScreen(JournalEntryScreen, { navigation, route });
 
     const imageNodes = tree.root.findAllByType(Image);
-    expect(imageNodes.some((node) => node.props.source?.uri === 'file:///persisted-photo.jpg')).toBe(true);
+    const persistedPhoto = imageNodes.find((node) => node.props.source?.uri === 'file:///persisted-photo.jpg');
+    expect(persistedPhoto).toBeTruthy();
+    expect(persistedPhoto.props.resizeMode).toBe('contain');
 
     const [saveButton] = findTouchablesByText(tree.root, 'Save');
     expect(saveButton).toBeTruthy();
@@ -96,7 +98,9 @@ describe('Journal sharing screens', () => {
     await flushEffects();
 
     const imageNodes = tree.root.findAllByType(Image);
-    expect(imageNodes.some((node) => node.props.source?.uri === 'https://cdn.example.com/shared-photo.jpg')).toBe(true);
+    const sharedPhoto = imageNodes.find((node) => node.props.source?.uri === 'https://cdn.example.com/shared-photo.jpg');
+    expect(sharedPhoto).toBeTruthy();
+    expect(sharedPhoto.props.resizeMode).toBe('contain');
 
     const [partnerCard] = tree.root.findAllByProps({ accessibilityLabel: 'Partner reflection' });
     expect(partnerCard).toBeTruthy();
@@ -134,7 +138,9 @@ describe('Journal sharing screens', () => {
     };
 
     const tree = await renderScreen(JournalEntryScreen, { navigation, route });
-    expect(tree.root.findAllByType(VideoView)).toHaveLength(1);
+    const [videoPreview] = tree.root.findAllByType(VideoView);
+    expect(videoPreview).toBeTruthy();
+    expect(videoPreview.props.contentFit).toBe('contain');
 
     const [saveButton] = findTouchablesByText(tree.root, 'Save');
     await renderer.act(async () => {
@@ -170,6 +176,10 @@ describe('Journal sharing screens', () => {
 
     const [videoLabel] = tree.root.findAllByProps({ children: 'Video attached' });
     expect(videoLabel).toBeTruthy();
+
+    const [videoPreview] = tree.root.findAllByType(VideoView);
+    expect(videoPreview).toBeTruthy();
+    expect(videoPreview.props.contentFit).toBe('contain');
   });
 
   it('shows both partners journal entries newest first with date grouping', async () => {

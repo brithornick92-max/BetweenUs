@@ -25,6 +25,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { BlurView } from 'expo-blur';
+import { useVideoPlayer, VideoView } from 'expo-video';
 
 import Icon from '../components/Icon';
 import GlowOrb from '../components/GlowOrb';
@@ -49,6 +50,24 @@ const SERIF_FONT = Platform.select({ ios: 'Georgia', android: 'serif' });
 const MAX_MEDIA_ITEMS = 10;
 const MAX_FILE_BYTES = 50_000_000;
 const MAX_VIDEO_DURATION_MS = 180_000;
+
+function SelectedMediaVideoPreview({ uri, style }) {
+  const player = useVideoPlayer(uri || null, (videoPlayer) => {
+    videoPlayer.loop = false;
+  });
+
+  if (!uri) return null;
+
+  return (
+    <VideoView
+      style={style}
+      player={player}
+      contentFit="contain"
+      nativeControls={false}
+      pointerEvents="none"
+    />
+  );
+}
 
 function buildSnapshotId() {
   return `snapshot_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
@@ -752,9 +771,15 @@ export default function AddMemoryScreen() {
                               <Text style={styles.videoTileText}>Media saved</Text>
                             </View>
                           ) : isItemVideo ? (
-                            <View style={styles.videoTileFallback}>
-                              <Icon name="play-circle-outline" size={44} color="#FFF" />
-                              <Text style={styles.videoTileText}>Video</Text>
+                            <View style={styles.videoTilePreview}>
+                              <SelectedMediaVideoPreview
+                                uri={item.uri}
+                                style={styles.mediaTileVideo}
+                              />
+                              <View pointerEvents="none" style={styles.videoTileOverlay}>
+                                <Icon name="play-circle-outline" size={44} color="#FFF" />
+                                <Text style={styles.videoTileText}>Video</Text>
+                              </View>
                             </View>
                           ) : (
                             <Image
@@ -987,6 +1012,29 @@ const createStyles = (t, isDark) => StyleSheet.create({
     width: '100%',
     height: '100%',
     borderRadius: 28,
+    backgroundColor: 'rgba(0,0,0,0.18)',
+  },
+  videoTilePreview: {
+    flex: 1,
+    borderRadius: 28,
+    overflow: 'hidden',
+    position: 'relative',
+    backgroundColor: 'rgba(0,0,0,0.52)',
+  },
+  mediaTileVideo: {
+    width: '100%',
+    height: '100%',
+  },
+  videoTileOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.18)',
+    gap: 8,
   },
   videoTileFallback: {
     flex: 1,

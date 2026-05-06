@@ -175,12 +175,12 @@ export default function HeatLevelSettingsScreen({ navigation }) {
                       <Text style={[styles.optionName, { color: isSelected ? color : t.text }]}>
                         {range.title}
                       </Text>
-                      <Text style={styles.optionDesc} numberOfLines={1}>
+                      <Text style={styles.optionDesc}>
                         {range.description}
                       </Text>
                     </View>
                     {isSelected ? (
-                      <Icon name="checkmark-circle" size={24} color={color} />
+                      <Icon name="checkmark-circle" size={24} color={color} style={styles.optionCheckIcon} />
                     ) : null}
                   </TouchableOpacity>
                   {!isLast && <View style={styles.dividerIndent} />}
@@ -231,7 +231,7 @@ const createStyles = (t, isDark) => StyleSheet.create({
     borderRadius: 24, // Deep Apple Squircle
     borderWidth: 1,
     borderColor: t.border,
-    paddingVertical: 8,
+    paddingVertical: 12,
     ...Platform.select({
       ios: { shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: isDark ? 0 : 0.04, shadowRadius: 10 },
       android: { elevation: 2 },
@@ -241,19 +241,24 @@ const createStyles = (t, isDark) => StyleSheet.create({
   // ── List Items ──
   listOptionRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    padding: 20,
+    alignItems: 'flex-start',
+    paddingHorizontal: 22,
+    paddingVertical: 22,
+    minHeight: 96,
     gap: 16,
   },
   iconWrap: {
-    width: 40,
-    height: 40,
-    borderRadius: 20, 
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: 2,
   },
   optionContent: {
     flex: 1,
+    flexShrink: 1,
+    paddingRight: SPACING.xs,
   },
   optionName: {
     fontFamily: SYSTEM_FONT,
@@ -265,8 +270,13 @@ const createStyles = (t, isDark) => StyleSheet.create({
   optionDesc: {
     fontFamily: SYSTEM_FONT,
     fontSize: 14,
+    lineHeight: 20,
     color: t.subtext,
     fontWeight: '500',
+  },
+  optionCheckIcon: {
+    marginTop: 10,
+    flexShrink: 0,
   },
   dividerIndent: {
     height: StyleSheet.hairlineWidth,

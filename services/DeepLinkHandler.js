@@ -28,12 +28,77 @@ let _navigationRef = null;
 let _showSecondaryTabs = false;
 
 const ID_REQUIRED_ROUTES = new Set(['prompt', 'date']);
+const TYPE_ROUTE_FALLBACKS = {
+  calendar_event: 'calendar',
+  calendar_event_created: 'calendar',
+  calendar_event_reminder: 'calendar',
+  date_planned: 'calendar',
+  journal_shared: 'journal',
+  memory_saved: 'our-story',
+  moment_signal: 'vibe',
+  prompt_answered: 'prompt',
+  quiz_answered: 'quiz',
+  streak_at_risk: 'home',
+  thinking_of_you_photo: 'our-story',
+  vibe_sent: 'vibe',
+  weekly_recap: 'home',
+};
 
 // Only allow safe characters in deep link ID parameters
 const SAFE_ID_RE = /^[a-zA-Z0-9_\-:.]{1,128}$/;
 const _sanitizeId = (id) => {
   if (!id || typeof id !== 'string') return null;
   return SAFE_ID_RE.test(id) ? id : null;
+};
+
+const _parseMaybeJsonObject = (value) => {
+  if (!value) return {};
+  if (typeof value === 'object' && !Array.isArray(value)) return value;
+  if (typeof value !== 'string') return {};
+
+  try {
+    const parsed = JSON.parse(value);
+    return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
+  } catch {
+    return {};
+  }
+};
+
+const _normalizeNotificationData = (rawData) => {
+  const data = _parseMaybeJsonObject(rawData);
+  const nestedParams = _parseMaybeJsonObject(data.params || data.routeParams);
+
+  return {
+    ...data,
+    params: nestedParams,
+  };
+};
+
+const _firstPresent = (...values) => values.find((value) => value !== undefined && value !== null && String(value).trim() !== '');
+
+const _getNotificationId = (data = {}) => {
+  const params = data.params || {};
+
+  return _firstPresent(
+    data.id,
+    data.promptId,
+    data.prompt_id,
+    data.dateId,
+    data.date_id,
+    data.noteId,
+    data.note_id,
+    data.journalId,
+    data.journal_id,
+    data.memoryId,
+    data.memory_id,
+    data.eventId,
+    data.event_id,
+    params.id,
+    params.promptId,
+    params.prompt_id,
+    params.dateId,
+    params.date_id
+  );
 };
 
 // Navigate, falling back to MainTabs home if a secondary tab isn't mounted yet
@@ -188,26 +253,34 @@ const DeepLinkHandler = {
     if (!_navigationRef?.isReady()) return false;
 
     try {
-      const data = response?.notification?.request?.content?.data;
-      if (!data?.route) return false;
+      const data = _normalizeNotificationData(response?.notification?.request?.content?.data);
+      const url = typeof data.url === 'string' ? data.url : null;
+      const route = data.route || data.screen || TYPE_ROUTE_FALLBACKS[data.type] || null;
 
-      const handler = ROUTE_MAP[data.route];
+      if (!route) {
+        return url ? this.handleUrl(url) : false;
+      }
+
+      const handler = ROUTE_MAP[route];
       if (!handler) {
-        CrashReporting.captureMessage(`Unknown notification route: ${data.route}`, 'warning');
+        if (url && this.handleUrl(url)) return true;
+        CrashReporting.captureMessage(`Unknown notification route: ${route}`, 'warning');
         return false;
       }
 
-      const rawId = data.id || data.noteId || data.promptId || data.dateId;
+      const rawId = _getNotificationId(data);
       const sanitizedId = rawId ? _sanitizeId(String(rawId)) : null;
 
       // Routes that require an ID — bail if ID is missing or failed sanitization
-      if (ID_REQUIRED_ROUTES.has(data.route) && !sanitizedId) {
-        CrashReporting.captureMessage(`Notification route '${data.route}' missing required id`, 'warning');
+      if (ID_REQUIRED_ROUTES.has(route) && !sanitizedId) {
+        if (url && this.handleUrl(url)) return true;
+        CrashReporting.captureMessage(`Notification route '${route}' missing required id`, 'warning');
         return false;
       }
 
       const { screen, params } = handler({
         id: sanitizedId,
+        url,
       });
       // Only merge known-safe params — don't pass arbitrary notification data to screens
       _navigateSafe(screen, params);
