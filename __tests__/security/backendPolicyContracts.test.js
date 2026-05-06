@@ -54,14 +54,22 @@ describe('backend security policy contracts', () => {
   test('account and couple deletion clean up private storage objects', () => {
     const productionSql = readRepoFile('database/supabase-production-setup.sql');
     const migrationSql = readRepoFile('supabase/migrations/20260429001000_cleanup_storage_on_account_delete.sql');
+    const storageDeleteFixSql = readRepoFile('supabase/migrations/20260506220000_allow_storage_cleanup_helper_delete.sql');
 
-    expect(productionSql).toContain('CREATE OR REPLACE FUNCTION cleanup_couple_storage_objects');
-    expect(productionSql).toContain("bucket_id = 'couple-media'");
-    expect(productionSql).toContain("bucket_id IN ('attachments', 'whispers')");
+    for (const sql of [productionSql, migrationSql, storageDeleteFixSql]) {
+      expect(sql).toContain('cleanup_couple_storage_objects');
+      expect(sql).toContain("bucket_id = 'couple-media'");
+      expect(sql).toContain("bucket_id IN ('attachments', 'whispers')");
+    }
+
+    for (const sql of [productionSql, storageDeleteFixSql]) {
+      expect(sql).toContain("set_config('storage.allow_delete_query', 'true', true)");
+      expect(sql).toContain("set_config('storage.allow_delete_query', COALESCE(previous_allow_delete, 'false'), true)");
+    }
+
     expect(productionSql).toContain('PERFORM cleanup_couple_storage_objects(_couple_id, auth.uid())');
     expect(productionSql).toContain('PERFORM cleanup_couple_storage_objects(the_couple_id, NULL)');
 
-    expect(migrationSql).toContain('CREATE OR REPLACE FUNCTION public.cleanup_couple_storage_objects');
     expect(migrationSql).toContain('PERFORM public.cleanup_couple_storage_objects(_couple_id, auth.uid())');
   });
 
