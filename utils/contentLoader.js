@@ -3,6 +3,8 @@
 // OK: Guarantees prompt-returning functions always return an object with .text (never undefined)
 // Apple Editorial System Colors Integrated
 
+import { getDailyContentDateKey } from './dailyContentDate';
+
 const isDevRuntime = typeof __DEV__ !== "undefined" && __DEV__;
 
 if (isDevRuntime) console.log("[content] ContentLoader: Module loading started");
@@ -86,15 +88,6 @@ const getStableHash = (str) => {
     hash = ((hash << 5) - hash + s.charCodeAt(i)) | 0;
   }
   return Math.abs(hash);
-};
-
-// Safe date key generator (local)
-const getLocalDateKey = (date = new Date()) => {
-  const d = date instanceof Date ? date : new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
 };
 
 // Fallback prompt (guaranteed safe) — single canonical definition for the whole app
@@ -207,7 +200,7 @@ export function getPromptByHeatLevel(heatLevel) {
 }
 
 export function getPromptOfTheDay(sharedKey = "", userFilters = {}) {
-  const dateKey = getLocalDateKey();
+  const dateKey = getDailyContentDateKey();
 
   try {
     const key = typeof sharedKey === "string" ? sharedKey : String(sharedKey ?? "");

@@ -28,6 +28,20 @@ describe('FREE_TIER_LIMITS', () => {
 describe('UsageEventsService', () => {
   const userId = 'test-user-123';
 
+  it('uses the 4am app-day key for daily usage buckets', () => {
+    jest.useFakeTimers();
+
+    try {
+      jest.setSystemTime(new Date(2026, 4, 5, 3, 59, 59));
+      expect(UsageEventsService._todayKey()).toBe('2026-05-04');
+
+      jest.setSystemTime(new Date(2026, 4, 5, 4, 0, 0));
+      expect(UsageEventsService._todayKey()).toBe('2026-05-05');
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   describe('getDailyUsage', () => {
     it('creates a fresh record when none exists', async () => {
       const usage = await UsageEventsService.getDailyUsage(userId);

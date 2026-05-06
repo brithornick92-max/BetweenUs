@@ -1,6 +1,7 @@
 import { supabase } from '../config/supabase';
 import { storage } from '../utils/storage';
 import { FREE_LIMITS } from '../utils/featureFlags';
+import { getDailyContentDateKey } from '../utils/dailyContentDate';
 
 /**
  * Supabase-backed usage service with a cache-only fallback.
@@ -24,8 +25,7 @@ class UsageEventsService {
   }
 
   _todayKey() {
-    const d = new Date();
-    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    return getDailyContentDateKey();
   }
 
   _weekKey(date = new Date()) {

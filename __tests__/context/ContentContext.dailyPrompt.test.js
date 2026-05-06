@@ -183,7 +183,7 @@ async function mountProvider() {
   return tree;
 }
 
-describe('ContentContext daily prompt boundary refresh', () => {
+describe('ContentContext daily prompt stability', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     capturedContext = null;
@@ -228,7 +228,7 @@ describe('ContentContext daily prompt boundary refresh', () => {
     });
   });
 
-  it('replaces a cached daily prompt when new boundaries hide it', async () => {
+  it('keeps a cached daily prompt fixed for the 4am app day even when boundaries change', async () => {
     const tree = await mountProvider();
 
     let firstPrompt;
@@ -251,16 +251,9 @@ describe('ContentContext daily prompt boundary refresh', () => {
       refreshedPrompt = await capturedContext.loadTodayPrompt();
     });
 
-    expect(refreshedPrompt.id).toBe('allowed');
+    expect(refreshedPrompt.id).toBe('blocked');
     expect(mockGetPrompts).not.toHaveBeenCalled();
-    expect(mockStorageSet).toHaveBeenLastCalledWith(
-      DAILY_PROMPT_CACHE_KEY,
-      expect.objectContaining({
-        dateKey: TODAY_KEY,
-        scope: 'user:user-1',
-        promptId: 'allowed',
-      })
-    );
+    expect(mockStorageSet).not.toHaveBeenCalled();
 
     tree.unmount();
   });

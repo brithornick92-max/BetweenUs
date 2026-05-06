@@ -1180,6 +1180,7 @@ export default function HomeScreen({ navigation }) {
 }
 
 const systemFont = Platform.select({ ios: 'System', android: 'Roboto' });
+const DARK_TODAY_BETWEEN_US_CARD = '#131016';
 
 const createStyles = (t, isDark) => StyleSheet.create({
   root: { flex: 1 },
@@ -1274,7 +1275,7 @@ const createStyles = (t, isDark) => StyleSheet.create({
     borderRadius: 24,
     borderWidth: 1,
     borderColor: t.border,
-    backgroundColor: t.surface,
+    backgroundColor: isDark ? DARK_TODAY_BETWEEN_US_CARD : t.surface,
     padding: SPACING.xl,
     ...Platform.select({
       ios: {
@@ -1516,7 +1517,7 @@ const createStyles = (t, isDark) => StyleSheet.create({
     borderRadius: 24,
     borderWidth: 1,
     borderColor: t.border,
-    backgroundColor: t.surface,
+    backgroundColor: isDark ? DARK_TODAY_BETWEEN_US_CARD : t.surface,
     padding: SPACING.xl,
     ...Platform.select({
       ios: {

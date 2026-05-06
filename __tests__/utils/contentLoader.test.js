@@ -47,6 +47,7 @@ const {
   getPromptsByHeatLevel,
   getPromptsByCategory,
   getFilteredPrompts,
+  getPromptOfTheDay,
   getPromptById,
   getTodayBetweenUsPrompts,
   getAllDates,
@@ -152,6 +153,22 @@ describe('Today Between Us prompts', () => {
       sourceLibrary: 'today-between-us',
     });
     expect(getAllPrompts().some((item) => item.id === 'tbu_l1_001')).toBe(false);
+  });
+});
+
+describe('getPromptOfTheDay', () => {
+  it('uses the 4am app-day key for legacy daily prompt selection', () => {
+    jest.useFakeTimers();
+
+    try {
+      jest.setSystemTime(new Date(2026, 4, 5, 3, 59, 59));
+      expect(getPromptOfTheDay('shared').dateKey).toBe('2026-05-04');
+
+      jest.setSystemTime(new Date(2026, 4, 5, 4, 0, 0));
+      expect(getPromptOfTheDay('shared').dateKey).toBe('2026-05-05');
+    } finally {
+      jest.useRealTimers();
+    }
   });
 });
 

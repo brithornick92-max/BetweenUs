@@ -106,6 +106,10 @@ export function getDailyQuestion(dateKey) {
   return QUIZ_QUESTIONS[Math.abs(hash) % QUIZ_QUESTIONS.length];
 }
 
+export function getQuizQuestionById(questionId) {
+  return QUIZ_QUESTIONS.find((question) => question.id === questionId) || null;
+}
+
 function substitutePartnerName(text, partnerName) {
   return text.replace(/\{partner\}/g, partnerName || 'your partner');
 }
@@ -146,6 +150,55 @@ function useDailyQuizDateKey() {
   return dateKey;
 }
 
+function useDailyQuizQuestion(todayKey, quizCacheKeys) {
+  const deterministicQuestion = useMemo(() => getDailyQuestion(todayKey), [todayKey]);
+  const [questionId, setQuestionId] = useState(() => deterministicQuestion.id);
+
+  useEffect(() => {
+    let active = true;
+
+    setQuestionId(deterministicQuestion.id);
+
+    const resolveQuestionForDay = async () => {
+      try {
+        const [cachedDateKey, cachedQuestionId] = await Promise.all([
+          storage.get(quizCacheKeys.date, null),
+          storage.get(quizCacheKeys.question, null),
+        ]);
+
+        if (!active) return;
+
+        const cachedQuestion = cachedDateKey === todayKey
+          ? getQuizQuestionById(cachedQuestionId)
+          : null;
+        const nextQuestion = cachedQuestion || deterministicQuestion;
+
+        setQuestionId(nextQuestion.id);
+
+        if (!cachedQuestion) {
+          await Promise.all([
+            storage.set(quizCacheKeys.date, todayKey),
+            storage.set(quizCacheKeys.question, nextQuestion.id),
+          ]);
+        }
+      } catch {
+        if (active) setQuestionId(deterministicQuestion.id);
+      }
+    };
+
+    resolveQuestionForDay();
+
+    return () => {
+      active = false;
+    };
+  }, [deterministicQuestion, quizCacheKeys, todayKey]);
+
+  return useMemo(
+    () => getQuizQuestionById(questionId) || deterministicQuestion,
+    [deterministicQuestion, questionId]
+  );
+}
+
 // ─── Screen ────────────────────────────────────────────────────────────────
 
 export default function CouplesQuizScreen({ navigation }) {
@@ -176,7 +229,7 @@ export default function CouplesQuizScreen({ navigation }) {
   const quizCacheKeys = useMemo(() => getQuizCacheKeys(quizCacheScope), [quizCacheScope]);
 
   const todayKey = useDailyQuizDateKey();
-  const question = useMemo(() => getDailyQuestion(todayKey), [todayKey]);
+  const question = useDailyQuizQuestion(todayKey, quizCacheKeys);
   const quizPromptId = useMemo(() => getQuizPromptId(question.id), [question.id]);
   const questionText = substitutePartnerName(question.text, partnerName);
   const accentColor = t.primary;
@@ -422,8 +475,6 @@ export default function CouplesQuizScreen({ navigation }) {
 
   const clearLocalQuizAnswer = useCallback(async () => {
     await Promise.all([
-      storage.remove(quizCacheKeys.date),
-      storage.remove(quizCacheKeys.question),
       storage.remove(quizCacheKeys.answer),
       storage.remove(TODAY_QUIZ_KEY),
       storage.remove(TODAY_QUIZ_QUESTION_KEY),

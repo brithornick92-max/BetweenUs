@@ -112,6 +112,28 @@ describe('CouplesQuizScreen', () => {
     expect(getDailyQuestion(afterRolloverKey).id).not.toBe(getDailyQuestion(beforeRolloverKey).id);
   });
 
+  it('keeps a cached Daily Quiz question fixed for the current 4am app day', async () => {
+    const navigation = createNavigation();
+    const todayKey = getDailyContentDateKey();
+    const questions = require('../../content/quizQuestions.json').questions;
+    const deterministicQuestion = getDailyQuestion(todayKey);
+    const cachedQuestion = questions.find((question) => question.id !== deterministicQuestion.id);
+    const scopedKeys = getQuizCacheKeys('user-1:solo');
+
+    mockStorageGet.mockImplementation((key, fallback = null) => {
+      if (key === scopedKeys.date) return Promise.resolve(todayKey);
+      if (key === scopedKeys.question) return Promise.resolve(cachedQuestion.id);
+      return Promise.resolve(fallback);
+    });
+
+    tree = await renderScreen(CouplesQuizScreen, { navigation });
+    await flushEffects();
+    await flushEffects();
+
+    const renderedText = getRenderedText(tree.root);
+    expect(renderedText).toContain(cachedQuestion.text.replace(/\{partner\}/g, 'your partner'));
+  });
+
   it('ignores legacy unscoped local answers from another signed-in account', async () => {
     const legacyKeys = new Set([
       '@betweenus:cache:quizDateKey',
@@ -198,8 +220,8 @@ describe('CouplesQuizScreen', () => {
 
     expect(mockDeletePromptAnswer).toHaveBeenCalledWith('answer-1');
     const scopedKeys = getQuizCacheKeys('user-1:solo');
-    expect(mockStorageRemove).toHaveBeenCalledWith(scopedKeys.date);
-    expect(mockStorageRemove).toHaveBeenCalledWith(scopedKeys.question);
+    expect(mockStorageRemove).not.toHaveBeenCalledWith(scopedKeys.date);
+    expect(mockStorageRemove).not.toHaveBeenCalledWith(scopedKeys.question);
     expect(mockStorageRemove).toHaveBeenCalledWith(scopedKeys.answer);
     expect(findTouchablesByText(tree.root, 'Lock In My Answer')[0]).toBeTruthy();
   });

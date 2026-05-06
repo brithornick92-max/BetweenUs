@@ -216,6 +216,56 @@ export const ContentProvider = ({ children }) => {
       });
       const scope = getDailyPromptScope(user.uid, coupleId);
 
+      if (
+        todayPrompt?.dateKey === today
+        && todayPrompt?._dailyPromptScope === scope
+        && todayPrompt?.id
+        && typeof todayPrompt?.text === 'string'
+        && todayPrompt.text.trim()
+      ) {
+        PromptAllocator.setDailyPromptId(todayPrompt.id);
+        return todayPrompt;
+      }
+
+      const cachedPromptSelection = await storage.get(DAILY_PROMPT_CACHE_KEY, null);
+      if (
+        cachedPromptSelection?.dateKey === today
+        && cachedPromptSelection?.scope === scope
+        && cachedPromptSelection?.promptId
+      ) {
+        const cachedPrompt = getPromptById(cachedPromptSelection.promptId);
+        if (cachedPrompt?.text) {
+          const personalizedCachedPrompt = await personalizePrompt({ ...cachedPrompt, dateKey: today });
+          const resolvedCachedPrompt = { ...personalizedCachedPrompt, _dailyPromptScope: scope };
+          setTodayPrompt(resolvedCachedPrompt);
+          PromptAllocator.setDailyPromptId(cachedPrompt.id);
+          return resolvedCachedPrompt;
+        }
+      }
+
+      if (coupleId) {
+        const sharedPromptSelection = await getSharedDailyPromptSelection(today, {
+          fallbackCoupleId: coupleId,
+          ensureSession: ensureSupabaseSession,
+        });
+        const sharedPromptId = sharedPromptSelection?.value?.promptId;
+        if (sharedPromptId) {
+          const sharedPrompt = getPromptById(sharedPromptId);
+          if (sharedPrompt?.text) {
+            await storage.set(DAILY_PROMPT_CACHE_KEY, {
+              dateKey: today,
+              scope,
+              promptId: sharedPromptId,
+            });
+            const personalizedSharedPrompt = await personalizePrompt({ ...sharedPrompt, dateKey: today });
+            const resolvedSharedPrompt = { ...personalizedSharedPrompt, _dailyPromptScope: scope };
+            setTodayPrompt(resolvedSharedPrompt);
+            PromptAllocator.setDailyPromptId(sharedPrompt.id);
+            return resolvedSharedPrompt;
+          }
+        }
+      }
+
       // Load (or refresh) the content profile
       const profile = await loadContentProfile(options?.profileOverride || userProfile || {});
 
@@ -244,62 +294,6 @@ export const ContentProvider = ({ children }) => {
 
       if (promptsData.length === 0) {
         throw new Error('No prompts available for your preferences');
-      }
-
-      const availablePromptIds = new Set(
-        promptsData
-          .map((prompt) => String(prompt?.id || ''))
-          .filter(Boolean)
-      );
-
-      if (
-        todayPrompt?.dateKey === today
-        && todayPrompt?._dailyPromptScope === scope
-        && todayPrompt?.id
-        && availablePromptIds.has(String(todayPrompt.id))
-      ) {
-        PromptAllocator.setDailyPromptId(todayPrompt.id);
-        return todayPrompt;
-      }
-
-      const cachedPromptSelection = await storage.get(DAILY_PROMPT_CACHE_KEY, null);
-      if (
-        cachedPromptSelection?.dateKey === today
-        && cachedPromptSelection?.scope === scope
-        && cachedPromptSelection?.promptId
-        && availablePromptIds.has(String(cachedPromptSelection.promptId))
-      ) {
-        const cachedPrompt = getPromptById(cachedPromptSelection.promptId);
-        if (cachedPrompt?.text) {
-          const personalizedCachedPrompt = await personalizePrompt({ ...cachedPrompt, dateKey: today });
-          const resolvedCachedPrompt = { ...personalizedCachedPrompt, _dailyPromptScope: scope };
-          setTodayPrompt(resolvedCachedPrompt);
-          PromptAllocator.setDailyPromptId(cachedPrompt.id);
-          return resolvedCachedPrompt;
-        }
-      }
-
-      if (coupleId) {
-        const sharedPromptSelection = await getSharedDailyPromptSelection(today, {
-          fallbackCoupleId: coupleId,
-          ensureSession: ensureSupabaseSession,
-        });
-        const sharedPromptId = sharedPromptSelection?.value?.promptId;
-        if (sharedPromptId && availablePromptIds.has(String(sharedPromptId))) {
-          const sharedPrompt = getPromptById(sharedPromptId);
-          if (sharedPrompt?.text) {
-            await storage.set(DAILY_PROMPT_CACHE_KEY, {
-              dateKey: today,
-              scope,
-              promptId: sharedPromptId,
-            });
-            const personalizedSharedPrompt = await personalizePrompt({ ...sharedPrompt, dateKey: today });
-            const resolvedSharedPrompt = { ...personalizedSharedPrompt, _dailyPromptScope: scope };
-            setTodayPrompt(resolvedSharedPrompt);
-            PromptAllocator.setDailyPromptId(sharedPrompt.id);
-            return resolvedSharedPrompt;
-          }
-        }
       }
 
       const promptAnswers = typeof DataLayer.getPromptAnswers === 'function'
