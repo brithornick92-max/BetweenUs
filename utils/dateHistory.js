@@ -295,6 +295,11 @@ export function getRecentlyCompletedDateIds(history = [], now = Date.now()) {
 }
 
 export async function saveDateHistoryEntry(date, overrides = {}) {
+  const {
+    notifyPartner = false,
+    ...payloadOverrides
+  } = overrides || {};
+
   if (!date?.id) {
     return { history: [], entry: null, inserted: false };
   }
@@ -304,7 +309,7 @@ export async function saveDateHistoryEntry(date, overrides = {}) {
   const prev = await getDateHistory();
   const existing = prev.find((entry) => entry.id === date.id);
   if (existing) {
-    const updatedExisting = { ...existing, ...overrides };
+    const updatedExisting = { ...existing, ...payloadOverrides };
     await upsertLocalDateHistoryEntry(updatedExisting);
 
     let entry = updatedExisting;
@@ -323,6 +328,7 @@ export async function saveDateHistoryEntry(date, overrides = {}) {
             rating: updatedExisting.rating ?? null,
           })),
           isPrivate: false,
+          notifyPartner,
         });
         entry = { ...updatedExisting, memoryId: memory?.id || null };
         await upsertLocalDateHistoryEntry(entry);
@@ -335,7 +341,7 @@ export async function saveDateHistoryEntry(date, overrides = {}) {
     return { history, entry, inserted: false };
   }
 
-  const payload = buildDateHistoryPayload(date, overrides);
+  const payload = buildDateHistoryPayload(date, payloadOverrides);
   const entry = {
     id: payload.dateId,
     title: payload.title,
@@ -357,6 +363,7 @@ export async function saveDateHistoryEntry(date, overrides = {}) {
       mood: date.style || 'date',
       content: JSON.stringify(payload),
       isPrivate: false,
+      notifyPartner,
     });
     entry.memoryId = memory?.id || null;
     await upsertLocalDateHistoryEntry(entry);

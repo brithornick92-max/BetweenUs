@@ -31,6 +31,7 @@ import GlowOrb from '../components/GlowOrb';
 import FilmGrain from '../components/FilmGrain';
 import CloseScreenHeader, { CLOSE_HEADER_STYLES } from '../components/CloseScreenHeader';
 import { useTheme } from '../context/ThemeContext';
+import { useAppContext } from '../context/AppContext';
 import { DataLayer } from '../services/localfirst';
 import {
   impact,
@@ -266,6 +267,8 @@ export default function AddMemoryScreen() {
   const navigation = useNavigation();
   const route = useRoute();
   const { colors, isDark } = useTheme();
+  const { state } = useAppContext();
+  const isLinked = !!(state?.coupleId || state?.isLinked);
 
   const editItem = route.params?.editItem || null;
   const isEditMode = route.params?.mode === 'edit' && !!editItem;
@@ -479,7 +482,7 @@ export default function AddMemoryScreen() {
     });
   }, []);
 
-  const saveSnapshotEdit = useCallback(async ({ snapshotId, trimmed, items }) => {
+  const saveSnapshotEdit = useCallback(async ({ snapshotId, trimmed, items, notifyPartner = true }) => {
     const retainedItems = items.filter((item) => item?.isExisting && item?.sourceId);
     const newItems = items.filter((item) => !item?.isExisting);
     const retainedIds = new Set(retainedItems.map((item) => item.sourceId));
@@ -516,7 +519,7 @@ export default function AddMemoryScreen() {
           mediaUri: item.uri,
           mimeType: item.mimeType,
           fileName: item.fileName || `memory_${Date.now()}_${snapshotIndex}.${item.type === 'video' ? 'mp4' : 'jpg'}`,
-          notifyPartner: index === newItems.length - 1,
+          notifyPartner: notifyPartner && index === newItems.length - 1,
         });
       }
     } else if (items.length === 0) {
@@ -529,7 +532,7 @@ export default function AddMemoryScreen() {
         snapshot_index: 0,
         snapshot_count: 1,
         snapshot_created_at: snapshotCreatedAt,
-        notifyPartner: true,
+        notifyPartner,
       });
     }
 
@@ -557,6 +560,7 @@ export default function AddMemoryScreen() {
           snapshotId,
           trimmed,
           items: mediaItems,
+          notifyPartner: isLinked,
         });
       } else if (
         isEditMode
@@ -575,6 +579,7 @@ export default function AddMemoryScreen() {
           snapshotId,
           trimmed,
           items: mediaItems,
+          notifyPartner: isLinked,
         });
       } else {
         await saveSnapshotItems({
@@ -583,6 +588,7 @@ export default function AddMemoryScreen() {
           items: mediaItems,
           type: isEditMode ? originalMemoryType : promptRevealDraft.type,
           snapshotCreatedAt: originalSnapshotCreatedAt,
+          notifyPartner: isLinked,
         });
 
         if (isEditMode && originalMemoryIds.length > 0) {
@@ -607,6 +613,7 @@ export default function AddMemoryScreen() {
     content,
     editSnapshotId,
     editItem?.kind,
+    isLinked,
     isEditMode,
     mediaItems,
     navigation,

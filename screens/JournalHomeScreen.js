@@ -102,9 +102,10 @@ function getDateGroupKey(item) {
   return `${year}-${month}-${day}`;
 }
 
-function buildJournalItem(row, ownerIds, myName, partnerName) {
+function buildJournalItem(row, ownerIds, myName, partnerName, isLinked = true) {
   const isOwn = ownerIds.has(row.user_id) || ownerIds.has(row.created_by);
   const displayName = isOwn ? myName : partnerName;
+  const eyebrowPrefix = isLinked ? 'SHARED BY' : 'SAVED BY';
 
   const preview = row.locked
     ? 'This entry is locked on this device.'
@@ -115,8 +116,8 @@ function buildJournalItem(row, ownerIds, myName, partnerName) {
     title: row.locked ? 'Locked journal entry' : (row.title || 'Untitled reflection'),
     body: preview,
     eyebrow: isOwn
-      ? `SHARED BY ${String(displayName || 'YOU').toUpperCase()}`
-      : `SHARED BY ${String(displayName || 'PARTNER').toUpperCase()}`,
+      ? `${eyebrowPrefix} ${String(displayName || 'YOU').toUpperCase()}`
+      : `${eyebrowPrefix} ${String(displayName || 'PARTNER').toUpperCase()}`,
     icon: 'book-outline',
     accent: '#D2121A',
     dateTimeLabel: formatDateTimeLabel(row.created_at || row.updated_at || row.date),
@@ -169,6 +170,7 @@ export default function JournalHomeScreen({ navigation }) {
   const [entries, setEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const isLinked = !!(state?.coupleId || state?.isLinked);
 
   const myName = useMemo(
     () => getMyDisplayName(userProfile, state?.userProfile, user?.displayName || 'You') || 'You',
@@ -221,7 +223,7 @@ export default function JournalHomeScreen({ navigation }) {
           || row.visibility == null
         ))
         .sort((a, b) => getSortTime(b) - getSortTime(a))
-        .map((row) => buildJournalItem(row, ownerIds, myName, partnerName));
+        .map((row) => buildJournalItem(row, ownerIds, myName, partnerName, isLinked));
 
       setEntries(sharedEntries);
     } catch (error) {
@@ -231,7 +233,7 @@ export default function JournalHomeScreen({ navigation }) {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [myName, ownerIds, partnerName]);
+  }, [isLinked, myName, ownerIds, partnerName]);
 
   useFocusEffect(
     useCallback(() => {
@@ -408,19 +410,19 @@ export default function JournalHomeScreen({ navigation }) {
   const EmptyState = (
     <View style={styles.emptyState}>
       <View style={styles.emptyIconCircle}>
-        <Icon name="people-outline" size={42} color={t.primary} />
+        <Icon name={isLinked ? 'people-outline' : 'book-outline'} size={42} color={t.primary} />
       </View>
 
-      <Text style={styles.emptyTitle}>No shared entries yet</Text>
+      <Text style={styles.emptyTitle}>{isLinked ? 'No shared entries yet' : 'No journal entries yet'}</Text>
 
       <TouchableOpacity
         style={[styles.emptyButton, { backgroundColor: t.primary }]}
         activeOpacity={0.85}
         onPress={handleCreate}
-        accessibilityLabel="Write shared entry"
+        accessibilityLabel={isLinked ? 'Write shared entry' : 'Write journal entry'}
         accessibilityRole="button"
       >
-        <Text style={styles.emptyButtonText}>Write Shared Entry</Text>
+        <Text style={styles.emptyButtonText}>{isLinked ? 'Write Shared Entry' : 'Write Entry'}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -429,7 +431,7 @@ export default function JournalHomeScreen({ navigation }) {
     <View style={styles.loadingState}>
       <ActivityIndicator size="small" color={t.primary} />
       <Text style={[styles.loadingText, { color: t.subtext }]}>
-        Loading your shared journal...
+        {isLinked ? 'Loading your shared journal...' : 'Loading your journal...'}
       </Text>
     </View>
   );
@@ -438,7 +440,7 @@ export default function JournalHomeScreen({ navigation }) {
     <EditorialScreenScaffold
       navigation={navigation}
       headerTitle="Journal"
-      headerSubtitle="SHARED NOTES"
+      headerSubtitle={isLinked ? 'SHARED NOTES' : 'YOUR NOTES'}
       scroll={false}
       onBack={handleBack}
     >
@@ -462,7 +464,7 @@ export default function JournalHomeScreen({ navigation }) {
         style={styles.fabContainer}
         onPress={handleCreate}
         activeOpacity={0.85}
-        accessibilityLabel="New shared entry"
+        accessibilityLabel={isLinked ? 'New shared entry' : 'New journal entry'}
         accessibilityRole="button"
       >
         <BlurView

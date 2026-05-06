@@ -47,6 +47,7 @@ export default function JournalEntryScreen({ navigation, route }) {
   const { colors, isDark } = useTheme();
   const { user } = useAuth();
   const { state } = useAppContext();
+  const isLinked = !!(state?.coupleId || state?.isLinked);
 
   const ownerIds = useMemo(
     () => new Set([user?.id, user?.uid, state?.userId].filter(Boolean)),
@@ -70,7 +71,7 @@ export default function JournalEntryScreen({ navigation, route }) {
   const [mediaFileName, setMediaFileName] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  const headerLabel = 'SHARED JOURNAL';
+  const headerLabel = isLinked ? 'SHARED JOURNAL' : 'YOUR JOURNAL';
   const isVideoMedia = typeof mediaType === 'string' && mediaType.startsWith('video/');
 
   const lastHapticLength = useRef(0);
@@ -404,13 +405,13 @@ export default function JournalEntryScreen({ navigation, route }) {
                   ]}
                 >
                   <Icon
-                    name="people-outline"
+                    name={isLinked ? 'people-outline' : 'book-outline'}
                     size={18}
                     color={isReadOnly ? colors.textMuted : colors.primary}
                   />
 
                   <Text style={[styles.shareText, { color: isReadOnly ? colors.textMuted : colors.primary }]}>
-                    Shared journal
+                    {isLinked ? 'Shared journal' : 'Saved journal'}
                   </Text>
                 </View>
 

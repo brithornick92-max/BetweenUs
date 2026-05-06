@@ -87,9 +87,12 @@ export default function PartnerNamesSettingsScreen({ navigation }) {
   };
 
   const handleSave = async () => {
-    if (!myName.trim() || !partnerName.trim()) {
+    const trimmedMyName = myName.trim();
+    const trimmedPartnerName = partnerName.trim();
+
+    if (!trimmedMyName) {
       notification(NotificationFeedbackType.Error);
-      Alert.alert('Missing Names', 'Please enter a name for both you and your partner.');
+      Alert.alert('Missing Name', 'Please enter your name. You can add a partner name later.');
       return;
     }
 
@@ -100,23 +103,23 @@ export default function PartnerNamesSettingsScreen({ navigation }) {
       // Update profile via AuthContext (handles both Supabase and local state)
       await updateProfile({
         partnerNames: {
-          myName: myName.trim(),
-          partnerName: partnerName.trim(),
+          myName: trimmedMyName,
+          partnerName: trimmedPartnerName,
         },
-        display_name: myName.trim(),
-        displayName: myName.trim(),
+        display_name: trimmedMyName,
+        displayName: trimmedMyName,
         // Persist the recipient-facing partner label to Supabase so the
         // notification trigger can use the name the user assigned their partner.
         preferences: {
           ...(userProfile?.preferences || {}),
-          partnerLabel: partnerName.trim(),
+          partnerLabel: trimmedPartnerName,
         },
       });
 
       // Propagate immediately so the rest of the session reflects the new names
       await NicknameEngine.setConfig({
-        myNickname: myName.trim(),
-        partnerNickname: partnerName.trim(),
+        myNickname: trimmedMyName,
+        partnerNickname: trimmedPartnerName,
       });
 
       notification(NotificationFeedbackType.Success);
@@ -185,11 +188,11 @@ export default function PartnerNamesSettingsScreen({ navigation }) {
                 <View style={styles.divider} />
 
                 <View style={styles.inputSection}>
-                  <Text style={styles.inputLabel}>PARTNER'S NAME</Text>
+                  <Text style={styles.inputLabel}>PARTNER'S NAME (OPTIONAL)</Text>
                   <TextInput
                     value={partnerName}
                     onChangeText={(val) => { setPartnerName(val); }}
-                    placeholder="e.g. John, Partner"
+                    placeholder="Add later if you want"
                     placeholderTextColor={t.subtext}
                     autoCorrect={false}
                     returnKeyType="done"

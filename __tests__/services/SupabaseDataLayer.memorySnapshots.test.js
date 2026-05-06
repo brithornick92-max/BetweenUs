@@ -754,6 +754,42 @@ describe('SupabaseDataLayer memory snapshots', () => {
     expect(JSON.stringify(Array.from(mockStorageState.values()))).not.toContain('calendar-blocked-delete-1');
   });
 
+  it('keeps date plans removable while unpaired', async () => {
+    await SupabaseDataLayer.init({
+      userId: 'user-1',
+      coupleId: null,
+      isPremium: false,
+    });
+
+    const saved = await SupabaseDataLayer.saveDatePlan({
+      id: 'date-plan-local-1',
+      title: 'Solo plan',
+      locationType: 'home',
+      steps: ['Light candles.'],
+    });
+    let rows = await SupabaseDataLayer.getDatePlans({ limit: 50 });
+
+    expect(mockInsert).not.toHaveBeenCalled();
+    expect(saved).toEqual(expect.objectContaining({
+      id: 'date-plan-local-1',
+      title: 'Solo plan',
+      sync_status: 'pending',
+    }));
+    expect(rows).toEqual(expect.arrayContaining([
+      expect.objectContaining({
+        id: 'date-plan-local-1',
+        title: 'Solo plan',
+      }),
+    ]));
+
+    await SupabaseDataLayer.deleteDatePlan(saved.id);
+    rows = await SupabaseDataLayer.getDatePlans({ limit: 50 });
+
+    expect(rows).toEqual([]);
+    expect(JSON.stringify(Array.from(mockStorageState.values()))).toContain('"entity":"date_plan"');
+    expect(JSON.stringify(Array.from(mockStorageState.values()))).toContain('"action":"delete"');
+  });
+
   it('hides remote calendar events locally and queues a retry when remote delete is denied', async () => {
     await SupabaseDataLayer.init({
       userId: 'user-1',

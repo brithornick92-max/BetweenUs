@@ -333,6 +333,7 @@ export default function CalendarScreen({ navigation, route }) {
   const { userProfile }                               = useAuth();
   const { isReady: dataReady }                         = useData();
   const { coupleId }                                  = appState;
+  const isLinked                                      = !!(coupleId || appState?.isLinked);
   const relationshipStartDate                         = userProfile?.relationshipStartDate || appState?.userProfile?.relationshipStartDate;
 
   const [events,       setEvents]       = useState([]);
@@ -747,7 +748,9 @@ export default function CalendarScreen({ navigation, route }) {
             ) : (
               <View style={styles.emptyContainer}>
                 <Icon name="calendar-outline" size={32} color={t.subtext} style={{ marginBottom: 12 }} />
-                <Text style={[styles.emptyText, { color: t.subtext }]}>No shared plans for this day.</Text>
+                <Text style={[styles.emptyText, { color: t.subtext }]}>
+                  {isLinked ? 'No shared plans for this day.' : 'No plans for this day.'}
+                </Text>
               </View>
             )}
           </View>

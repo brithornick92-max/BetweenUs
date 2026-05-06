@@ -93,6 +93,7 @@ export default function MemoryWallScreen() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [lightbox, setLightbox] = useState(null);
+  const isLinked = !!(state?.coupleId || state?.isLinked);
 
   const t = {
     bg: colors.background,
@@ -109,7 +110,7 @@ export default function MemoryWallScreen() {
 
       const [personal, shared] = await Promise.all([
         DataLayer.getMemories({ limit: 500 }),
-        state?.isLinked ? DataLayer.getSharedMemories({ limit: 500 }) : Promise.resolve([]),
+        isLinked ? DataLayer.getSharedMemories({ limit: 500 }) : Promise.resolve([]),
       ]);
 
       const all = [...(personal || []), ...(shared || [])];
@@ -135,7 +136,7 @@ export default function MemoryWallScreen() {
     } finally {
       setLoading(false);
     }
-  }, [state?.isLinked]);
+  }, [isLinked]);
 
   useFocusEffect(
     useCallback(() => {
@@ -205,7 +206,7 @@ export default function MemoryWallScreen() {
 
       <SafeAreaView edges={['top']} style={{ backgroundColor: t.bg }}>
         <CloseScreenHeader
-          title="Our Photos"
+          title={isLinked ? 'Our Photos' : 'Your Photos'}
           subtitle="MEMORY WALL"
           titleColor={t.text}
           subtitleColor={t.primary}
@@ -240,7 +241,9 @@ export default function MemoryWallScreen() {
           </Text>
 
           <Text style={[styles.emptyBody, { color: t.subtext }]}>
-            Tap the camera icon to send your partner a photo right now.
+            {isLinked
+              ? 'Tap the camera icon to send your partner a photo right now.'
+              : 'Save photos and videos here now. They can sync when you connect your partner.'}
           </Text>
 
           <TouchableOpacity
@@ -248,7 +251,7 @@ export default function MemoryWallScreen() {
             onPress={() => navigation.navigate('ThinkingOfYou')}
             activeOpacity={0.85}
           >
-            <Text style={styles.emptyBtnText}>Send a Photo</Text>
+            <Text style={styles.emptyBtnText}>{isLinked ? 'Send a Photo' : 'Add a Photo'}</Text>
           </TouchableOpacity>
         </Animated.View>
       ) : (

@@ -86,6 +86,13 @@ export default function ThinkingOfYouScreen() {
 
   const inputRef = useRef(null);
   const partnerName = getPartnerDisplayName(userProfile, state?.userProfile, 'your partner');
+  const isLinked = !!(state?.coupleId || state?.isLinked);
+  const notePlaceholder = isLinked ? `Add a note to ${partnerName}...` : 'Add a note for later...';
+  const submitLabel = isLinked ? `Send to ${partnerName}` : 'Save This Moment';
+  const successTitle = isLinked ? `Sent to ${partnerName}` : 'Saved to your story';
+  const successBody = isLinked
+    ? "They'll feel it."
+    : 'You can share it when you connect your partner.';
   
   const videoPlayer = useVideoPlayer(media?.uri || null, player => {
     player.loop = false;
@@ -182,6 +189,7 @@ export default function ThinkingOfYouScreen() {
         mediaUri: media.uri,
         mimeType: media.mimeType,
         fileName: media.fileName,
+        notifyPartner: isLinked,
       });
 
       notification(NotificationFeedbackType.Success);
@@ -192,10 +200,10 @@ export default function ThinkingOfYouScreen() {
       }, 1800);
     } catch (err) {
       notification(NotificationFeedbackType.Error);
-      Alert.alert('Could not send', err?.message || 'Please try again.');
+      Alert.alert(isLinked ? 'Could not send' : 'Could not save', err?.message || 'Please try again.');
       setSending(false);
     }
-  }, [media, caption, reaction, navigation]);
+  }, [media, caption, reaction, isLinked, navigation]);
 
   if (sent) {
     return (
@@ -203,8 +211,8 @@ export default function ThinkingOfYouScreen() {
         <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
         <Animated.View entering={ZoomIn.duration(400)} style={styles.sentContainer}>
           <Icon name="camera-outline" size={64} color={t.primary} style={{ lineHeight: 64, textAlign: 'center' }} />
-          <Text style={[styles.sentTitle, { color: t.text }]}>Sent to {partnerName}</Text>
-          <Text style={[styles.sentBody, { color: t.subtext }]}>They'll feel it.</Text>
+          <Text style={[styles.sentTitle, { color: t.text }]}>{successTitle}</Text>
+          <Text style={[styles.sentBody, { color: t.subtext }]}>{successBody}</Text>
         </Animated.View>
       </View>
     );
@@ -219,7 +227,7 @@ export default function ThinkingOfYouScreen() {
       <SafeAreaView style={styles.safe}>
         <CloseScreenHeader
           title="Thinking of You"
-          subtitle="QUICK SEND"
+          subtitle={isLinked ? 'QUICK SEND' : 'SAVE FOR LATER'}
           titleColor={t.text}
           closeColor={t.text}
           onClose={() => navigation.goBack()}
@@ -311,7 +319,7 @@ export default function ThinkingOfYouScreen() {
                   ref={inputRef}
                   value={caption}
                   onChangeText={setCaption}
-                  placeholder={`Add a note to ${partnerName}…`}
+                  placeholder={notePlaceholder}
                   placeholderTextColor={t.subtext}
                   style={[styles.input, { color: t.text }]}
                   multiline
@@ -335,8 +343,8 @@ export default function ThinkingOfYouScreen() {
                     <ActivityIndicator color="#fff" />
                   ) : (
                     <>
-                      <Icon name="paper-plane-outline" size={20} color="#fff" />
-                      <Text style={styles.sendBtnText}>Send to {partnerName}</Text>
+                      <Icon name={isLinked ? 'paper-plane-outline' : 'bookmark-outline'} size={20} color="#fff" />
+                      <Text style={styles.sendBtnText}>{submitLabel}</Text>
                     </>
                   )}
                 </TouchableOpacity>

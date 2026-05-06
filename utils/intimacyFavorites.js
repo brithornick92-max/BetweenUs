@@ -242,6 +242,7 @@ export async function toggleIntimacyFavorite(position, { currentlyFavorite = fal
       mood: position?.mood || 'intimate',
       content: JSON.stringify(buildFavoriteMemoryPayload(position)),
       isPrivate: false,
+      notifyPartner: false,
     });
     memoryId = row?.id || memoryId;
   } catch (error) {
@@ -315,6 +316,7 @@ export async function toggleIntimacyTried(position, { currentlyTried = false, cu
           rating: existing?.rating ?? null,
         })),
         isPrivate: false,
+        notifyPartner: false,
       });
       memoryId = row?.id || memoryId;
     }
@@ -359,6 +361,7 @@ export async function rateIntimacyTried(position, rating) {
           rating: nextRating,
         })),
         isPrivate: false,
+        notifyPartner: false,
       });
       memoryId = row?.id || null;
       entry = { ...entry, memoryId };

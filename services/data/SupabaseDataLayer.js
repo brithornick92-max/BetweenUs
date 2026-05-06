@@ -2661,20 +2661,28 @@ const SupabaseDataLayer = {
   },
 
   async deleteDatePlan(id) {
+    const removeLocally = async () => {
+      await enqueueOfflineMutation({
+        entity: 'date_plan',
+        action: 'delete',
+        id,
+      });
+
+      await removeCacheRow(CACHE_SCOPES.datePlans, id);
+    };
+
+    if (!_coupleId) {
+      await removeLocally();
+      return undefined;
+    }
+
     return runCloudOperation({
       perform: async () => cdSoftDelete(id),
       onSuccess: async () => {
         await removeCacheRow(CACHE_SCOPES.datePlans, id);
       },
-      onOffline: async () => {
-        await enqueueOfflineMutation({
-          entity: 'date_plan',
-          action: 'delete',
-          id,
-        });
-
-        await removeCacheRow(CACHE_SCOPES.datePlans, id);
-      },
+      onOffline: removeLocally,
+      fallbackOnAnyError: true,
     });
   },
 
