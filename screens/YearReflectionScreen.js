@@ -189,7 +189,7 @@ export default function YearReflectionScreen({ navigation }) {
             title="Year Reflection"
             subtitle="YEAR IN REVIEW"
             titleColor={t.text}
-            subtitleColor={t.subtext}
+            subtitleColor={t.primary}
             closeColor={t.text}
             onClose={() => navigation.goBack()}
             rightAccessory={(

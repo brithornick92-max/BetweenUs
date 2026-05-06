@@ -19,6 +19,11 @@ import {
   getAccessibleHeatLevels,
   getTimedUnlockLimits,
 } from '../utils/featureFlags';
+import {
+  getPreferredHeatLevels,
+  normalizeHeatLevels,
+  profileAllowsHeatLevel,
+} from '../utils/heatLevelRanges';
 import { getUserWeekNumber } from './WeeklyContentSetService';
 
 const UNLIMITED = 'unlimited';
@@ -226,8 +231,9 @@ class ContentAccessService {
 
   getAllowedHeatLevels(isPremiumFlag = false, userSettings = {}) {
     const userMaxHeat = this.getUserMaxHeatLevel(userSettings);
+    const preferredHeatLevels = normalizeHeatLevels(getPreferredHeatLevels(userSettings));
     return getAccessibleHeatLevels(this.isPremiumUser(isPremiumFlag))
-      .filter((level) => level <= userMaxHeat);
+      .filter((level) => level <= userMaxHeat && preferredHeatLevels.includes(level));
   }
 
   getBoundaryState(userSettings = {}, contentType = null) {
@@ -261,6 +267,7 @@ class ContentAccessService {
 
     return {
       maxHeat: this.getUserMaxHeatLevel(userSettings),
+      allowedHeatLevels: new Set(this.getAllowedHeatLevels(true, userSettings)),
       hiddenCategories,
       pausedIds,
     };
@@ -287,7 +294,8 @@ class ContentAccessService {
     return normalized.filter((item) => {
       if (item?.id != null && boundaryState.pausedIds.has(String(item.id))) return false;
       if (item?.category && boundaryState.hiddenCategories.has(item.category)) return false;
-      return this.getItemHeat(item) <= boundaryState.maxHeat;
+      const itemHeat = this.getItemHeat(item);
+      return itemHeat <= boundaryState.maxHeat && boundaryState.allowedHeatLevels.has(itemHeat);
     });
   }
 
@@ -387,6 +395,16 @@ class ContentAccessService {
         message: `This content is heat level ${itemHeat}, but your boundary is set to ${userMaxHeat}. Adjust it in Settings > Boundaries.`,
         userMaxHeat,
         contentHeat: itemHeat,
+      };
+    }
+
+    if (!profileAllowsHeatLevel(userSettings, itemHeat)) {
+      return {
+        canAccess: false,
+        reason: 'outside_heat_range',
+        message: 'This content is outside your selected heat range.',
+        contentHeat: itemHeat,
+        accessibleHeatLevels: this.getAllowedHeatLevels(isPremium, userSettings),
       };
     }
 

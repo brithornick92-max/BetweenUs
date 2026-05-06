@@ -36,6 +36,12 @@ function mergeCloudProfile(localProfile, remoteProfile) {
     ...(typeof remotePrefs.heatLevelPreference !== 'undefined'
       ? { heatLevelPreference: remotePrefs.heatLevelPreference }
       : {}),
+    ...(typeof remotePrefs.heatLevelRangeId === 'string' && remotePrefs.heatLevelRangeId.trim()
+      ? { heatLevelRangeId: remotePrefs.heatLevelRangeId.trim() }
+      : {}),
+    ...(Array.isArray(remotePrefs.allowedHeatLevels)
+      ? { allowedHeatLevels: remotePrefs.allowedHeatLevels }
+      : {}),
     ...(typeof remotePrefs.onboardingCompleted === 'boolean'
       ? { onboardingCompleted: remotePrefs.onboardingCompleted }
       : {}),

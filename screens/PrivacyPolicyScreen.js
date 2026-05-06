@@ -59,7 +59,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
           title="Privacy Policy"
           subtitle="SECURITY & TRUST"
           titleColor={colors.text}
-          subtitleColor={colors.textMuted}
+          subtitleColor={colors.primary}
           closeColor={colors.text}
           onClose={() => {
             selection();

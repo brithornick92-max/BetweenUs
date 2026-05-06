@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import Icon from './Icon';
 import { SCREEN_TITLE_STYLE, SPACING, SYSTEM_FONT } from '../utils/theme';
 import { impact, ImpactFeedbackStyle } from '../utils/haptics';
+import { useTheme } from '../context/ThemeContext';
 
 export const CLOSE_HEADER_STYLES = {
   header: {
@@ -46,10 +47,13 @@ export default function CloseScreenHeader({
   leftAccessory,
   accessibilityLabel = 'Close',
 }) {
+  const { colors } = useTheme();
+  const subtitleTextColor = subtitleColor || colors.primary;
+
   return (
     <View style={styles.header}>
       {subtitle ? (
-        <Text style={[styles.subtitle, subtitleColor && { color: subtitleColor }]} numberOfLines={2}>
+        <Text style={[styles.subtitle, { color: subtitleTextColor }]} numberOfLines={2}>
           {subtitle}
         </Text>
       ) : null}

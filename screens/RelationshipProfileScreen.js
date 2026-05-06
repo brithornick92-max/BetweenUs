@@ -32,6 +32,12 @@ import {
 import { NicknameEngine, RelationshipSeasons, SEASONS, SoftBoundaries } from '../services/PolishEngine';
 import StorageRouter from '../services/storage/StorageRouter';
 import { getMyDisplayName, getPartnerDisplayName } from '../utils/profileNames';
+import {
+  HEAT_LEVEL_RANGE_PRESETS,
+  buildHeatLevelRangePreference,
+  formatHeatLevelList,
+  getHeatLevelRangePresetForProfile,
+} from '../utils/heatLevelRanges';
 
 const LOVE_LANGUAGE_LABELS = {
   words: 'Words of Affirmation',
@@ -146,13 +152,11 @@ const CLIMATE_SCROLL_OPTIONS = [
   })),
 ];
 
-const HEAT_OPTIONS = [
-  { id: 1, icon: 'leaf-outline', label: 'Heat 1: Emotional' },
-  { id: 2, icon: 'sparkles-outline', label: 'Heat 2: Romantic' },
-  { id: 3, icon: 'heart-outline', label: 'Heat 3: Sensual' },
-  { id: 4, icon: 'flame-outline', label: 'Heat 4: Steamy' },
-  { id: 5, icon: 'infinite-outline', label: 'Heat 5: Explicit' },
-];
+const HEAT_OPTIONS = HEAT_LEVEL_RANGE_PRESETS.map((preset) => ({
+  id: preset.id,
+  icon: preset.icon,
+  label: `${preset.title}: ${formatHeatLevelList(preset.levels)}`,
+}));
 
 const PROMPT_LANE_LABELS = {
   emotional: 'Emotional',
@@ -574,12 +578,13 @@ export default function RelationshipProfileScreen() {
       }
 
       if (field === 'heat') {
+        const heatRangePreference = buildHeatLevelRangePreference(value);
         const nextPreferences = {
           ...(userProfile?.preferences || {}),
-          heatLevelPreference: value,
+          ...heatRangePreference,
         };
         const updatedProfile = await updateProfile({
-          heatLevelPreference: value,
+          ...heatRangePreference,
           preferences: nextPreferences,
         });
         await refreshProfile(updatedProfile || userProfile);
@@ -651,8 +656,9 @@ export default function RelationshipProfileScreen() {
   const seasonLabel = labelFrom(SEASONS, profile?.season?.id);
   const climateLabel = labelFrom(CLIMATE_OPTIONS, profile?.climate?.id, 'Open');
   const energyLabel = labelFrom(ENERGY_LEVELS, profile?.energy?.level);
-  const heatLevel = profile?.heatLevel || userProfile?.heatLevelPreference || 5;
-  const maxHeat = profile?.maxHeat || userProfile?.heatLevelPreference || 5;
+  const heatRange = getHeatLevelRangePresetForProfile(profile || userProfile || {});
+  const heatRangeId = profile?.heatLevelRangeId || userProfile?.heatLevelRangeId || heatRange.id;
+  const heatRangeLabel = `${heatRange.title} (${formatHeatLevelList(heatRange.levels)})`;
   const hiddenCategories = profile?.boundaries?.hiddenCategories || [];
   const hasKidsValue = typeof quiz.hasKids === 'boolean' ? quiz.hasKids : null;
   const promptLaneValues = Array.isArray(savedQuiz?.preferredCategories) ? savedQuiz.preferredCategories : null;
@@ -870,18 +876,18 @@ export default function RelationshipProfileScreen() {
               ) : null}
             </ProfileRow>
             <ProfileRow
-              label="Max heat"
-              value={`Heat ${maxHeat}`}
+              label="Heat range"
+              value={heatRangeLabel}
               t={t}
               onPress={() => handleToggleField('heat')}
-              accessibilityLabel="Edit max heat"
+              accessibilityLabel="Edit heat range"
               expanded={editingField === 'heat'}
               isLast
             >
               {editingField === 'heat' ? (
                 <InlineChoiceEditor
                   options={HEAT_OPTIONS}
-                  value={heatLevel}
+                  value={heatRangeId}
                   onSelect={(value) => handleSelectPreference('heat', value)}
                   t={t}
                   saving={savingField === 'heat'}

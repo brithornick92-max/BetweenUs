@@ -20,6 +20,7 @@ const mockStorageSet = jest.fn();
 const mockGetPrompts = jest.fn();
 const mockLoadPromptResponses = jest.fn();
 const mockGetPromptAnswers = jest.fn();
+const mockUpdateProfile = jest.fn();
 const mockUpdateWidgetPrompt = jest.fn();
 const mockSetDailyPromptId = jest.fn();
 const mockGetUserUsageStatus = jest.fn();
@@ -28,7 +29,7 @@ jest.mock('../../context/AuthContext', () => ({
   useAuth: () => ({
     user: { uid: 'user-1' },
     userProfile: { id: 'profile-1', heatLevelPreference: 5 },
-    updateProfile: jest.fn(),
+    updateProfile: (...args) => mockUpdateProfile(...args),
   }),
 }));
 
@@ -61,6 +62,15 @@ jest.mock('../../services/PremiumGatekeeper', () => ({
 jest.mock('../../services/ContentAccessService', () => ({
   __esModule: true,
   default: {
+    getAllowedHeatLevels: jest.fn((isPremium, profile) => {
+      if (Array.isArray(profile?.allowedHeatLevels)) return profile.allowedHeatLevels;
+      const maxHeat = typeof profile?.maxHeat === 'number'
+        ? profile.maxHeat
+        : typeof profile?.heatLevelPreference === 'number'
+          ? profile.heatLevelPreference
+          : 5;
+      return [1, 2, 3, 4, 5].filter((level) => level <= maxHeat);
+    }),
     getUserMaxHeatLevel: jest.fn((profile) => {
       if (typeof profile?.maxHeat === 'number') return profile.maxHeat;
       if (typeof profile?.heatLevelPreference === 'number') return profile.heatLevelPreference;
@@ -83,12 +93,14 @@ jest.mock('../../services/PreferenceEngine', () => ({
   getContentProfile: jest.fn(async () => mockCurrentProfile),
   filterPrompts: jest.fn((items, profile) => {
     const maxHeat = profile?.maxHeat ?? 5;
+    const allowedHeatLevels = Array.isArray(profile?.allowedHeatLevels) ? profile.allowedHeatLevels : null;
     const hiddenCategories = profile?.boundaries?.hiddenCategories || [];
     const pausedEntries = profile?.boundaries?.pausedEntries || [];
 
     return (items || []).filter((item) => {
       if (!item) return false;
       if ((item.heat || 1) > maxHeat) return false;
+      if (allowedHeatLevels && !allowedHeatLevels.includes(item.heat || 1)) return false;
       if (hiddenCategories.includes(item.category)) return false;
       if (pausedEntries.includes(item.id)) return false;
       return true;
@@ -232,6 +244,7 @@ describe('ContentContext daily prompt stability', () => {
     mockLoadPromptResponses.mockResolvedValue([]);
     mockGetPromptAnswers.mockResolvedValue([]);
     mockGetUserUsageStatus.mockResolvedValue(null);
+    mockUpdateProfile.mockResolvedValue(true);
     mockUpdateWidgetPrompt.mockResolvedValue(true);
     mockStorageSet.mockResolvedValue(true);
     mockRecentlyCompletedPromptIds = new Set();
@@ -416,5 +429,21 @@ describe('ContentContext daily prompt stability', () => {
     );
 
     tree.unmount();
+  });
+
+  it('rejects future relationship start dates before saving profile state', async () => {
+    jest.useFakeTimers().setSystemTime(new Date(2026, 4, 6, 12, 0));
+    const tree = await mountProvider();
+
+    try {
+      await expect(
+        capturedContext.updateRelationshipStartDate(new Date(2026, 4, 7, 12, 0))
+      ).rejects.toThrow('Anniversary date cannot be in the future');
+
+      expect(mockUpdateProfile).not.toHaveBeenCalled();
+    } finally {
+      tree.unmount();
+      jest.useRealTimers();
+    }
   });
 });

@@ -77,7 +77,7 @@ const TermsScreen = ({ navigation, route }) => {
           title="Terms"
           subtitle="LEGAL"
           titleColor={colors.text}
-          subtitleColor={colors.textMuted}
+          subtitleColor={colors.primary}
           closeColor={colors.text}
           closeIcon="close"
           onClose={() => {

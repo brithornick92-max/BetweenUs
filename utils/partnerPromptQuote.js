@@ -1,4 +1,5 @@
 import { getDailyContentDateKey } from './dailyContentDate';
+import { dateOnlyToLocalDate } from './dateOnly';
 import { storage, STORAGE_KEYS } from './storage';
 
 function parseDateKey(value) {
@@ -44,7 +45,9 @@ function getQuoteIdentity(row) {
 }
 
 function getQuoteCandidatePools(candidates, { now, relationshipStartDate }) {
-  const startDate = parseDateKey(relationshipStartDate) || (relationshipStartDate ? new Date(relationshipStartDate) : null);
+  const startDate = parseDateKey(relationshipStartDate)
+    || dateOnlyToLocalDate(relationshipStartDate)
+    || (relationshipStartDate ? new Date(relationshipStartDate) : null);
   const hasOneYearOfHistory = isAtLeastOneYearOld(startDate, now)
     || candidates.some((row) => isAtLeastOneYearOld(row.date, now));
 

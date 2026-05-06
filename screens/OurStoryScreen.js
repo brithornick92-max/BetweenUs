@@ -207,6 +207,30 @@ function dedupeRows(rows) {
   });
 }
 
+function getPromptRowPromptId(row) {
+  return row?.prompt_id || row?.promptId || row?.value?.promptId || null;
+}
+
+function getPromptRowDateKey(row) {
+  return row?.date_key || row?.dateKey || row?.value?.dateKey || null;
+}
+
+function getPromptRowAnswer(row) {
+  return row?.answer || row?.value?.answer || null;
+}
+
+function isPromptKeepsakeSelected(row) {
+  return row?.includeInKeepsake === true
+    || row?.include_in_keepsake === true
+    || row?.value?.includeInKeepsake === true;
+}
+
+function getPromptGroupKey(row) {
+  const promptId = getPromptRowPromptId(row);
+  if (!promptId) return null;
+  return `${getPromptRowDateKey(row) || row?.created_at || 'undated'}:${promptId}`;
+}
+
 function parseMemoryPayload(content) {
   if (!content) return null;
 
@@ -628,32 +652,34 @@ async function safeLoad(loader) {
 }
 
 function buildPromptItem(row, media = null, myName = 'You', partnerName = 'Partner') {
-  const prompt = getPromptById(row.prompt_id);
+  const promptId = getPromptRowPromptId(row);
+  const prompt = getPromptById(promptId);
+  const answer = getPromptRowAnswer(row);
 
   const answers = [];
   if (row.locked) {
     // No structured answers for locked items.
   } else if (row.is_revealed && row.partnerAnswer) {
-    if (row.answer) {
-      answers.push({ name: myName, text: row.answer });
+    if (answer) {
+      answers.push({ name: myName, text: answer });
     }
     answers.push({ name: partnerName, text: row.partnerAnswer });
-  } else if (row.answer) {
-    answers.push({ name: myName, text: row.answer });
+  } else if (answer) {
+    answers.push({ name: myName, text: answer });
   }
 
   const body = row.locked
     ? 'This reflection is locked on this device.'
     : (row.is_revealed && row.partnerAnswer
-      ? `${myName}: ${row.answer || ''}\n\n${partnerName}: ${row.partnerAnswer}`.trim()
-      : (row.answer || ''));
+      ? `${myName}: ${answer || ''}\n\n${partnerName}: ${row.partnerAnswer}`.trim()
+      : (answer || ''));
   const canManage = canManageKeepsakeRow(row);
 
   return {
     id: `prompt:${row.id}`,
     kind: 'prompt',
     sourceId: row.id,
-    contentId: row.prompt_id || row.promptId || null,
+    contentId: promptId,
     title: prompt?.text || 'Saved reflection',
     body,
     answers,
@@ -669,6 +695,45 @@ function buildPromptItem(row, media = null, myName = 'You', partnerName = 'Partn
     hideable: !canManage,
     isOwn: row.isOwn,
   };
+}
+
+function buildPromptKeepsakeItems(rows = [], myName = 'You', partnerName = 'Partner') {
+  const groups = new Map();
+
+  for (const row of rows || []) {
+    const promptId = getPromptRowPromptId(row);
+    if (!promptId || String(promptId).startsWith('quiz:')) continue;
+
+    const key = getPromptGroupKey(row);
+    if (!key) continue;
+
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(row);
+  }
+
+  return Array.from(groups.values())
+    .filter((groupRows) => groupRows.some((row) => row.isOwn !== false && isPromptKeepsakeSelected(row)))
+    .map((groupRows) => {
+      const ownRow = groupRows.find((row) => row.isOwn !== false && isPromptKeepsakeSelected(row))
+        || groupRows.find((row) => row.isOwn !== false)
+        || groupRows[0];
+      const rowWithPartnerAnswer = groupRows.find((row) => row.partnerAnswer);
+      const partnerRow = groupRows.find((row) => row.isOwn === false && getPromptRowAnswer(row));
+      const baseRow = rowWithPartnerAnswer || ownRow;
+      const answer = getPromptRowAnswer(ownRow) || getPromptRowAnswer(baseRow);
+      const partnerAnswer = baseRow?.partnerAnswer || getPromptRowAnswer(partnerRow);
+
+      return buildPromptItem({
+        ...baseRow,
+        id: ownRow?.id || baseRow?.id,
+        user_id: ownRow?.user_id || baseRow?.user_id,
+        answer,
+        partnerAnswer,
+        is_revealed: !!(baseRow?.is_revealed || ownRow?.is_revealed || (answer && partnerAnswer)),
+        isOwn: ownRow?.isOwn !== false,
+        includeInKeepsake: true,
+      }, null, myName, partnerName);
+    });
 }
 
 function buildMemoryItem(row, media = null) {
@@ -982,9 +1047,11 @@ export async function buildKeepsakeEntriesFromSources({
   const keepsakeSettings = normalizeKeepsakeSettings(keepsakeSettingsRaw);
 
   const promptItems = keepsakeSettings.prompts
-    ? dedupeRows([...(sharedPrompts || []), ...(personalPrompts || [])])
-      .filter((row) => !String(row?.prompt_id || '').startsWith('quiz:'))
-      .map((row) => buildPromptItem(row, null, myName, partnerName))
+    ? buildPromptKeepsakeItems(
+      markCurrentUserRows(dedupeRows([...(sharedPrompts || []), ...(personalPrompts || [])]), currentUserId),
+      myName,
+      partnerName
+    )
     : [];
 
   const ownedMemoryRows = markCurrentUserRows(personalMemories, currentUserId)
@@ -1777,7 +1844,7 @@ export default function OurStoryScreen() {
                 <View style={styles.cardEyebrowRow}>
                   <Icon name={item.icon} size={14} color={item.accent} />
                   <Text
-                    style={[styles.cardEyebrow, { color: item.accent }]}
+                    style={[styles.cardEyebrow, { color: t.primary }]}
                     numberOfLines={1}
                     adjustsFontSizeToFit
                     minimumFontScale={0.78}
@@ -2003,7 +2070,7 @@ export default function OurStoryScreen() {
           <View style={[styles.occurrenceSheet, { backgroundColor: t.solidSurface, borderColor: t.border }]}>
             <View style={styles.occurrenceHeaderRow}>
               <View>
-                <Text style={[styles.occurrenceEyebrow, { color: occurrenceAccent }]}>OCCURRED</Text>
+                <Text style={[styles.occurrenceEyebrow, { color: t.primary }]}>OCCURRED</Text>
                 <Text style={[styles.occurrenceTitle, { color: t.text }]}>Edit date and time</Text>
               </View>
               <TouchableOpacity

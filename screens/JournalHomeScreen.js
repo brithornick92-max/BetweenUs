@@ -304,7 +304,7 @@ export default function JournalHomeScreen({ navigation }) {
             <View style={styles.eyebrowRow}>
               <Icon name={item.icon} size={14} color={item.accent} />
               <Text
-                style={[styles.eyebrow, { color: item.accent }]}
+                style={[styles.eyebrow, { color: t.primary }]}
                 numberOfLines={1}
                 adjustsFontSizeToFit
                 minimumFontScale={0.78}

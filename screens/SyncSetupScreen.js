@@ -189,8 +189,7 @@ export default function SyncSetupScreen({ navigation }) {
     <EditorialScreenScaffold
       navigation={navigation}
       headerTitle="Cloud Sync"
-      heroTitle="Cloud Sync"
-      heroSubtitle="Sign in to enable cloud backup, offline recovery, and continuity across devices."
+      headerSubtitle="CLOUD BACKUP"
       keyboardAvoiding
       scroll={false}
     >

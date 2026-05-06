@@ -18,6 +18,7 @@ jest.mock('expo-notifications', () => ({
 
 const {
   ensureNotificationPermissions,
+  scheduleActionableNotification,
   scheduleEventNotification,
   isNotificationTypeEnabled,
   NOTIFICATION_TYPES,
@@ -113,6 +114,44 @@ describe('scheduleEventNotification', () => {
 
     expect(id).toBeNull();
     expect(mockSchedule).not.toHaveBeenCalled();
+  });
+});
+
+describe('scheduleActionableNotification', () => {
+  it('does not schedule routed notifications without OS permission', async () => {
+    mockGetPermissions.mockResolvedValueOnce({ status: 'denied' });
+
+    const id = await scheduleActionableNotification({
+      title: 'Open',
+      body: 'Route test',
+      route: 'home',
+      when: Date.now() + 60000,
+    });
+
+    expect(id).toBeNull();
+    expect(mockSchedule).not.toHaveBeenCalled();
+  });
+
+  it('schedules routed notifications with sound and deep-link data', async () => {
+    const id = await scheduleActionableNotification({
+      title: 'Open',
+      body: 'Route test',
+      route: 'journal',
+      routeParams: { id: 'entry-1' },
+      when: Date.now() + 60000,
+    });
+
+    expect(id).toBe('notif-id-123');
+    expect(mockSchedule).toHaveBeenCalledWith(expect.objectContaining({
+      content: expect.objectContaining({
+        sound: 'default',
+        data: expect.objectContaining({
+          route: 'journal',
+          id: 'entry-1',
+          url: 'betweenus://journal/entry-1',
+        }),
+      }),
+    }));
   });
 });
 

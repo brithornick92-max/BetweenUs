@@ -212,7 +212,7 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
           title="Privacy & Security"
           subtitle="DATA PROTECTION"
           titleColor={colors.text}
-          subtitleColor={colors.textMuted}
+          subtitleColor={colors.primary}
           closeColor={colors.text}
           onClose={() => { selection(); navigation.goBack(); }}
         />

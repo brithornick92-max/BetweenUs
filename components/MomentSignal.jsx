@@ -168,7 +168,7 @@ function MomentSignal({ partnerLabel = 'Partner', onSend, visible = true, onRece
             <Icon name={receivedSignal.icon} size={30} color={tint} />
           </View>
         </View>
-        <Text style={[styles.feedbackEyebrow, { color: tint }]}>
+        <Text style={[styles.feedbackEyebrow, { color: t.primary }]}>
           {partnerLabel}
         </Text>
         <Text style={[styles.feedbackLabel, { color: t.text }]}>
@@ -199,7 +199,7 @@ function MomentSignal({ partnerLabel = 'Partner', onSend, visible = true, onRece
         <View style={[styles.feedbackIconCircle, { backgroundColor: tint + '20', borderColor: tint + '30', position: 'absolute', top: SPACING.xl }]}>
           <Icon name={sent?.icon || 'heart-outline'} size={28} color={tint} />
         </View>
-        <Text style={[styles.feedbackEyebrow, { color: t.subtext, marginTop: 72 }]}>
+        <Text style={[styles.feedbackEyebrow, { color: t.primary, marginTop: 72 }]}>
           Sent to {partnerLabel}
         </Text>
         <Text style={[styles.feedbackLabel, { color: t.text }]}>

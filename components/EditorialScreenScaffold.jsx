@@ -114,7 +114,7 @@ export default function EditorialScreenScaffold({
       <SafeAreaView style={styles.safeArea} edges={safeAreaEdges}>
         <View style={styles.header}>
           {headerSubtitle ? (
-            <Text style={[styles.headerSubtitle, { color: headerSubtitleColor || screenAccent }]} numberOfLines={2}>
+            <Text style={[styles.headerSubtitle, { color: headerSubtitleColor || colors.primary }]} numberOfLines={2}>
               {headerSubtitle}
             </Text>
           ) : null}

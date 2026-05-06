@@ -214,7 +214,7 @@ export default function ConnectPartnerScreen({ navigation }) {
           title="Connect Partner"
           subtitle="PARTNER LINKING"
           titleColor={t.text}
-          subtitleColor={t.subtext}
+          subtitleColor={t.primary}
           closeColor={t.text}
           onClose={() => navigation.goBack()}
         />

@@ -17,7 +17,12 @@ import { getDailyContentDateKey } from '../utils/dailyContentDate';
 import { useTheme } from '../context/ThemeContext';
 import { SPACING, BORDER_RADIUS } from '../utils/theme';
 import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
-import { HEAT_LEVEL_ACCENTS, HEAT_LEVEL_GRADIENTS } from '../config/constants';
+import { HEAT_LEVEL_GRADIENTS } from '../config/constants';
+import {
+  HEAT_LEVEL_RANGE_PRESETS,
+  buildHeatLevelRangePreference,
+  formatHeatLevelList,
+} from '../utils/heatLevelRanges';
 
 const HEAT_CARD_TEXT = '#FFFFFF';
 const HEAT_CARD_SUBTEXT = 'rgba(255,255,255,0.82)';
@@ -31,73 +36,29 @@ export default function HeatLevelScreen({ navigation }) {
   const [loading, setLoading] = useState(false);
   const styles = useMemo(() => createStyles(colors, isDark), [colors, isDark]);
 
-  const HEAT_LEVELS = [
-    {
-      level: 1,
-      name: 'Emotional Connection',
-      description: 'Emotional closeness, non-sexual',
-      icon: 'spa-outline',
-      color: HEAT_LEVEL_ACCENTS[1],
-      gradient: HEAT_LEVEL_GRADIENTS[1],
-      free: true,
-    },
-    {
-      level: 2,
-      name: 'Flirty & Romantic',
-      description: 'Flirty attraction, romantic tension',
-      icon: 'sparkles-outline',
-      color: HEAT_LEVEL_ACCENTS[2],
-      gradient: HEAT_LEVEL_GRADIENTS[2],
-      free: true,
-    },
-    {
-      level: 3,
-      name: 'Sensual',
-      description: 'Sensual, relationship-focused sex',
-      icon: 'heart-outline',
-      color: HEAT_LEVEL_ACCENTS[3],
-      gradient: HEAT_LEVEL_GRADIENTS[3],
-      free: true,
-    },
-    {
-      level: 4,
-      name: 'Steamy',
-      description: 'Suggestive, adventurous, and heated',
-      icon: 'water-outline',
-      color: HEAT_LEVEL_ACCENTS[4],
-      gradient: HEAT_LEVEL_GRADIENTS[4],
-      free: true,
-    },
-    {
-      level: 5,
-      name: 'Explicit',
-      description: 'Intensely passionate, graphic, explicit',
-      icon: 'flame-outline',
-      color: HEAT_LEVEL_ACCENTS[5],
-      gradient: HEAT_LEVEL_GRADIENTS[5],
-      free: true,
-    },
-  ];
-
-  const handleSelectHeatLevel = async (level) => {
+  const handleSelectHeatRange = async (rangeId) => {
     try {
       setLoading(true);
       impact(ImpactFeedbackStyle.Light);
+      const heatRangePreference = buildHeatLevelRangePreference(rangeId);
 
-      // Persist the heat level as their preference
+      // Persist the heat range as their preference
       const updatedProfile = updateProfile
-        ? await updateProfile({ heatLevelPreference: level })
+        ? await updateProfile(heatRangePreference)
         : null;
 
       if (updateProfile) {
         if (loadContentProfile) {
-          await loadContentProfile(updatedProfile || { heatLevelPreference: level });
+          await loadContentProfile(updatedProfile || {
+            ...(userProfile || {}),
+            ...heatRangePreference,
+          });
         }
       }
 
       // Load today's prompt using the just-saved profile so boundaries/heat apply immediately.
-      const prompt = await loadTodayPrompt(level, {
-        profileOverride: updatedProfile || { ...(userProfile || {}), heatLevelPreference: level },
+      const prompt = await loadTodayPrompt(null, {
+        profileOverride: updatedProfile || { ...(userProfile || {}), ...heatRangePreference },
       });
       
       if (prompt) {
@@ -117,20 +78,21 @@ export default function HeatLevelScreen({ navigation }) {
 
   const renderHeatLevel = (heatLevel) => {
     const isDisabled = loading;
+    const gradient = HEAT_LEVEL_GRADIENTS[heatLevel.accentLevel] || ['#5E1940', '#4C1030'];
 
     return (
       <TouchableOpacity
-        key={heatLevel.level}
+        key={heatLevel.id}
         style={[
           styles.heatLevelCard,
           isDisabled && styles.disabledCard,
         ]}
-        onPress={() => handleSelectHeatLevel(heatLevel.level)}
+        onPress={() => handleSelectHeatRange(heatLevel.id)}
         disabled={isDisabled}
         activeOpacity={0.9}
       >
         <LinearGradient
-          colors={heatLevel.gradient || ['#5E1940', '#4C1030']}
+          colors={gradient}
           style={styles.heatLevelGradient}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
@@ -146,17 +108,15 @@ export default function HeatLevelScreen({ navigation }) {
               </View>
             </View>
 
-            <Text style={styles.heatLevelNumber}>Level {heatLevel.level}</Text>
-            <Text style={styles.heatLevelName}>{heatLevel.name}</Text>
+            <Text style={styles.heatLevelNumber}>Levels {formatHeatLevelList(heatLevel.levels)}</Text>
+            <Text style={styles.heatLevelName}>{heatLevel.title}</Text>
             <Text style={styles.heatLevelDescription}>
               {heatLevel.description}
             </Text>
 
-            {heatLevel.free && (
-              <View style={styles.freeBadge}>
-                <Text style={styles.freeBadgeText}>FREE</Text>
-              </View>
-            )}
+            <View style={styles.freeBadge}>
+              <Text style={styles.freeBadgeText}>SELECT</Text>
+            </View>
           </View>
         </LinearGradient>
       </TouchableOpacity>
@@ -167,8 +127,7 @@ export default function HeatLevelScreen({ navigation }) {
     <EditorialScreenScaffold
       navigation={navigation}
       headerTitle="Set the Mood"
-      heroTitle="Set the Mood"
-      heroSubtitle="How deep do you want to go today?"
+      headerSubtitle="HEAT LEVEL"
       scroll={false}
     >
         {/* Usage Status */}
@@ -180,18 +139,18 @@ export default function HeatLevelScreen({ navigation }) {
               color={colors.primary}
             />
             <Text style={styles.usageText}>
-              Choose a level to open today's moment.
+              Choose a range to open today's moment.
             </Text>
           </View>
         )}
 
-        {/* Heat Levels */}
+        {/* Heat Ranges */}
         <ScrollView
           style={styles.scrollView}
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {HEAT_LEVELS.map(renderHeatLevel)}
+          {HEAT_LEVEL_RANGE_PRESETS.map(renderHeatLevel)}
         </ScrollView>
     </EditorialScreenScaffold>
   );

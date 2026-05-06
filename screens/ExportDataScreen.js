@@ -159,9 +159,7 @@ const ExportDataScreen = ({ navigation }) => {
     <EditorialScreenScaffold
       navigation={navigation}
       headerTitle="Data Portability"
-      heroIcon="download-outline"
-      heroTitle="Export Your Story"
-      heroSubtitle="Download an archive of supported shared moments and personal reflections."
+      headerSubtitle="DATA EXPORT"
     >
         {/* Archive Contents */}
         <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>

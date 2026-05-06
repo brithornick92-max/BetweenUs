@@ -25,47 +25,13 @@ import { useContent } from '../context/ContentContext';
 import { SPACING, withAlpha } from '../utils/theme';
 import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
 import { HEAT_LEVEL_ACCENTS } from '../config/constants';
+import {
+  HEAT_LEVEL_RANGE_PRESETS,
+  buildHeatLevelRangePreference,
+  getHeatLevelRangePresetForProfile,
+} from '../utils/heatLevelRanges';
 
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
-
-// Editorial Heat Mapping
-const HEAT_LEVELS = [
-  {
-    level: 1,
-    icon: 'leaf-outline',
-    color: HEAT_LEVEL_ACCENTS[1],
-    title: 'Emotional',
-    description: 'Closeness & trust, non-sexual',
-  },
-  {
-    level: 2,
-    icon: 'sparkles-outline',
-    color: HEAT_LEVEL_ACCENTS[2],
-    title: 'Romantic',
-    description: 'Flirty attraction & romance',
-  },
-  {
-    level: 3,
-    icon: 'heart-outline',
-    color: HEAT_LEVEL_ACCENTS[3],
-    title: 'Sensual',
-    description: 'Relationship-focused desire',
-  },
-  {
-    level: 4,
-    icon: 'flame-outline',
-    color: HEAT_LEVEL_ACCENTS[4],
-    title: 'Steamy',
-    description: 'Adventurous & heated topics',
-  },
-  {
-    level: 5,
-    icon: 'infinite-outline',
-    color: HEAT_LEVEL_ACCENTS[5],
-    title: 'Explicit',
-    description: 'Intensely passionate exploration',
-  },
-];
 
 export default function HeatLevelSettingsScreen({ navigation }) {
   const { colors, isDark } = useTheme();
@@ -86,7 +52,7 @@ export default function HeatLevelSettingsScreen({ navigation }) {
   const { userProfile, updateProfile } = useAuth();
   const { loadContentProfile } = useContent();
   
-  const [selectedLevel, setSelectedLevel] = useState(5);
+  const [selectedRangeId, setSelectedRangeId] = useState('everything');
   const [isSaving, setIsSaving] = useState(false);
 
   // Entrance animations
@@ -112,15 +78,13 @@ export default function HeatLevelSettingsScreen({ navigation }) {
   }, [fadeAnimation, slideAnimation]);
 
   useEffect(() => {
-    if (userProfile?.heatLevelPreference) {
-      setSelectedLevel(userProfile.heatLevelPreference);
-    }
+    setSelectedRangeId(getHeatLevelRangePresetForProfile(userProfile).id);
   }, [userProfile]);
 
-  const handleLevelSelect = (level) => {
-    if (level === selectedLevel) return;
+  const handleRangeSelect = (rangeId) => {
+    if (rangeId === selectedRangeId) return;
 
-    setSelectedLevel(level);
+    setSelectedRangeId(rangeId);
     selection();
   };
 
@@ -128,12 +92,14 @@ export default function HeatLevelSettingsScreen({ navigation }) {
     setIsSaving(true);
     impact(ImpactFeedbackStyle.Medium);
     try {
-      await updateProfile({
-        heatLevelPreference: selectedLevel,
-      });
+      const heatRangePreference = buildHeatLevelRangePreference(selectedRangeId);
+      const updatedProfile = await updateProfile(heatRangePreference);
 
       if (loadContentProfile) {
-        await loadContentProfile();
+        await loadContentProfile(updatedProfile || {
+          ...(userProfile || {}),
+          ...heatRangePreference,
+        });
       }
       
       notification(NotificationFeedbackType.Success);
@@ -156,8 +122,7 @@ export default function HeatLevelSettingsScreen({ navigation }) {
     <EditorialScreenScaffold
       navigation={navigation}
       headerTitle="Intensity"
-      heroTitle="Intensity"
-      heroSubtitle="Set your boundary for closeness."
+      headerSubtitle="HEAT LEVEL"
       scroll={false}
       onBack={handleBack}
       footer={(
@@ -185,42 +150,37 @@ export default function HeatLevelSettingsScreen({ navigation }) {
       >
         <Animated.View style={{ opacity: fadeAnimation, transform: [{ translateY: slideAnimation }] }}>
           
-          <Text style={styles.sectionTitle}>SELECT LEVEL</Text>
+          <Text style={styles.sectionTitle}>SELECT RANGE</Text>
           <View style={styles.widgetCard}>
-            {HEAT_LEVELS.map((heatLevel, index) => {
-              const isSelected = selectedLevel === heatLevel.level;
-              const isLocked = false;
-              const isLast = index === HEAT_LEVELS.length - 1;
+            {HEAT_LEVEL_RANGE_PRESETS.map((range, index) => {
+              const isSelected = selectedRangeId === range.id;
+              const isLast = index === HEAT_LEVEL_RANGE_PRESETS.length - 1;
+              const color = HEAT_LEVEL_ACCENTS[range.accentLevel] || t.primary;
 
               return (
-                <View key={heatLevel.level}>
+                <View key={range.id}>
                   <TouchableOpacity
-                    style={[
-                      styles.listOptionRow,
-                      isLocked && { opacity: 0.5 }
-                    ]}
-                    onPress={() => handleLevelSelect(heatLevel.level)}
+                    style={styles.listOptionRow}
+                    onPress={() => handleRangeSelect(range.id)}
                     activeOpacity={0.9}
                   >
-                    <View style={[styles.iconWrap, { backgroundColor: isSelected ? withAlpha(heatLevel.color, 0.15) : t.surfaceSecondary }]}>
+                    <View style={[styles.iconWrap, { backgroundColor: isSelected ? withAlpha(color, 0.15) : t.surfaceSecondary }]}>
                       <Icon 
-                        name={heatLevel.icon} 
-                        size={20} 
-                        color={isSelected ? heatLevel.color : t.subtext} 
+                        name={range.icon}
+                        size={20}
+                        color={isSelected ? color : t.subtext}
                       />
                     </View>
                     <View style={styles.optionContent}>
-                      <Text style={[styles.optionName, { color: isSelected ? heatLevel.color : t.text }]}>
-                        {heatLevel.title}
+                      <Text style={[styles.optionName, { color: isSelected ? color : t.text }]}>
+                        {range.title}
                       </Text>
                       <Text style={styles.optionDesc} numberOfLines={1}>
-                        {heatLevel.description}
+                        {range.description}
                       </Text>
                     </View>
-                    {isLocked ? (
-                      <Icon name="lock-closed" size={18} color={t.subtext} />
-                    ) : isSelected ? (
-                      <Icon name="checkmark-circle" size={24} color={heatLevel.color} />
+                    {isSelected ? (
+                      <Icon name="checkmark-circle" size={24} color={color} />
                     ) : null}
                   </TouchableOpacity>
                   {!isLast && <View style={styles.dividerIndent} />}
@@ -232,7 +192,7 @@ export default function HeatLevelSettingsScreen({ navigation }) {
           <View style={styles.infoCard}>
             <Icon name="information-circle-outline" size={24} color={t.subtext} />
             <Text style={styles.infoText}>
-              Higher intensity levels automatically unlock all intimate prompts from the levels beneath them.
+              Your range controls which heat levels can appear. Each option includes at least three levels to keep prompts varied.
             </Text>
           </View>
 

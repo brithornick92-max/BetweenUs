@@ -22,6 +22,7 @@ import {
   FREE_LIMITS,
   PREMIUM_LIMITS,
 } from '../utils/featureFlags.js';
+import { profileAllowsHeatLevel } from '../utils/heatLevelRanges.js';
 
 const CONTENT_TYPES = {
   PROMPTS: 'prompts',
@@ -54,10 +55,28 @@ const WEEKLY_LIMITS = {
 };
 
 const PREMIUM_PROMPT_HEAT_LEVELS = [1, 2, 3, 4, 5];
-const PREMIUM_PROMPT_START_PER_HEAT =
-  PREMIUM_LIMITS.WEEK_0_PROMPTS / PREMIUM_PROMPT_HEAT_LEVELS.length;
-const PREMIUM_PROMPT_WEEKLY_PER_HEAT =
-  PREMIUM_LIMITS.WEEKLY_PROMPTS / PREMIUM_PROMPT_HEAT_LEVELS.length;
+
+const normalizeUnlockCount = (value, fallback = 0) => {
+  const numeric = Number(value);
+  if (numeric === Infinity) return Infinity;
+  if (!Number.isFinite(numeric)) return fallback;
+  return Math.max(0, Math.floor(numeric));
+};
+
+const getCumulativeUnlockLimit = ({ start = 0, weekly = 0, weekNumber = 0 } = {}) => {
+  const startCount = normalizeUnlockCount(start);
+  const weeklyCount = normalizeUnlockCount(weekly);
+  const safeWeekNumber = normalizeUnlockCount(weekNumber);
+
+  if (startCount === Infinity || weeklyCount === Infinity) return Infinity;
+  return startCount + (safeWeekNumber * weeklyCount);
+};
+
+const capSelection = (items, limit) => {
+  const list = Array.isArray(items) ? items : [];
+  const safeLimit = normalizeUnlockCount(limit, list.length);
+  return safeLimit === Infinity ? list : list.slice(0, safeLimit);
+};
 
 const UPGRADE_COPY = {
   [CONTENT_TYPES.PROMPTS]: {
@@ -151,6 +170,8 @@ const normalizeUserSettings = (userSettings = {}) => {
     userSettings.maxHeat ??
       userSettings.heat ??
       userSettings.heatLevel ??
+      userSettings.heatLevelPreference ??
+      userSettings.maxHeatLevel ??
       userSettings.userMaxHeat ??
       5
   );
@@ -163,7 +184,8 @@ const normalizeUserSettings = (userSettings = {}) => {
 
 const isAllowedByHeat = (item, userSettings = {}) => {
   const settings = normalizeUserSettings(userSettings);
-  return getHeat(item) <= settings.maxHeat;
+  const heat = getHeat(item);
+  return heat <= settings.maxHeat && profileAllowsHeatLevel(settings, heat);
 };
 
 const sortSeeded = (items, seed) =>
@@ -252,27 +274,39 @@ const buildPremiumPromptLibrary = (
     isAllowedByHeat(item, settings)
   );
 
-  const perHeatTarget =
-    PREMIUM_PROMPT_START_PER_HEAT + (weekNumber * PREMIUM_PROMPT_WEEKLY_PER_HEAT);
-  const totalTarget = perHeatTarget * PREMIUM_PROMPT_HEAT_LEVELS.length;
+  const totalTarget = getCumulativeUnlockLimit({
+    start: PREMIUM_LIMITS.WEEK_0_PROMPTS,
+    weekly: PREMIUM_LIMITS.WEEKLY_PROMPTS,
+    weekNumber,
+  });
+  const perHeatBaseTarget = totalTarget === Infinity
+    ? Infinity
+    : Math.floor(totalTarget / PREMIUM_PROMPT_HEAT_LEVELS.length);
+  const extraHeatSlots = totalTarget === Infinity
+    ? 0
+    : totalTarget % PREMIUM_PROMPT_HEAT_LEVELS.length;
   const seed = `${CONTENT_TYPES.PROMPTS}:${userId || 'anonymous'}:premium-library`;
 
   const selected = [];
   const selectedIds = new Set();
 
-  for (const heatLevel of PREMIUM_PROMPT_HEAT_LEVELS) {
+  PREMIUM_PROMPT_HEAT_LEVELS.forEach((heatLevel, heatIndex) => {
+    const heatTarget = perHeatBaseTarget === Infinity
+      ? Infinity
+      : perHeatBaseTarget + (heatIndex < extraHeatSlots ? 1 : 0);
     const heatItems = sortSeeded(
       eligible.filter((item) => getHeat(item) === heatLevel),
       `${seed}:heat:${heatLevel}`
     );
 
-    for (const item of heatItems.slice(0, perHeatTarget)) {
+    for (const item of capSelection(heatItems, heatTarget)) {
+      if (selected.length >= totalTarget) break;
       const id = String(item?.id ?? item?.text ?? item?.prompt ?? selected.length);
       if (selectedIds.has(id)) continue;
       selected.push(item);
       selectedIds.add(id);
     }
-  }
+  });
 
   if (selected.length < totalTarget) {
     const remaining = sortSeeded(
@@ -292,7 +326,7 @@ const buildPremiumPromptLibrary = (
     }
   }
 
-  return selected;
+  return capSelection(selected, totalTarget);
 };
 
 const pickBalancedDates = (items, limit, seed) => {
@@ -466,12 +500,18 @@ const buildWeeklySet = (
 ) => {
   const type = contentType || CONTENT_TYPES.PROMPTS;
   const limits = WEEKLY_LIMITS[type] || WEEKLY_LIMITS[CONTENT_TYPES.PROMPTS];
-  const premiumLimit = limits.premium;
   const weekNumber = getUserWeekNumber(userCreatedAt, date);
-  const freeUnlockedLimit = limits.freeWelcomePack + (weekNumber * limits.freeOngoing);
-  const premiumUnlockedLimit =
-    (limits.premiumStart ?? premiumLimit) + (weekNumber * premiumLimit);
-  const freeLockedPreviewLimit = limits.freeLockedPreview;
+  const freeUnlockedLimit = getCumulativeUnlockLimit({
+    start: limits.freeWelcomePack,
+    weekly: limits.freeOngoing,
+    weekNumber,
+  });
+  const premiumUnlockedLimit = getCumulativeUnlockLimit({
+    start: limits.premiumStart ?? limits.premium,
+    weekly: limits.premium,
+    weekNumber,
+  });
+  const freeLockedPreviewLimit = normalizeUnlockCount(limits.freeLockedPreview);
 
   const settings = normalizeUserSettings(userSettings);
   const seed = `${type}:${userId || 'anonymous'}:library`;
@@ -500,6 +540,7 @@ const buildWeeklySet = (
   } else {
     selected = pickBalancedPrompts(eligible, visibleTargetCount, seed);
   }
+  selected = capSelection(selected, visibleTargetCount);
 
   const orderedSelection = isPremium
     ? selected
@@ -543,18 +584,19 @@ const buildWeeklySet = (
     isPremium,
     weekNumber,
   });
+  const cappedWeeklySelection = capSelection(weeklySelection, visibleTargetCount);
 
   const unlockedCount = isPremium
-    ? weeklySelection.length
-    : Math.min(freeUnlockedLimit, weeklySelection.length);
+    ? Math.min(premiumUnlockedLimit, cappedWeeklySelection.length)
+    : Math.min(freeUnlockedLimit, cappedWeeklySelection.length);
 
-  const unlocked = weeklySelection
+  const unlocked = cappedWeeklySelection
     .slice(0, unlockedCount)
     .map((item, index) => withUnlockedWeeklyMeta(item, type, index, weekNumber));
 
   const lockedPreviews = isPremium
     ? []
-    : weeklySelection
+    : cappedWeeklySelection
         .slice(freeUnlockedLimit, freeUnlockedLimit + freeLockedPreviewLimit)
         .map((item, index) => toLockedPreview(item, type, index + freeUnlockedLimit, weekNumber));
 
@@ -566,7 +608,7 @@ const buildWeeklySet = (
     premiumUnlockedLimit,
     freeUnlockedLimit,
     freeLockedPreviewLimit,
-    totalWeeklyPicks: weeklySelection.length,
+    totalWeeklyPicks: cappedWeeklySelection.length,
     upgradeCopy: UPGRADE_COPY[type],
     unlocked,
     lockedPreviews,

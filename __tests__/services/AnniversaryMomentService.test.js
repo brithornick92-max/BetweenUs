@@ -14,6 +14,11 @@ describe('AnniversaryMomentService', () => {
     expect(isAnniversaryDay('2024-04-29T00:00:00.000Z', new Date(2026, 3, 30))).toBe(false);
   });
 
+  it('treats anniversary values as calendar dates instead of timezone-shifted instants', () => {
+    expect(isAnniversaryDay('2024-04-29T23:30:00.000-05:00', new Date(2026, 3, 29))).toBe(true);
+    expect(isAnniversaryDay('2024-04-29', new Date(2026, 3, 29))).toBe(true);
+  });
+
   it('calculates years together using month and day', () => {
     expect(getAnniversaryYearsTogether('2024-05-10T00:00:00.000Z', new Date(2026, 4, 9))).toBe(1);
     expect(getAnniversaryYearsTogether('2024-05-10T00:00:00.000Z', new Date(2026, 4, 10))).toBe(2);

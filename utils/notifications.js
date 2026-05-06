@@ -143,12 +143,16 @@ export async function scheduleActionableNotification({
   const ts = typeof when === "number" ? when : new Date(when).getTime();
   if (!ts || ts <= Date.now() + 2000) return null;
 
+  const permissionState = await Notifications.getPermissionsAsync?.();
+  if (permissionState?.status !== "granted") return null;
+
   await ensureDefaultNotificationChannel();
 
   return Notifications.scheduleNotificationAsync({
     content: {
       title,
       body,
+      sound: "default",
       data: {
         route,
         ...routeParams,

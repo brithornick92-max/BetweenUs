@@ -758,6 +758,7 @@ async function mapPromptRow(row, partnerRow = null) {
     heat_level: typeof promptHeat === 'number' ? promptHeat : (v.heatLevel ?? 1),
     is_revealed: isRevealed,
     reveal_at: v.revealAt || pv?.revealAt || null,
+    includeInKeepsake: v.includeInKeepsake === true,
     created_at: row.created_at,
     updated_at: row.updated_at,
   };
@@ -780,6 +781,7 @@ function mapPartnerOnlyPromptRow(partnerRow) {
     heat_level: typeof promptHeat === 'number' ? promptHeat : (v.heatLevel ?? 1),
     is_revealed: !!v.isRevealed,
     reveal_at: v.revealAt || null,
+    includeInKeepsake: false,
     created_at: partnerRow.created_at,
     updated_at: partnerRow.updated_at,
   };
@@ -910,6 +912,7 @@ function makeOfflinePromptRow(id, value, base = {}) {
     heat_level: typeof promptHeat === 'number' ? promptHeat : (value.heatLevel ?? 1),
     is_revealed: !!value.isRevealed,
     reveal_at: value.revealAt || null,
+    includeInKeepsake: value.includeInKeepsake === true,
     created_at: base.created_at || timestamp,
     updated_at: timestamp,
     sync_status: 'pending',
@@ -1367,7 +1370,7 @@ const SupabaseDataLayer = {
 
   // ─── Prompt Answers ──────────────────────────────────────────────────────
 
-  async savePromptAnswer({ promptId, answer, heatLevel, dateKey: explicitDateKey, _createdAt }) {
+  async savePromptAnswer({ promptId, answer, heatLevel, dateKey: explicitDateKey, includeInKeepsake, _createdAt }) {
     const resolvedHeatLevel = typeof heatLevel === 'number'
       ? heatLevel
       : (getPromptById(promptId)?.heat || 1);
@@ -1388,6 +1391,9 @@ const SupabaseDataLayer = {
       heatLevel: resolvedHeatLevel,
       isRevealed: existing?.value?.isRevealed ?? cachedExisting?.is_revealed ?? false,
       revealAt: existing?.value?.revealAt ?? cachedExisting?.reveal_at ?? null,
+      includeInKeepsake: typeof includeInKeepsake === 'boolean'
+        ? includeInKeepsake
+        : !!(existing?.value?.includeInKeepsake ?? cachedExisting?.includeInKeepsake ?? false),
     };
 
     const id = existing?.id || cachedExisting?.id || makeId('ans');

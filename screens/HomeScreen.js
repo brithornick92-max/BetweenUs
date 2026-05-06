@@ -143,6 +143,7 @@ export default function HomeScreen({ navigation }) {
   const [myAnswer, setMyAnswer] = useState('');
   const [partnerAnswer, setPartnerAnswer] = useState('');
   const [isRevealed, setIsRevealed] = useState(false);
+  const [includePromptInKeepsake, setIncludePromptInKeepsake] = useState(false);
   const [inlineText, setInlineText] = useState('');
   const [isSavingInline, setIsSavingInline] = useState(false);
   const [throwback, setThrowback] = useState(null);
@@ -313,6 +314,7 @@ export default function HomeScreen({ navigation }) {
     setMyAnswer('');
     setPartnerAnswer('');
     setIsRevealed(false);
+    setIncludePromptInKeepsake(false);
     setInlineText('');
   }, [activePromptUserId, prompt.id, todayKey]);
 
@@ -330,6 +332,7 @@ export default function HomeScreen({ navigation }) {
           setMyAnswer(row.answer);
           setPartnerAnswer(row?.partnerAnswer || '');
           setIsRevealed(!!(row?.isRevealed || row?.is_revealed));
+          setIncludePromptInKeepsake(!!row?.includeInKeepsake);
           return;
         }
 
@@ -341,6 +344,7 @@ export default function HomeScreen({ navigation }) {
         setMyAnswer(saved?.content || saved?.answer || '');
         setPartnerAnswer(row?.partnerAnswer || '');
         setIsRevealed(!!saved?.isRevealed);
+        setIncludePromptInKeepsake(!!saved?.includeInKeepsake);
       } catch (e) {
         if (__DEV__) console.warn('[Home] prompt answer fetch:', e?.message);
       }
@@ -366,6 +370,7 @@ export default function HomeScreen({ navigation }) {
             setMyAnswer(row.answer);
             setPartnerAnswer(row?.partnerAnswer || '');
             setIsRevealed(!!(row?.isRevealed || row?.is_revealed));
+            setIncludePromptInKeepsake(!!row?.includeInKeepsake);
             return;
           }
 
@@ -377,6 +382,7 @@ export default function HomeScreen({ navigation }) {
           setMyAnswer(saved?.content || saved?.answer || '');
           setPartnerAnswer(row?.partnerAnswer || '');
           setIsRevealed(!!saved?.isRevealed);
+          setIncludePromptInKeepsake(!!saved?.includeInKeepsake);
         } catch (e) {
           if (__DEV__) console.warn('[Home] prompt answer focus refresh:', e?.message);
         }
@@ -546,6 +552,7 @@ export default function HomeScreen({ navigation }) {
                     if (cancelled) return;
                     setPartnerAnswer(row?.partnerAnswer || '');
                     setIsRevealed(!!(row?.isRevealed || row?.is_revealed));
+                    setIncludePromptInKeepsake(!!row?.includeInKeepsake);
                   })
                   .catch(() => {});
               }
@@ -628,10 +635,10 @@ export default function HomeScreen({ navigation }) {
       eyebrow: 'REVEALED',
       title: 'You showed up for each other today',
       body: null,
-      primaryLabel: 'Save to our archive',
+      primaryLabel: includePromptInKeepsake ? 'In Keepsake' : 'Add to Keepsake',
       secondaryLabel: 'Plan something from this',
     },
-  }[ritualState]), [partnerLabel, prompt.text, promptReady, ritualState]);
+  }[ritualState]), [includePromptInKeepsake, partnerLabel, prompt.text, promptReady, ritualState]);
 
   const handleInlineSave = useCallback(async () => {
     const finalText = inlineText.trim();
@@ -688,6 +695,7 @@ export default function HomeScreen({ navigation }) {
           answer: finalText,
           heatLevel: prompt.heat || 1,
           dateKey: todayKey,
+          includeInKeepsake: false,
         });
 
         const refreshedRow = await DataLayer.getPromptAnswerForToday(prompt.id, todayKey);
@@ -702,6 +710,7 @@ export default function HomeScreen({ navigation }) {
         userId: activePromptUserId || undefined,
         timestamp: Date.now(),
         isRevealed: nextRevealed,
+        includeInKeepsake: false,
       });
 
       if (!isPremium && !myAnswer) {
@@ -789,14 +798,31 @@ export default function HomeScreen({ navigation }) {
     }
 
     if (ritualState === 'revealed') {
-      navigation.navigate('AddMemory', {
-        source: 'prompt_reveal',
-        promptText: prompt.text,
-        myAnswer,
-        partnerAnswer,
-        myName: preferredName || 'You',
-        partnerName: partnerLabel,
-      });
+      const nextValue = !includePromptInKeepsake;
+      const row = await DataLayer.getPromptAnswerForToday(prompt.id, todayKey).catch(() => null);
+      const answerText = row?.answer || myAnswer;
+
+      if (answerText) {
+        await DataLayer.savePromptAnswer({
+          promptId: prompt.id,
+          answer: answerText,
+          heatLevel: prompt.heat || 1,
+          dateKey: todayKey,
+          includeInKeepsake: nextValue,
+        }).catch(() => {});
+
+        const existing = activePromptUserId
+          ? await promptStorage.getAnswerForUser(todayKey, prompt.id, activePromptUserId)
+          : await promptStorage.getAnswer(todayKey, prompt.id);
+        await promptStorage.setAnswer(todayKey, prompt.id, {
+          ...(existing || {}),
+          answer: answerText,
+          userId: activePromptUserId || undefined,
+          includeInKeepsake: nextValue,
+        });
+        setIncludePromptInKeepsake(nextValue);
+        notification(NotificationFeedbackType.Success);
+      }
       return;
     }
 
@@ -820,7 +846,7 @@ export default function HomeScreen({ navigation }) {
 
     navigation.navigate('Reveal', {
       prompt: { id: prompt.id, text: prompt.text, dateKey: todayKey },
-      userAnswer: { answer: myAnswer, isRevealed },
+      userAnswer: { answer: myAnswer, isRevealed, includeInKeepsake: includePromptInKeepsake },
       partnerAnswer: partnerAnswer || null,
       bothAnswered,
     });
@@ -831,8 +857,8 @@ export default function HomeScreen({ navigation }) {
     bothAnswered,
     isRevealed,
     prompt,
-    preferredName,
-    partnerLabel,
+    includePromptInKeepsake,
+    activePromptUserId,
     todayKey,
     navigation,
     inlineText,

@@ -95,8 +95,38 @@ describe('ContentAccessService', () => {
     ).toEqual([1, 2, 3]);
 
     expect(
+      contentAccessService.getAllowedHeatLevels(false, {
+        heatLevelRangeId: 'high_heat',
+        allowedHeatLevels: [3, 4, 5],
+        heatLevelPreference: 5,
+      })
+    ).toEqual([3, 4, 5]);
+
+    expect(
       contentAccessService.getAllowedHeatLevels(false, { boundaries: { hideSpicy: true } })
     ).toEqual([1, 2, 3]);
+  });
+
+  it('filters accessible prompts to the selected heat range', async () => {
+    const result = await contentAccessService.getAccessiblePrompts(
+      [
+        { id: 'gentle', heat: 1, category: 'emotional', releaseWeek: 0 },
+        { id: 'sensual', heat: 3, category: 'physical', releaseWeek: 0 },
+        { id: 'explicit', heat: 5, category: 'physical', releaseWeek: 0 },
+      ],
+      {
+        userId: 'user-1',
+        isPremium: false,
+        userSettings: {
+          heatLevelRangeId: 'high_heat',
+          allowedHeatLevels: [3, 4, 5],
+          heatLevelPreference: 5,
+        },
+      }
+    );
+
+    expect(result.prompts.map((prompt) => prompt.id)).toEqual(['sensual', 'explicit']);
+    expect(result.access.accessibleHeatLevels).toEqual([3, 4, 5]);
   });
 
   it('does not hide prompts by release week and user boundaries while allowing all free heat levels', async () => {

@@ -22,6 +22,7 @@ import { getDateCardPalette } from './dateCardPalette';
 import { getDateCategoryMeta } from '../utils/contentLoader';
 
 const SCREEN_W = Dimensions.get('window').width;
+const PRIMARY_RED = '#D2121A';
 
 const FONTS = {
   body: Platform.select({ ios: 'Lato-Regular', android: 'Lato_400Regular', default: 'sans-serif' }),
@@ -175,7 +176,7 @@ export default function DateCardBack({ date, dims, isDark = true }) {
 
         {/* Heat level text */}
         <View style={styles.levelBlock}>
-          <Text style={[styles.levelEyebrow, { color: palette.body }]}>Today's tone</Text>
+          <Text style={[styles.levelEyebrow, { color: PRIMARY_RED }]}>Today's tone</Text>
           <Text style={[styles.levelText, { color: palette.text, textShadowColor: palette.shadow }]}> 
             {label}
           </Text>

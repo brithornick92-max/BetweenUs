@@ -4,6 +4,7 @@
 // Apple Editorial System Colors Integrated
 
 import { getDailyContentDateKey } from './dailyContentDate';
+import { normalizeHeatLevels, profileAllowsHeatLevel } from './heatLevelRanges';
 
 const isDevRuntime = typeof __DEV__ !== "undefined" && __DEV__;
 
@@ -136,12 +137,14 @@ export function getFilteredPrompts(filters = {}) {
   const {
     maxHeatLevel = 5,
     minHeatLevel = 1,
+    heatLevels = [],
     categories = [],
     excludeCategories = [],
   } = filters || {};
 
   const cats = safeArray(categories);
   const excludeCats = safeArray(excludeCategories);
+  const allowedHeatLevels = normalizeHeatLevels(heatLevels);
 
   return items.filter((prompt) => {
     if (!prompt || typeof prompt !== "object") return false;
@@ -151,6 +154,7 @@ export function getFilteredPrompts(filters = {}) {
 
     const heat = typeof prompt.heat === "number" ? prompt.heat : 1;
     if (heat < minHeatLevel || heat > maxHeatLevel) return false;
+    if (allowedHeatLevels.length > 0 && !allowedHeatLevels.includes(heat)) return false;
 
     const category = typeof prompt.category === "string" ? prompt.category : "";
     if (cats.length > 0 && !cats.includes(category)) return false;
@@ -254,12 +258,14 @@ export function getTodayBetweenUsPrompts(filters = {}) {
   const {
     maxHeatLevel = 3,
     minHeatLevel = 1,
+    heatLevels = [],
     categories = [],
     excludeCategories = [],
   } = filters || {};
 
   const cats = safeArray(categories);
   const excludeCats = safeArray(excludeCategories);
+  const allowedHeatLevels = normalizeHeatLevels(heatLevels);
 
   return items
     .map((prompt) => normalizePrompt(prompt, { dailyOnly: true, sourceLibrary: 'today-between-us' }))
@@ -268,6 +274,7 @@ export function getTodayBetweenUsPrompts(filters = {}) {
 
       const heat = typeof prompt.heat === "number" ? prompt.heat : 1;
       if (heat < minHeatLevel || heat > maxHeatLevel) return false;
+      if (allowedHeatLevels.length > 0 && !allowedHeatLevels.includes(heat)) return false;
 
       const category = typeof prompt.category === "string" ? prompt.category : "";
       if (cats.length > 0 && !cats.includes(category)) return false;
@@ -625,6 +632,7 @@ export function getFilteredPromptsWithProfile(profile = null) {
 
     const heat = typeof prompt.heat === "number" ? prompt.heat : 1;
     if (heat > (profile.maxHeat || 5)) return false;
+    if (!profileAllowsHeatLevel(profile, heat)) return false;
 
     const category = typeof prompt.category === "string" ? prompt.category : "";
     if (profile.boundaries?.hiddenCategories?.includes(category)) return false;
@@ -646,6 +654,7 @@ export function getFilteredDatesWithProfile(profile = null) {
     if (profile.boundaries?.pausedDates?.includes(date.id)) return false;
     if (profile.season?.maxDuration && date.minutes > profile.season.maxDuration) return false;
     if (typeof profile.maxHeat === "number" && date.heat > profile.maxHeat) return false;
+    if (!profileAllowsHeatLevel(profile, date.heat)) return false;
     return true;
   });
 }

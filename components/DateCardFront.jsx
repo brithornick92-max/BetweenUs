@@ -22,6 +22,7 @@ import { getDateCardPalette } from './dateCardPalette';
 import { personalizePartnerText } from '../utils/profileNames';
 
 const SCREEN_W = Dimensions.get('window').width;
+const PRIMARY_RED = '#D2121A';
 
 const FONTS = {
   serif: Platform.select({ ios: 'DMSerifDisplay-Regular', android: 'DMSerifDisplay_400Regular', default: 'serif' }),
@@ -184,7 +185,7 @@ export default function DateCardFront({ date, isDark = true, partnerName = 'your
           {/* Editorial plan preview */}
           {planPreview ? (
             <Animated.View entering={FadeInDown.delay(300).duration(450)} style={styles.previewBlock}>
-              <Text style={[styles.previewEyebrow, { color: palette.highlight }]}>The Mood</Text>
+              <Text style={[styles.previewEyebrow, { color: PRIMARY_RED }]}>The Mood</Text>
               <Text
                 style={[styles.description, { color: palette.body }]}
                 numberOfLines={3}

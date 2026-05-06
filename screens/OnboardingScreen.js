@@ -29,6 +29,7 @@ import { useAppContext } from "../context/AppContext";
 import { useContent } from "../context/ContentContext";
 import { useTheme } from "../context/ThemeContext";
 import { SPACING } from "../utils/theme";
+import { dateOnlyToLocalDate } from "../utils/dateOnly";
 import HeartbeatEntry from "../components/HeartbeatEntry";
 import EnergyMatcher from "../components/EnergyMatcher";
 import CrashReporting from "../services/CrashReporting";
@@ -44,6 +45,10 @@ import { getSupabaseOrThrow } from "../config/supabase";
 import AnalyticsService, { AnalyticsEvent } from "../services/AnalyticsService";
 import { HEAT_LEVEL_ACCENTS } from "../config/constants";
 import { FREE_LIMITS, PREMIUM_LIMITS } from "../utils/featureFlags";
+import {
+  HEAT_LEVEL_RANGE_PRESETS,
+  buildHeatLevelRangePreference,
+} from "../utils/heatLevelRanges";
 
 const { height: SCREEN_HEIGHT } = Dimensions.get('window');
 const INTRO_HEARTBEAT_OFFSET_Y = SCREEN_HEIGHT < 760 ? -30 : -76;
@@ -86,7 +91,7 @@ export default function OnboardingScreen({ navigation }) {
   const [communicationStyle, setCommunicationStyle] = useState(null);
   // Preference state (collected in step 2)
   const [selectedSeason, setSelectedSeason] = useState('adventure');
-  const [selectedHeatLevel, setSelectedHeatLevel] = useState(5);
+  const [selectedHeatRangeId, setSelectedHeatRangeId] = useState('everything');
   const [selectedTone, setSelectedTone] = useState('intimate');
   const [selectedEnergyLevel, setSelectedEnergyLevel] = useState('open');
   
@@ -109,10 +114,12 @@ export default function OnboardingScreen({ navigation }) {
     if (profileMyName) setMyName((current) => current || profileMyName);
     if (profilePartnerName) setPartnerName((current) => current || profilePartnerName);
     if (relationshipStartDate) {
-      const parsed = new Date(relationshipStartDate);
+      const parsed = dateOnlyToLocalDate(relationshipStartDate) || new Date(relationshipStartDate);
       if (!Number.isNaN(parsed.getTime())) {
-        setAnniversaryDate(parsed);
-        setPendingDate(parsed);
+        const today = new Date();
+        const safeDate = parsed > today ? today : parsed;
+        setAnniversaryDate(safeDate);
+        setPendingDate(safeDate);
       }
     }
   }, [userProfile]);
@@ -215,7 +222,7 @@ export default function OnboardingScreen({ navigation }) {
   }, [fadeAnim, slideAnim, step]);
 
   const daysCounting = useMemo(() => {
-    const diffTime = Math.abs(Date.now() - anniversaryDate.getTime());
+    const diffTime = Math.max(0, Date.now() - anniversaryDate.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return diffDays.toLocaleString();
   }, [anniversaryDate]);
@@ -293,7 +300,7 @@ export default function OnboardingScreen({ navigation }) {
         },
       });
       if (__DEV__) console.log("[invite] Step 1b: updateRelationshipStartDate");
-      await updateRelationshipStartDate(anniversaryDate.toISOString());
+      await updateRelationshipStartDate(anniversaryDate);
 
       // Ensure CloudEngine has a valid Supabase session for pairing operations
       if (__DEV__) console.log("[invite] Step 2: getSupabaseOrThrow");
@@ -557,7 +564,10 @@ export default function OnboardingScreen({ navigation }) {
                         <TouchableOpacity
                           style={styles.datePickerActionButton}
                           onPress={() => {
-                            setAnniversaryDate(pendingDate);
+                            const today = new Date();
+                            const safeDate = pendingDate > today ? today : pendingDate;
+                            setAnniversaryDate(safeDate);
+                            setPendingDate(safeDate);
                             setShowDatePicker(false);
                           }}
                         >
@@ -568,8 +578,10 @@ export default function OnboardingScreen({ navigation }) {
                         value={pendingDate}
                         mode="date"
                         display="spinner"
+                        maximumDate={new Date()}
                         onChange={(event, date) => {
-                          if (date) setPendingDate(date);
+                          if (!date) return;
+                          setPendingDate(date > new Date() ? new Date() : date);
                         }}
                         textColor={t.text}
                         themeVariant={isDark ? 'dark' : 'light'}
@@ -766,14 +778,6 @@ export default function OnboardingScreen({ navigation }) {
     </KeyboardAvoidingView>
   );
 
-  const HEAT_LABELS = [
-    { level: 1, icon: 'heart-outline',         color: HEAT_LEVEL_ACCENTS[1], name: 'Emotional',   description: 'Sweet, honest, and safe' },
-    { level: 2, icon: 'heart-outline',         color: HEAT_LEVEL_ACCENTS[2], name: 'Romantic',    description: 'Flirty, tender, and warm' },
-    { level: 3, icon: 'flame-outline',         color: HEAT_LEVEL_ACCENTS[3], name: 'Sensual',     description: 'Desire, touch, and closeness' },
-    { level: 4, icon: 'flame-outline',         color: HEAT_LEVEL_ACCENTS[4], name: 'Steamy',      description: 'Adventurous and heated' },
-    { level: 5, icon: 'flame-outline',         color: HEAT_LEVEL_ACCENTS[5], name: 'Explicit',    description: 'Only if you both want explicit' },
-  ];
-
   const TONE_OPTIONS = NicknameEngine.TONE_OPTIONS;
   const tonePreview = useMemo(() => {
     const partner = partnerName || 'your partner';
@@ -800,8 +804,9 @@ export default function OnboardingScreen({ navigation }) {
 
   const savePersonalizationPreferences = useCallback(async () => {
     try {
+      const heatRangePreference = buildHeatLevelRangePreference(selectedHeatRangeId);
       await updateProfile?.({
-        heatLevelPreference: selectedHeatLevel,
+        ...heatRangePreference,
         partnerNames: {
           myName: myName.trim(),
           partnerName: partnerName.trim(),
@@ -809,7 +814,7 @@ export default function OnboardingScreen({ navigation }) {
         display_name: myName.trim(),
       });
       await actions.updateProfile({
-        heatLevelPreference: selectedHeatLevel,
+        ...heatRangePreference,
         partnerNames: {
           myName: myName.trim(),
           partnerName: partnerName.trim(),
@@ -825,7 +830,7 @@ export default function OnboardingScreen({ navigation }) {
       }
       await ContentIntensityMatcher.setEnergyLevel(selectedEnergyLevel);
       StorageRouter.updateCloudProfilePreferences({
-        heatLevelPreference: selectedHeatLevel,
+        ...heatRangePreference,
         nicknameConfig: {
           myNickname: myName,
           partnerNickname: partnerName,
@@ -843,7 +848,7 @@ export default function OnboardingScreen({ navigation }) {
     myName,
     partnerName,
     selectedEnergyLevel,
-    selectedHeatLevel,
+    selectedHeatRangeId,
     selectedSeason,
     selectedTone,
     updateProfile,
@@ -874,34 +879,35 @@ export default function OnboardingScreen({ navigation }) {
         {/* Heat Level */}
         <View style={styles.prefSection}>
           <Text style={styles.groupLabel}>SHARED HEAT LEVEL</Text>
-          <Text style={styles.prefSubtitle}>Start where you both feel good. Higher heat works best when you choose it together.</Text>
+          <Text style={styles.prefSubtitle}>Choose the range you both want to see. Each range keeps at least three levels in rotation.</Text>
           <View style={styles.groupCard}>
-            {HEAT_LABELS.map((h, index) => {
-              const isActive = selectedHeatLevel === h.level;
+            {HEAT_LEVEL_RANGE_PRESETS.map((h, index) => {
+              const isActive = selectedHeatRangeId === h.id;
+              const heatColor = HEAT_LEVEL_ACCENTS[h.accentLevel] || t.primary;
               return (
-                <View key={h.level}>
+                <View key={h.id}>
                   <TouchableOpacity
                     style={styles.listOptionRow}
                     onPress={() => {
-                      setSelectedHeatLevel(h.level);
+                      setSelectedHeatRangeId(h.id);
                       selection();
                     }}
                     activeOpacity={0.7}
                   >
-                    <View style={[styles.iconWrap, { backgroundColor: isActive ? h.color + '15' : t.surfaceSecondary }]}>
-                      <Icon name={h.icon} size={20} color={isActive ? h.color : t.subtext} />
+                    <View style={[styles.iconWrap, { backgroundColor: isActive ? heatColor + '15' : t.surfaceSecondary }]}>
+                      <Icon name={h.icon} size={20} color={isActive ? heatColor : t.subtext} />
                     </View>
                     <View style={{ flex: 1 }}>
-                      <Text style={[styles.listOptionName, { color: isActive ? h.color : t.text }]}>
-                        {h.name}
+                      <Text style={[styles.listOptionName, { color: isActive ? heatColor : t.text }]}>
+                        {h.title}
                       </Text>
                       <Text style={styles.listOptionDesc} numberOfLines={1}>
                         {h.description}
                       </Text>
                     </View>
-                    {isActive && <Icon name="checkmark-outline" size={20} color={h.color} />}
+                    {isActive && <Icon name="checkmark-outline" size={20} color={heatColor} />}
                   </TouchableOpacity>
-                  {index < HEAT_LABELS.length - 1 && <View style={styles.dividerIndent} />}
+                  {index < HEAT_LEVEL_RANGE_PRESETS.length - 1 && <View style={styles.dividerIndent} />}
                 </View>
               );
             })}

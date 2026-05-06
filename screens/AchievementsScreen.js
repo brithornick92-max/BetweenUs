@@ -8,7 +8,7 @@ import {
   Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useTheme } from '../context/ThemeContext';
 import { evaluateAchievements } from '../utils/achievementEngine';
 import { DataLayer } from '../services/localfirst';
@@ -78,8 +78,7 @@ export default function AchievementsScreen() {
     <EditorialScreenScaffold
       navigation={navigation}
       headerTitle="Milestones"
-      heroTitle="Your Story"
-      heroSubtitle="The moments you have created together and the ones still waiting to happen."
+      headerSubtitle="YOUR SHARED ARCHIVE"
       scroll={false}
     >
         {loading ? (
@@ -89,7 +88,6 @@ export default function AchievementsScreen() {
         ) : (
           <FlatList
             data={[
-              { _type: 'header', id: '_header' },
               ...(reached.length > 0 ? [{ _type: 'section', id: '_s1', label: 'Already part of your story' }] : []),
               ...reached.map((m) => ({ ...m, _type: 'reached' })),
               ...(ahead.length > 0 ? [{ _type: 'section', id: '_s2', label: 'Still ahead' }] : []),
@@ -97,14 +95,6 @@ export default function AchievementsScreen() {
             ]}
             keyExtractor={(item) => item.id}
             renderItem={({ item, index }) => {
-              if (item._type === 'header') {
-                return (
-                  <Animated.View entering={FadeIn.duration(500)} style={styles.editorialHeader}>
-                    <Text style={[styles.headerSubtitle, { color: t.primary }]}>YOUR SHARED ARCHIVE</Text>
-                    <Text style={[styles.headerTitle, { color: t.text }]}>Your Story</Text>
-                  </Animated.View>
-                );
-              }
               if (item._type === 'section') {
                 return <Text style={[styles.sectionLabel, { color: t.subtext }]}>{item.label}</Text>;
               }
@@ -124,23 +114,6 @@ export default function AchievementsScreen() {
 
 function createStyles(t, isDark) {
   return StyleSheet.create({
-    editorialHeader: {
-      paddingBottom: SPACING.lg,
-    },
-    headerSubtitle: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 12,
-    fontWeight: '800',
-    letterSpacing: 2,
-    marginBottom: 8,
-  },
-    headerTitle: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 36,
-    fontWeight: '900',
-    letterSpacing: -1,
-    lineHeight: 42,
-  },
     loader: { flex: 1, alignItems: 'center', justifyContent: 'center' },
     list: {
       paddingHorizontal: SPACING.screen,

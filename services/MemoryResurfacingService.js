@@ -3,7 +3,7 @@
  *
  * Scans the couple's shared memories for entries whose MM-DD calendar date
  * matches today but from a prior year. If found, schedules a local push
- * notification for 8 am tomorrow (so the user is notified on the day itself).
+ * notification on that same local calendar day.
  *
  * Safety:
  *   • Once-per-calendar-day scheduling guard (cache-only AsyncStorage key)
@@ -18,6 +18,7 @@ import {
   isNotificationTypeEnabled,
   NOTIFICATION_TYPES,
 } from '../utils/notifications';
+import { dateOnlyToLocalDate, formatLocalDateKey } from '../utils/dateOnly';
 
 let Notifications = null;
 try {
@@ -37,35 +38,50 @@ function dateTrigger(date) {
 const SCHEDULED_ID_KEY = '@betweenus:cache:onThisDayNotificationId';
 const LAST_SCHEDULED_KEY = '@betweenus:cache:onThisDayLastScheduled';
 
-function todayYearlessKey() {
-  const d = new Date();
+function coerceMemoryCalendarDate(dateValue) {
+  if (!dateValue) return null;
+
+  if (typeof dateValue === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateValue.trim())) {
+    return dateOnlyToLocalDate(dateValue);
+  }
+
+  const parsed = dateValue instanceof Date ? dateValue : new Date(dateValue);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function yearlessKey(dateValue) {
+  const d = coerceMemoryCalendarDate(dateValue);
+  if (!d) return null;
   const mm = String(d.getMonth() + 1).padStart(2, '0');
   const dd = String(d.getDate()).padStart(2, '0');
   return `${mm}-${dd}`;
 }
 
-function tomorrowAt8am() {
-  const d = new Date();
-  d.setDate(d.getDate() + 1);
+function todayYearlessKey(now = new Date()) {
+  return yearlessKey(now);
+}
+
+function nextSameDayNotificationTime(now = new Date()) {
+  const d = new Date(now);
   d.setHours(8, 0, 0, 0);
+
+  if (d.getTime() <= now.getTime() + 2000) {
+    d.setTime(now.getTime() + 5 * 60 * 1000);
+  }
+
   return d;
 }
 
 function yearsAgo(isoDate) {
   if (!isoDate) return null;
-  const created = new Date(isoDate);
-  if (Number.isNaN(created.getTime())) return null;
+  const created = coerceMemoryCalendarDate(isoDate);
+  if (!created) return null;
   const diff = new Date().getFullYear() - created.getFullYear();
   return diff > 0 ? diff : null;
 }
 
 function extractMMDD(isoDate) {
-  if (!isoDate) return null;
-  const d = new Date(isoDate);
-  if (Number.isNaN(d.getTime())) return null;
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
-  return `${mm}-${dd}`;
+  return yearlessKey(isoDate);
 }
 
 function buildNotificationContent(memory, years) {
@@ -90,8 +106,8 @@ function buildNotificationContent(memory, years) {
 const MemoryResurfacingService = {
   /**
    * Call once per app open (e.g. in AppContext init or HomeScreen useFocusEffect).
-   * Schedules an 8 am notification for tomorrow if a "same day" memory exists
-   * from a prior year.
+   * Schedules an 8 am notification, or a same-day catch-up notification if
+   * 8 am already passed, when a matching memory exists from a prior year.
    *
    * @param {DataLayer} DataLayer - injected to avoid circular dep issues
    */
@@ -105,7 +121,8 @@ const MemoryResurfacingService = {
       }
 
       // Once-per-day guard
-      const todayKey = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+      const now = new Date();
+      const todayKey = formatLocalDateKey(now); // YYYY-MM-DD
       const lastScheduled = await AsyncStorage.getItem(LAST_SCHEDULED_KEY);
       if (lastScheduled === todayKey) return;
 
@@ -115,7 +132,7 @@ const MemoryResurfacingService = {
       await ensureDefaultNotificationChannel();
 
       // Load shared memories through DataLayer
-      const todayMMDD = todayYearlessKey();
+      const todayMMDD = todayYearlessKey(now);
       let memories = [];
       try {
         memories = await DataLayer.getSharedMemories({ limit: 500 });
@@ -127,8 +144,9 @@ const MemoryResurfacingService = {
       let best = null;
       let bestYears = 0;
       for (const m of memories) {
-        if (extractMMDD(m.created_at) !== todayMMDD) continue;
-        const y = yearsAgo(m.created_at);
+        const memoryDate = m.occurred_at || m.date || m.created_at;
+        if (extractMMDD(memoryDate) !== todayMMDD) continue;
+        const y = yearsAgo(memoryDate);
         if (!y) continue;
         if (y > bestYears) {
           bestYears = y;
@@ -149,8 +167,8 @@ const MemoryResurfacingService = {
         return;
       }
 
-      // Schedule for 8 am tomorrow
-      const trigger = tomorrowAt8am();
+      // Schedule on the matching local calendar day.
+      const trigger = nextSameDayNotificationTime(now);
       const id = await Notifications.scheduleNotificationAsync({
         content: buildNotificationContent(best, bestYears),
         trigger: dateTrigger(trigger),

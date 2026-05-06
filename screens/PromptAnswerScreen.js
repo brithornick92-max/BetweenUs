@@ -17,6 +17,7 @@ import {
 } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
+import Icon from '../components/Icon';
 import {
   impact,
   notification,
@@ -76,6 +77,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
   const [prompt, setPrompt] = useState(routePrompt || null);
   const [answer, setAnswer] = useState("");
   const [existingAnswer, setExistingAnswer] = useState(null);
+  const [includeInKeepsake, setIncludeInKeepsake] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const lastHapticLength = useRef(0);
   const savingRef = useRef(false);
@@ -112,9 +114,11 @@ export default function PromptAnswerScreen({ route, navigation }) {
   const isEditingAnswer = mode === 'edit' || !!existingAnswer;
   const isDailyBetweenUsAnswer = isTodayBetweenUsPrompt(prompt);
   const answerIsLocked = isDailyBetweenUsAnswer && !!existingAnswer;
+  const existingKeepsakeValue = !!existingAnswer?.includeInKeepsake;
+  const keepsakeChanged = !!includeInKeepsake !== existingKeepsakeValue;
   const headerTitle = answerIsLocked ? "Saved" : isEditingAnswer ? "Edit" : "Answer";
-  const saveButtonLabel = answerIsLocked ? "Saved" : isEditingAnswer ? "Update" : "Lock In";
-  const canSave = answer.trim().length > 0 && !isSaving && !answerIsLocked;
+  const saveButtonLabel = answerIsLocked ? (keepsakeChanged ? "Update" : "Saved") : isEditingAnswer ? "Update" : "Lock In";
+  const canSave = answer.trim().length > 0 && !isSaving && (!answerIsLocked || keepsakeChanged);
   const activePromptUserId = user?.id || user?.uid || state?.userId || null;
 
   const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
@@ -194,12 +198,14 @@ export default function PromptAnswerScreen({ route, navigation }) {
     if (!prompt?.id) return;
     setExistingAnswer(null);
     setAnswer("");
+    setIncludeInKeepsake(false);
     // Supabase-backed DataLayer is authoritative; cache is display-only fallback.
     try {
       const row = await DataLayer.getPromptAnswerForToday(prompt.id, prompt.dateKey);
       if (row?.answer) {
         setExistingAnswer(row);
         setAnswer(row.answer);
+        setIncludeInKeepsake(!!row.includeInKeepsake);
         if (isTodayBetweenUsPrompt(prompt) && row?.partnerAnswer) {
           const revealParams = {
             prompt: {
@@ -233,6 +239,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
       if (saved?.answer) {
         setExistingAnswer(saved);
         setAnswer(saved.answer);
+        setIncludeInKeepsake(!!saved.includeInKeepsake);
       }
     }
   }, [activePromptUserId, navigation, prompt]);
@@ -253,7 +260,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
   const handleSave = async () => {
     const finalText = answer.trim();
     if (!finalText || !prompt?.id || !prompt?.dateKey || savingRef.current) return;
-    if (answerIsLocked) return;
+    if (answerIsLocked && !keepsakeChanged) return;
 
     if (finalText.length > MAX_LEN) {
       Alert.alert(
@@ -294,6 +301,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
           answer: finalText,
           heatLevel: prompt?.heat || 1,
           dateKey: prompt.dateKey,
+          includeInKeepsake,
         });
         syncedAnswer = await DataLayer.getPromptAnswerForToday(prompt.id, prompt.dateKey);
       } catch (dataLayerError) {
@@ -308,6 +316,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
           userId: activePromptUserId || undefined,
           timestamp: Date.now(),
           isRevealed: isSyncedRevealed || existingAnswer?.isRevealed || false,
+          includeInKeepsake,
         });
       }
 
@@ -335,7 +344,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
 
       notification(NotificationFeedbackType.Success);
 
-      if (syncedAnswer?.partnerAnswer) {
+      if (!answerIsLocked && syncedAnswer?.partnerAnswer) {
         const revealParams = {
           prompt: {
             id: prompt.id,
@@ -447,6 +456,44 @@ export default function PromptAnswerScreen({ route, navigation }) {
           />
         </View>
       </Animated.View>
+
+      <Animated.View entering={FadeInDown.delay(100).springify().damping(18)}>
+        <TouchableOpacity
+          activeOpacity={0.82}
+          onPress={() => {
+            setIncludeInKeepsake((value) => !value);
+            impact(ImpactFeedbackStyle.Light);
+          }}
+          style={[
+            styles.keepsakeToggle,
+            {
+              backgroundColor: includeInKeepsake ? withAlpha(t.primary, 0.1) : t.surfaceGlass,
+              borderColor: includeInKeepsake ? withAlpha(t.primary, 0.34) : t.border,
+            },
+          ]}
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked: includeInKeepsake }}
+          accessibilityLabel={includeInKeepsake ? 'Remove this prompt from Keepsake' : 'Add this prompt to Keepsake'}
+        >
+          <View
+            style={[
+              styles.keepsakeCheck,
+              {
+                backgroundColor: includeInKeepsake ? t.primary : 'transparent',
+                borderColor: includeInKeepsake ? t.primary : withAlpha(t.text, 0.28),
+              },
+            ]}
+          >
+            {includeInKeepsake ? <Icon name="checkmark-outline" size={16} color="#FFFFFF" /> : null}
+          </View>
+          <View style={styles.keepsakeTextWrap}>
+            <Text style={[styles.keepsakeTitle, { color: t.text }]}>Add to Keepsake</Text>
+            <Text style={[styles.keepsakeSubtitle, { color: t.subtext }]}>
+              Save this question with both answers once you have revealed them.
+            </Text>
+          </View>
+        </TouchableOpacity>
+      </Animated.View>
     </EditorialScreenScaffold>
   );
 }
@@ -536,5 +583,38 @@ const createStyles = (t, isDark) =>
       textAlignVertical: "top",
       paddingTop: 0,
       minHeight: 150,
+    },
+    keepsakeToggle: {
+      borderRadius: 18,
+      borderWidth: StyleSheet.hairlineWidth,
+      padding: SPACING.md,
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 12,
+      ...getShadow(isDark),
+    },
+    keepsakeCheck: {
+      width: 26,
+      height: 26,
+      borderRadius: 13,
+      borderWidth: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    keepsakeTextWrap: {
+      flex: 1,
+    },
+    keepsakeTitle: {
+      fontFamily: SYSTEM_FONT,
+      fontSize: 15,
+      fontWeight: '800',
+      letterSpacing: 0,
+      marginBottom: 3,
+    },
+    keepsakeSubtitle: {
+      fontFamily: SYSTEM_FONT,
+      fontSize: 13,
+      fontWeight: '500',
+      lineHeight: 18,
     },
   });

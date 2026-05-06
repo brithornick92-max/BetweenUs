@@ -42,6 +42,7 @@ import { useTheme } from '../context/ThemeContext';
 // Utilities & Components
 import { impact, notification, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { SPACING, withAlpha } from '../utils/theme';
+import { dateOnlyToLocalDate } from '../utils/dateOnly';
 import { KEEPSAKE_CATEGORY_COLORS, SUPPORT_EMAIL } from '../config/constants';
 import GlowOrb from '../components/GlowOrb';
 import FilmGrain from '../components/FilmGrain';
@@ -187,8 +188,18 @@ export default function SettingsScreen({ navigation }) {
   const unlinkInFlightRef = useRef(false);
 
   const [selectedDate, setSelectedDate] = useState(
-    userProfile?.relationshipStartDate ? new Date(userProfile.relationshipStartDate) : new Date()
+    () => {
+      const today = new Date();
+      const nextDate = dateOnlyToLocalDate(userProfile?.relationshipStartDate);
+      return nextDate && nextDate <= today ? nextDate : today;
+    }
   );
+
+  useEffect(() => {
+    const today = new Date();
+    const nextDate = dateOnlyToLocalDate(userProfile?.relationshipStartDate);
+    if (nextDate) setSelectedDate(nextDate <= today ? nextDate : today);
+  }, [userProfile?.relationshipStartDate]);
 
   // ─── DERIVED VALUES ───
   const displayName = useMemo(
@@ -251,10 +262,19 @@ export default function SettingsScreen({ navigation }) {
 
 
   // ─── HANDLERS ───
-  const handleDatePickerDismiss = useCallback(() => {
+  const handleDatePickerDismiss = useCallback(async () => {
+    const today = new Date();
+    const dateToSave = selectedDate > today ? today : selectedDate;
+
     setShowDatePicker(false);
-    updateRelationshipStartDate(selectedDate.toISOString());
-    notification(NotificationFeedbackType.Success);
+    setSelectedDate(dateToSave);
+
+    try {
+      await updateRelationshipStartDate(dateToSave);
+      notification(NotificationFeedbackType.Success);
+    } catch (error) {
+      Alert.alert('Invalid Date', error?.message || 'Please choose today or an earlier anniversary date.');
+    }
   }, [selectedDate, updateRelationshipStartDate]);
 
   const handleSignOut = () => {
@@ -704,8 +724,10 @@ export default function SettingsScreen({ navigation }) {
                 value={selectedDate}
                 mode="date"
                 display="spinner"
+                maximumDate={new Date()}
                 onChange={(event, date) => {
-                  if (date) setSelectedDate(date);
+                  if (!date) return;
+                  setSelectedDate(date > new Date() ? new Date() : date);
                 }}
                 textColor={t.text}
                 style={styles.datePickerWidget}

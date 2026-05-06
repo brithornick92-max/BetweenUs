@@ -135,7 +135,6 @@ export default function PartnerNamesSettingsScreen({ navigation }) {
       navigation={navigation}
       headerTitle="Identity"
       headerSubtitle="ACTIVE PROFILE"
-      headerDescription="Choose the names Between Us uses across prompts, memories, dates, and notifications."
       screenAccentColor={t.primary}
       scroll={false}
       bodyStyle={styles.body}

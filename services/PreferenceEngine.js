@@ -15,6 +15,12 @@ import {
   ClimateInfluenceRouter,
   RelationshipClimateState,
 } from './ConnectionEngine';
+import { dateOnlyToLocalDate } from '../utils/dateOnly';
+import {
+  getHeatLevelRangePresetForProfile,
+  getPreferredHeatLevels,
+  profileAllowsHeatLevel,
+} from '../utils/heatLevelRanges';
 
 // ═══════════════════════════════════════════════════════
 // Ratings cache — loaded async so filterPrompts can read it sync
@@ -207,7 +213,11 @@ function getQuizInfluence(quiz = {}) {
  */
 async function getContentProfile(userProfile = {}) {
   // 1. Heat Level Preference (saved in user profile via HeatLevelSettingsScreen)
-  const heatLevelPref = userProfile?.heatLevelPreference || 5;
+  const heatLevelRange = getHeatLevelRangePresetForProfile(userProfile);
+  const preferredHeatLevels = getPreferredHeatLevels(userProfile);
+  const heatLevelPref = preferredHeatLevels.length > 0
+    ? Math.max(...preferredHeatLevels)
+    : (userProfile?.heatLevelPreference || 5);
 
   // 2. Relationship Season
   const seasonData = await RelationshipSeasons.get();
@@ -249,12 +259,18 @@ async function getContentProfile(userProfile = {}) {
   if (boundaries?.maxHeatOverride != null) caps.push(boundaries.maxHeatOverride);
   if (boundaries?.hideSpicy) caps.push(3);
   const effectiveMaxHeat = Math.min(...caps);
+  const effectiveAllowedHeatLevels = preferredHeatLevels.filter((level) => level <= effectiveMaxHeat);
 
   // Determine preferShort from season, energy, or quiz goal
   const preferShort = seasonInfluence.preferShort || energyParams.preferShort || quizInfluence.preferShort || false;
 
   return {
     heatLevel: heatLevelPref,
+    heatLevelPreference: heatLevelPref,
+    heatLevelRangeId: heatLevelRange.id,
+    heatLevelRangeLabel: heatLevelRange.title,
+    selectedHeatLevels: preferredHeatLevels,
+    allowedHeatLevels: effectiveAllowedHeatLevels,
     maxHeat: effectiveMaxHeat,
     season: {
       id: seasonId,
@@ -426,13 +442,15 @@ function filterPrompts(allPrompts, profile, options = {}) {
     tone,
     relationshipDuration,
   } = profile;
-
   // Phase 1: Eligibility filtering
   const eligible = allPrompts.filter((prompt) => {
     const heat = prompt.heat || 1;
 
     // Heat cap
     if (heat > maxHeat) return false;
+
+    // Selected heat range
+    if (!profileAllowsHeatLevel(profile, heat)) return false;
 
     // Hidden categories
     if (boundaries?.hiddenCategories?.includes(prompt.category)) return false;
@@ -557,7 +575,6 @@ function filterDatesWithProfile(allDates, profile, selectedDimensions = null) {
   if (!Array.isArray(allDates) || !profile) return allDates || [];
 
   const { maxHeat, boundaries, season, climate, preferShort, tone, energy } = profile;
-
   // Phase 1: Hard filters
   const eligible = allDates.filter((date) => {
     if (!date || typeof date !== 'object') return false;
@@ -570,6 +587,11 @@ function filterDatesWithProfile(allDates, profile, selectedDimensions = null) {
 
     // Heat cap
     if (typeof date.heat === 'number' && date.heat > maxHeat) return false;
+
+    // Selected heat range
+    if (typeof date.heat === 'number' && !profileAllowsHeatLevel(profile, date.heat)) {
+      return false;
+    }
 
     // If user selected specific heat, require it
     if (selectedDimensions?.heat != null && date.heat !== selectedDimensions.heat) return false;
@@ -805,7 +827,8 @@ function selectDailyPrompt(allPrompts, profile, dateKey, excludeIds) {
 function getDurationCategory(userProfile) {
   if (!userProfile?.relationshipStartDate) return 'universal';
 
-  const startDate = new Date(userProfile.relationshipStartDate);
+  const startDate = dateOnlyToLocalDate(userProfile.relationshipStartDate) || new Date(userProfile.relationshipStartDate);
+  if (Number.isNaN(startDate.getTime())) return 'universal';
   const now = new Date();
   const days = Math.ceil(Math.abs(now - startDate) / (1000 * 60 * 60 * 24));
 
@@ -908,6 +931,15 @@ function getPromptVisibilityState(prompt, profile) {
     };
   }
 
+  if (!profileAllowsHeatLevel(profile, heat)) {
+    return {
+      visible: false,
+      reason: 'preference-heat-range',
+      title: 'Outside your current settings',
+      message: 'This prompt is outside your selected heat range.',
+    };
+  }
+
   return { visible: true, reason: null, title: null, message: null };
 }
 
@@ -969,6 +1001,15 @@ function getDateVisibilityState(date, profile) {
       reason: 'settings-heat',
       title: 'Outside your current settings',
       message: 'This date idea is currently hidden by your active content settings.',
+    };
+  }
+
+  if (typeof date.heat === 'number' && !profileAllowsHeatLevel(profile, date.heat)) {
+    return {
+      visible: false,
+      reason: 'preference-heat-range',
+      title: 'Outside your current settings',
+      message: 'This date idea is outside your selected heat range.',
     };
   }
 

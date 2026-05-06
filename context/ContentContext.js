@@ -34,6 +34,7 @@ import {
   getMsUntilNextDailyContentRollover,
 } from '../utils/dailyContentDate';
 import { storage } from '../utils/storage';
+import { dateOnlyToLocalDate, isFutureLocalDate, normalizeDateOnlyKey } from '../utils/dateOnly';
 
 const ContentContext = createContext({});
 const DAILY_PROMPT_CACHE_KEY = '@betweenus:cache:dailyPromptSelection';
@@ -55,10 +56,29 @@ function getSharedPromptId(selection) {
   return selection?.value?.promptId || selection?.promptId || null;
 }
 
-function selectCanonicalCoupleDailyPrompt(dateKey, scope) {
+function getDailyPromptHeatFilters(profile = {}, isPremium = false) {
+  const heatLevels = contentAccessService.getAllowedHeatLevels(isPremium, profile);
+
+  if (!heatLevels.length) {
+    return {
+      minHeatLevel: 1,
+      maxHeatLevel: 0,
+      heatLevels: [],
+    };
+  }
+
+  return {
+    minHeatLevel: Math.min(...heatLevels),
+    maxHeatLevel: Math.max(...heatLevels),
+    heatLevels,
+  };
+}
+
+function selectCanonicalCoupleDailyPrompt(dateKey, scope, heatFilters = {}) {
   const promptPool = getTodayBetweenUsPrompts({
-    minHeatLevel: 1,
-    maxHeatLevel: 3,
+    minHeatLevel: heatFilters.minHeatLevel ?? 1,
+    maxHeatLevel: heatFilters.maxHeatLevel ?? 3,
+    heatLevels: heatFilters.heatLevels || [],
   })
     .filter((prompt) => prompt?.id && typeof prompt.text === 'string' && prompt.text.trim())
     .sort((a, b) => String(a.id).localeCompare(String(b.id)));
@@ -70,10 +90,7 @@ function selectCanonicalCoupleDailyPrompt(dateKey, scope) {
 }
 
 function normalizeRelationshipStartDate(value) {
-  if (!value) return null;
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) return null;
-  return parsed.toISOString();
+  return normalizeDateOnlyKey(value);
 }
 
 export const useContent = () => {
@@ -127,6 +144,7 @@ export const ContentProvider = ({ children }) => {
   const applyRelationshipStartDate = useCallback(async (startDate) => {
     const normalizedDate = normalizeRelationshipStartDate(startDate);
     if (!normalizedDate || !user) return false;
+    if (isFutureLocalDate(normalizedDate)) return false;
 
     await updateProfile({ relationshipStartDate: normalizedDate });
     return true;
@@ -177,7 +195,8 @@ export const ContentProvider = ({ children }) => {
   const getRelationshipDuration = useCallback(() => {
     if (!userProfile?.relationshipStartDate) return 0;
 
-    const startDate = new Date(userProfile.relationshipStartDate);
+    const startDate = dateOnlyToLocalDate(userProfile.relationshipStartDate) || new Date(userProfile.relationshipStartDate);
+    if (Number.isNaN(startDate.getTime())) return 0;
     const today = new Date();
     const diffTime = Math.abs(today - startDate);
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -256,7 +275,9 @@ export const ContentProvider = ({ children }) => {
         let sharedPrompt = sharedPromptId ? getPromptById(sharedPromptId) : null;
 
         if (!sharedPrompt?.text) {
-          sharedPrompt = selectCanonicalCoupleDailyPrompt(today, scope);
+          const profile = await loadContentProfile(options?.profileOverride || userProfile || {});
+          const heatFilters = getDailyPromptHeatFilters(profile || options?.profileOverride || userProfile || {}, isPremium);
+          sharedPrompt = selectCanonicalCoupleDailyPrompt(today, scope, heatFilters);
           if (sharedPrompt?.id) {
             await saveSharedDailyPromptSelection(today, sharedPrompt.id, user.uid, {
               fallbackCoupleId: coupleId,
@@ -312,20 +333,22 @@ export const ContentProvider = ({ children }) => {
 
       // Determine the daily pool from the persisted profile only so the day's
       // moment stays fixed regardless of which screen opens it first.
-      const effectiveHeat = contentAccessService.getUserMaxHeatLevel(
-        profile || options?.profileOverride || userProfile || {}
+      const dailyHeatFilters = getDailyPromptHeatFilters(
+        profile || options?.profileOverride || userProfile || {},
+        isPremium
       );
-      const dailyMaxHeat = Math.min(effectiveHeat, 3);
+
+      if (dailyHeatFilters.heatLevels.length === 0) {
+        throw new Error('No prompts available for your preferences');
+      }
 
       // Check if user can access this heat level
-      const accessCheck = await PremiumGatekeeper.canAccessPrompt(user.uid, dailyMaxHeat, isPremium);
+      const accessCheck = await PremiumGatekeeper.canAccessPrompt(user.uid, dailyHeatFilters.maxHeatLevel, isPremium);
       if (!accessCheck.canAccess) {
         throw new Error(accessCheck.message);
       }
 
-      let promptsData = getTodayBetweenUsPrompts({
-        maxHeatLevel: dailyMaxHeat,
-      });
+      let promptsData = getTodayBetweenUsPrompts(dailyHeatFilters);
 
       if (promptsData.length === 0) {
         throw new Error('No prompts available for your preferences');
@@ -501,6 +524,7 @@ export const ContentProvider = ({ children }) => {
 
       const normalizedDate = normalizeRelationshipStartDate(startDate);
       if (!normalizedDate) throw new Error('Invalid anniversary date');
+      if (isFutureLocalDate(normalizedDate)) throw new Error('Anniversary date cannot be in the future');
 
       await applyRelationshipStartDate(normalizedDate);
       const synced = await syncSharedAnniversary(normalizedDate);

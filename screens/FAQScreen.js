@@ -245,7 +245,7 @@ export default function FAQScreen({ navigation }) {
           title="Assistance"
           subtitle="KNOWLEDGE BASE"
           titleColor={colors.text}
-          subtitleColor={colors.textMuted}
+          subtitleColor={colors.primary}
           closeColor={colors.text}
           onClose={() => {
             selection();

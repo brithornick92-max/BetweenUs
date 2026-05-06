@@ -41,6 +41,8 @@ export default function RevealScreen({ route, navigation }) {
   }, [prompt, navigation]);
 
   const [isRevealed, setIsRevealed] = useState(!!userAnswer?.isRevealed);
+  const [includeInKeepsake, setIncludeInKeepsake] = useState(!!userAnswer?.includeInKeepsake);
+  const [isKeepsakeSaving, setIsKeepsakeSaving] = useState(false);
 
   // Handle partner states
   const [partnerAnswer, setPartnerAnswer] = useState(() => initialPartnerAnswer || null);
@@ -142,6 +144,7 @@ export default function RevealScreen({ route, navigation }) {
 
     if (row) {
       setPartnerAnswer(row.partnerAnswer || null);
+      setIncludeInKeepsake(!!row.includeInKeepsake);
     }
 
     if (row?.isRevealed || row?.is_revealed) {
@@ -252,15 +255,42 @@ export default function RevealScreen({ route, navigation }) {
   const isCompactReveal = revealStage === 'revealed';
 
   const handleSaveMoment = () => {
+    if (!prompt?.id || isKeepsakeSaving) return;
     selection();
-    navigation.navigate("AddMemory", {
-      source: 'prompt_reveal',
-      promptText: prompt.text,
-      myAnswer: userAnswer?.answer || '',
-      partnerAnswer: partnerAnswer || '',
-      myName,
-      partnerName,
-    });
+
+    const nextValue = !includeInKeepsake;
+    setIsKeepsakeSaving(true);
+
+    Promise.resolve()
+      .then(async () => {
+        const row = await DataLayer.getPromptAnswerForToday(prompt.id, prompt.dateKey).catch(() => null);
+        const answerText = row?.answer || userAnswer?.answer || '';
+        if (!answerText) return;
+
+        await DataLayer.savePromptAnswer({
+          promptId: prompt.id,
+          answer: answerText,
+          heatLevel: prompt?.heat || 1,
+          dateKey: prompt.dateKey,
+          includeInKeepsake: nextValue,
+        }).catch(() => {});
+
+        if (prompt.dateKey) {
+          const existing = activePromptUserId
+            ? await promptStorage.getAnswerForUser(prompt.dateKey, prompt.id, activePromptUserId)
+            : await promptStorage.getAnswer(prompt.dateKey, prompt.id);
+          await promptStorage.setAnswer(prompt.dateKey, prompt.id, {
+            ...(existing || userAnswer || {}),
+            answer: answerText,
+            userId: activePromptUserId || undefined,
+            includeInKeepsake: nextValue,
+          });
+        }
+
+        setIncludeInKeepsake(nextValue);
+        notification(NotificationFeedbackType.Success);
+      })
+      .finally(() => setIsKeepsakeSaving(false));
   };
 
   return (
@@ -392,9 +422,10 @@ export default function RevealScreen({ route, navigation }) {
               </View>
 
               <Button
-                title={revealCopy.primaryLabel}
+                title={includeInKeepsake ? 'In Keepsake' : 'Add to Keepsake'}
                 variant="outline"
                 onPress={handleSaveMoment}
+                disabled={isKeepsakeSaving}
                 style={styles.journalAction}
               />
               <TouchableOpacity

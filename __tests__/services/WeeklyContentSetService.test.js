@@ -54,6 +54,24 @@ const makePosition = (id, heat, category, accessibility, title = id) => ({
   shortSummary: `${title} summary`,
 });
 
+const makePositionCatalog = (count = 120) =>
+  Array.from({ length: count }, (_, index) =>
+    makePosition(
+      `position-${index + 1}`,
+      (index % 5) + 1,
+      ['deep-connection', 'playful-energy', 'exploratory', 'trust-vulnerability', 'sensual-rhythm'][index % 5],
+      ['low-mobility', 'standard', 'active'][index % 3],
+      `Position ${index + 1}`
+    )
+  );
+
+const cumulativeLimit = ({ start, weekly, weekNumber }) => start + (weekly * weekNumber);
+
+const countNewIds = (previousItems, currentItems) => {
+  const previousIds = new Set(previousItems.map((item) => item.id));
+  return currentItems.filter((item) => !previousIds.has(item.id)).length;
+};
+
 describe('WeeklyContentSetService', () => {
   const prompts = [
     makePrompt('p1', 1, 'emotional'),
@@ -94,6 +112,134 @@ describe('WeeklyContentSetService', () => {
       freeOngoing: FREE_LIMITS.WEEKLY_POSITIONS,
       premiumStart: PREMIUM_LIMITS.WEEK_0_POSITIONS,
       premium: PREMIUM_LIMITS.WEEKLY_POSITIONS,
+    });
+  });
+
+  it('never exceeds cumulative free or premium entitlement caps', () => {
+    const date = new Date('2026-05-25T12:00:00.000Z');
+    const weekNumber = getUserWeekNumber(TEST_DATE, date);
+    const scenarios = [
+      {
+        contentType: CONTENT_TYPES.PROMPTS,
+        items: makePromptCatalog(120),
+        freeStart: FREE_LIMITS.WEEK_0_PROMPTS,
+        freeWeekly: FREE_LIMITS.WEEKLY_PROMPTS,
+        premiumStart: PREMIUM_LIMITS.WEEK_0_PROMPTS,
+        premiumWeekly: PREMIUM_LIMITS.WEEKLY_PROMPTS,
+      },
+      {
+        contentType: CONTENT_TYPES.DATES,
+        items: makeDateCatalog(300),
+        freeStart: FREE_LIMITS.WEEK_0_DATES,
+        freeWeekly: FREE_LIMITS.WEEKLY_DATES,
+        premiumStart: PREMIUM_LIMITS.WEEK_0_DATES,
+        premiumWeekly: PREMIUM_LIMITS.WEEKLY_DATES,
+      },
+      {
+        contentType: CONTENT_TYPES.POSITIONS,
+        items: makePositionCatalog(120),
+        freeStart: FREE_LIMITS.WEEK_0_POSITIONS,
+        freeWeekly: FREE_LIMITS.WEEKLY_POSITIONS,
+        premiumStart: PREMIUM_LIMITS.WEEK_0_POSITIONS,
+        premiumWeekly: PREMIUM_LIMITS.WEEKLY_POSITIONS,
+      },
+    ];
+
+    scenarios.forEach((scenario) => {
+      const freeCap = cumulativeLimit({
+        start: scenario.freeStart,
+        weekly: scenario.freeWeekly,
+        weekNumber,
+      });
+      const premiumCap = cumulativeLimit({
+        start: scenario.premiumStart,
+        weekly: scenario.premiumWeekly,
+        weekNumber,
+      });
+
+      const freeSet = buildWeeklySet(scenario.items, {
+        contentType: scenario.contentType,
+        userId: `free-${scenario.contentType}`,
+        isPremium: false,
+        userSettings: { maxHeat: 5 },
+        userCreatedAt: TEST_DATE,
+        date,
+      });
+      const premiumSet = buildWeeklySet(scenario.items, {
+        contentType: scenario.contentType,
+        userId: `premium-${scenario.contentType}`,
+        isPremium: true,
+        userSettings: { maxHeat: 5 },
+        userCreatedAt: TEST_DATE,
+        date,
+      });
+
+      expect(freeSet.items.length).toBeLessThanOrEqual(freeCap);
+      expect(freeSet.unlocked.length).toBeLessThanOrEqual(freeCap);
+      expect(freeSet.lockedPreviews).toHaveLength(0);
+      expect(premiumSet.items.length).toBeLessThanOrEqual(premiumCap);
+      expect(premiumSet.unlocked.length).toBeLessThanOrEqual(premiumCap);
+      expect(premiumSet.lockedPreviews).toHaveLength(0);
+    });
+  });
+
+  it('does not add more than the weekly drop between adjacent weeks', () => {
+    const previousDate = new Date('2026-05-03T12:00:00.000Z');
+    const currentDate = new Date('2026-05-04T12:00:00.000Z');
+    const scenarios = [
+      {
+        contentType: CONTENT_TYPES.PROMPTS,
+        items: makePromptCatalog(120),
+        freeWeekly: FREE_LIMITS.WEEKLY_PROMPTS,
+        premiumWeekly: PREMIUM_LIMITS.WEEKLY_PROMPTS,
+      },
+      {
+        contentType: CONTENT_TYPES.DATES,
+        items: makeDateCatalog(300),
+        freeWeekly: FREE_LIMITS.WEEKLY_DATES,
+        premiumWeekly: PREMIUM_LIMITS.WEEKLY_DATES,
+      },
+      {
+        contentType: CONTENT_TYPES.POSITIONS,
+        items: makePositionCatalog(120),
+        freeWeekly: FREE_LIMITS.WEEKLY_POSITIONS,
+        premiumWeekly: PREMIUM_LIMITS.WEEKLY_POSITIONS,
+      },
+    ];
+
+    scenarios.forEach((scenario) => {
+      const common = {
+        contentType: scenario.contentType,
+        userSettings: { maxHeat: 5 },
+        userCreatedAt: TEST_DATE,
+      };
+      const previousFree = buildWeeklySet(scenario.items, {
+        ...common,
+        userId: `free-${scenario.contentType}`,
+        isPremium: false,
+        date: previousDate,
+      });
+      const currentFree = buildWeeklySet(scenario.items, {
+        ...common,
+        userId: `free-${scenario.contentType}`,
+        isPremium: false,
+        date: currentDate,
+      });
+      const previousPremium = buildWeeklySet(scenario.items, {
+        ...common,
+        userId: `premium-${scenario.contentType}`,
+        isPremium: true,
+        date: previousDate,
+      });
+      const currentPremium = buildWeeklySet(scenario.items, {
+        ...common,
+        userId: `premium-${scenario.contentType}`,
+        isPremium: true,
+        date: currentDate,
+      });
+
+      expect(countNewIds(previousFree.items, currentFree.items)).toBeLessThanOrEqual(scenario.freeWeekly);
+      expect(countNewIds(previousPremium.items, currentPremium.items)).toBeLessThanOrEqual(scenario.premiumWeekly);
     });
   });
 

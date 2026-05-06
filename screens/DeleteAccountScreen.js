@@ -98,9 +98,7 @@ export default function DeleteAccountScreen({ navigation }) {
     <EditorialScreenScaffold
       navigation={navigation}
       headerTitle="Delete Account"
-      heroIcon="warning-outline"
-      heroSubtitle="This action is permanent and cannot be undone."
-      heroTint={t.danger}
+      headerSubtitle="ACCOUNT DELETION"
       keyboardAvoiding
     >
           {/* ─── What Will Be Deleted (Danger Card) ─── */}

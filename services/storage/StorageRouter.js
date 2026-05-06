@@ -48,6 +48,14 @@ function buildCloudProfileUpdates(localProfile = {}) {
     preferences.heatLevelPreference = localProfile.heatLevelPreference;
   }
 
+  if (typeof localProfile?.heatLevelRangeId === 'string' && localProfile.heatLevelRangeId.trim()) {
+    preferences.heatLevelRangeId = localProfile.heatLevelRangeId.trim();
+  }
+
+  if (Array.isArray(localProfile?.allowedHeatLevels)) {
+    preferences.allowedHeatLevels = localProfile.allowedHeatLevels;
+  }
+
   if (typeof localProfile?.onboardingCompleted === 'boolean') {
     preferences.onboardingCompleted = localProfile.onboardingCompleted;
   }
@@ -134,6 +142,12 @@ function buildCanonicalLocalProfile(localProfile = {}, remoteProfile = null) {
       : {}),
     ...(typeof remotePrefs.heatLevelPreference !== 'undefined'
       ? { heatLevelPreference: remotePrefs.heatLevelPreference }
+      : {}),
+    ...(typeof remotePrefs.heatLevelRangeId === 'string' && remotePrefs.heatLevelRangeId.trim()
+      ? { heatLevelRangeId: remotePrefs.heatLevelRangeId.trim() }
+      : {}),
+    ...(Array.isArray(remotePrefs.allowedHeatLevels)
+      ? { allowedHeatLevels: remotePrefs.allowedHeatLevels }
       : {}),
     ...(typeof remotePrefs.onboardingCompleted === 'boolean'
       ? { onboardingCompleted: remotePrefs.onboardingCompleted }
@@ -595,6 +609,9 @@ class StorageRouter {
     if (filters.category) dates = dates.filter((d) => d.category === filters.category);
     if (filters.heat) dates = dates.filter((d) => d.heat === filters.heat);
     if (typeof filters.heatLevel === 'number') dates = dates.filter((d) => d.heat === filters.heatLevel);
+    if (Array.isArray(filters.heatLevels) && filters.heatLevels.length > 0) {
+      dates = dates.filter((d) => filters.heatLevels.includes(d.heat));
+    }
     if (Array.isArray(filters.categories) && filters.categories.length > 0) {
       dates = dates.filter((d) => filters.categories.includes(d.category));
     }

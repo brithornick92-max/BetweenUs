@@ -28,6 +28,7 @@ describe('OurStory Keepsake entry building', () => {
           date_key: '2026-04-28',
           created_at: '2026-04-28T12:00:00.000Z',
           is_revealed: false,
+          includeInKeepsake: true,
         },
         {
           id: 'quiz-1',
@@ -36,6 +37,7 @@ describe('OurStory Keepsake entry building', () => {
           date_key: '2026-04-28',
           created_at: '2026-04-28T12:01:00.000Z',
           is_revealed: false,
+          includeInKeepsake: true,
         },
       ],
       personalMemories: [
@@ -124,6 +126,75 @@ describe('OurStory Keepsake entry building', () => {
     expect(entries.find((entry) => entry.kind === 'date_saved').accent).toBe(KEEPSAKE_CATEGORY_COLORS.date);
     expect(entries.find((entry) => entry.kind === 'position_tried').accent).toBe(KEEPSAKE_CATEGORY_COLORS.position);
     expect(entries.find((entry) => entry.kind === 'position_favorite').accent).toBe(KEEPSAKE_CATEGORY_COLORS.position);
+  });
+
+  it('only includes prompts explicitly added to Keepsake and combines couple answers into one entry', async () => {
+    const entries = await buildKeepsakeEntriesFromSources({
+      currentUserId: 'user-1',
+      keepsakeSettingsRaw: {
+        prompts: true,
+        memories: false,
+        dates: false,
+        positions: false,
+      },
+      sharedPrompts: [
+        {
+          id: 'my-prompt-1',
+          user_id: 'user-1',
+          prompt_id: 'h1_001',
+          answer: 'My answer',
+          partnerAnswer: 'Partner answer',
+          date_key: '2026-04-28',
+          created_at: '2026-04-28T12:00:00.000Z',
+          is_revealed: true,
+          includeInKeepsake: true,
+        },
+        {
+          id: 'partner-prompt-1',
+          user_id: 'user-2',
+          prompt_id: 'h1_001',
+          answer: 'Partner answer',
+          date_key: '2026-04-28',
+          created_at: '2026-04-28T12:01:00.000Z',
+          is_revealed: true,
+          includeInKeepsake: false,
+        },
+        {
+          id: 'my-prompt-2',
+          user_id: 'user-1',
+          prompt_id: 'h1_002',
+          answer: 'Not selected',
+          date_key: '2026-04-28',
+          created_at: '2026-04-28T12:02:00.000Z',
+          is_revealed: false,
+          includeInKeepsake: false,
+        },
+      ],
+      personalPrompts: [
+        {
+          id: 'my-prompt-1',
+          user_id: 'user-1',
+          prompt_id: 'h1_001',
+          answer: 'My answer',
+          date_key: '2026-04-28',
+          created_at: '2026-04-28T12:00:00.000Z',
+          is_revealed: true,
+          includeInKeepsake: true,
+        },
+      ],
+    });
+
+    expect(entries).toHaveLength(1);
+    expect(entries[0]).toEqual(expect.objectContaining({
+      kind: 'prompt',
+      sourceId: 'my-prompt-1',
+      contentId: 'h1_001',
+      title: expect.any(String),
+    }));
+    expect(entries[0].answers).toEqual([
+      { name: 'You', text: 'My answer' },
+      { name: 'Partner', text: 'Partner answer' },
+    ]);
   });
 
   it('builds dates tried and positions tried directly from memory rows', async () => {

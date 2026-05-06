@@ -471,6 +471,7 @@ describe('SupabaseDataLayer memory snapshots', () => {
       promptId: 'prompt-1',
       answer: 'Local answer',
       heatLevel: 2,
+      includeInKeepsake: true,
       _createdAt: '2026-04-30T12:00:00.000Z',
     });
 
@@ -483,6 +484,7 @@ describe('SupabaseDataLayer memory snapshots', () => {
       couple_id: null,
       prompt_id: 'prompt-1',
       answer: 'Local answer',
+      includeInKeepsake: true,
       sync_status: 'pending',
     }));
     expect(rows).toEqual(expect.arrayContaining([
@@ -490,6 +492,7 @@ describe('SupabaseDataLayer memory snapshots', () => {
         id: saved.id,
         prompt_id: 'prompt-1',
         answer: 'Local answer',
+        includeInKeepsake: true,
       }),
     ]));
   });

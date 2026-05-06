@@ -89,6 +89,14 @@ export function buildAccountExport({ user, userProfile } = {}) {
       userProfile?.heatLevelPreference
       ?? preferences?.heatLevelPreference
       ?? null,
+    heatLevelRangeId:
+      userProfile?.heatLevelRangeId
+      ?? preferences?.heatLevelRangeId
+      ?? null,
+    allowedHeatLevels:
+      userProfile?.allowedHeatLevels
+      ?? preferences?.allowedHeatLevels
+      ?? null,
     onboardingCompleted:
       userProfile?.onboardingCompleted
       ?? preferences?.onboardingCompleted

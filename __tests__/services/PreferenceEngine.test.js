@@ -102,6 +102,21 @@ describe('PreferenceEngine', () => {
       expect(profile.maxHeat).toBe(3);
       expect(profile.boundaries.hideSpicy).toBe(true);
     });
+
+    it('maps a saved heat range into selected and allowed heat levels', async () => {
+      currentEnergyLevel = 'open';
+
+      const profile = await PreferenceEngine.getContentProfile({
+        heatLevelRangeId: 'high_heat',
+        allowedHeatLevels: [3, 4, 5],
+        heatLevelPreference: 5,
+      });
+
+      expect(profile.heatLevelRangeId).toBe('high_heat');
+      expect(profile.selectedHeatLevels).toEqual([3, 4, 5]);
+      expect(profile.allowedHeatLevels).toEqual([3, 4, 5]);
+      expect(profile.maxHeat).toBe(5);
+    });
   });
 
   describe('filterPrompts', () => {
@@ -127,6 +142,19 @@ describe('PreferenceEngine', () => {
       expect(filtered.map((prompt) => prompt.id)).toEqual(['prompt-romance']);
     });
 
+    it('filters prompts outside the selected heat range', async () => {
+      currentEnergyLevel = 'open';
+
+      const profile = await PreferenceEngine.getContentProfile({
+        heatLevelRangeId: 'high_heat',
+        allowedHeatLevels: [3, 4, 5],
+        heatLevelPreference: 5,
+      });
+      const filtered = PreferenceEngine.filterPrompts(prompts, profile);
+
+      expect(filtered.map((prompt) => prompt.id)).toEqual(['prompt-kinky', 'prompt-hot']);
+    });
+
     it('shouldShowPrompt returns false for blocked prompts', async () => {
       SoftBoundaries.getAll.mockResolvedValue({
         hideSpicy: true,
@@ -142,6 +170,24 @@ describe('PreferenceEngine', () => {
       expect(PreferenceEngine.shouldShowPrompt({ id: 'prompt-kinky', category: 'kinky', heat: 2 }, profile)).toBe(false);
       expect(PreferenceEngine.shouldShowPrompt({ id: 'prompt-hot', category: 'playful', heat: 5 }, profile)).toBe(false);
       expect(PreferenceEngine.shouldShowPrompt({ id: 'prompt-ok', category: 'romance', heat: 2 }, profile)).toBe(true);
+    });
+
+    it('shouldShowPrompt returns false for prompts outside the selected heat range', async () => {
+      currentEnergyLevel = 'open';
+
+      const profile = await PreferenceEngine.getContentProfile({
+        heatLevelRangeId: 'high_heat',
+        allowedHeatLevels: [3, 4, 5],
+        heatLevelPreference: 5,
+      });
+
+      const visibility = PreferenceEngine.getPromptVisibilityState(
+        { id: 'prompt-soft', category: 'romance', heat: 1 },
+        profile,
+      );
+
+      expect(visibility.visible).toBe(false);
+      expect(visibility.reason).toBe('preference-heat-range');
     });
 
     it('reports a non-boundary reason when heat is capped by energy instead', async () => {

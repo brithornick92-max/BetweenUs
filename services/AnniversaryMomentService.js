@@ -1,20 +1,18 @@
 import { storage } from '../utils/storage';
+import {
+  dateOnlyToLocalDate,
+  formatLocalDateKey,
+  normalizeDateOnlyKey,
+} from '../utils/dateOnly';
 
 const POPUP_SEEN_KEY_PREFIX = '@betweenus:anniversaryPopupSeen';
 const GENERATED_EVENT_PREFIX = 'generated_anniversary';
 
 export function normalizeAnniversaryDate(value) {
   if (!value) return null;
-  if (typeof value === 'string') {
-    const dateMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
-    if (dateMatch) {
-      const year = Number(dateMatch[1]);
-      const month = Number(dateMatch[2]) - 1;
-      const day = Number(dateMatch[3]);
-      const parsedDate = new Date(year, month, day);
-      if (!Number.isNaN(parsedDate.getTime())) return parsedDate;
-    }
-  }
+
+  const dateOnly = normalizeDateOnlyKey(value);
+  if (dateOnly) return dateOnlyToLocalDate(dateOnly);
 
   const parsed = value instanceof Date ? value : new Date(value);
   if (Number.isNaN(parsed.getTime())) return null;
@@ -147,7 +145,7 @@ function getOrdinalSuffix(value) {
 function toDisplayDateKey(value) {
   const date = normalizeAnniversaryDate(value);
   if (!date) return '';
-  return `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
+  return formatLocalDateKey(date) || '';
 }
 
 export default {
