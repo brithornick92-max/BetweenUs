@@ -90,4 +90,23 @@ describe('CouplePresenceService', () => {
     expect(deps.storageApi.remove).toHaveBeenCalledWith('@betweenus:cache:partnerProfile');
     expect(onProfileCleared).toHaveBeenCalledWith({ coupleId: null });
   });
+
+  it('does not turn a completed server unlink into a client failure when local cleanup is flaky', async () => {
+    const { unlinkCouple } = require('../../services/couple/CouplePresenceService');
+    const deps = createDeps({ remoteCoupleId: null });
+    const onProfileCleared = jest.fn().mockRejectedValueOnce(new Error('profile cache unavailable'));
+
+    deps.storageApi.remove.mockRejectedValueOnce(new Error('storage unavailable'));
+    clearCouplePremiumCache.mockRejectedValueOnce(new Error('premium cache unavailable'));
+
+    await expect(unlinkCouple({
+      coupleId: 'couple-1',
+      userId: 'user-1',
+      onProfileCleared,
+      dependencies: deps,
+    })).resolves.toBe(true);
+
+    expect(deps.coupleService.unlinkFromCouple).toHaveBeenCalledTimes(1);
+    expect(onProfileCleared).toHaveBeenCalledWith({ coupleId: null });
+  });
 });

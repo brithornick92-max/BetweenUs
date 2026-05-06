@@ -9,6 +9,7 @@
 import * as FileSystem from 'expo-file-system';
 import { randomUUID } from 'expo-crypto';
 import { supabase, TABLES } from '../config/supabase';
+import { bytesFromBase64 } from '../utils/base64Bytes';
 
 const WHISPER_BUCKET = 'whispers';
 
@@ -23,7 +24,7 @@ async function upload({ fileUri, coupleId, senderId, durationMs }) {
   const fileB64 = await FileSystem.readAsStringAsync(fileUri, {
     encoding: FileSystem.EncodingType.Base64,
   });
-  const bytes = Uint8Array.from(atob(fileB64), c => c.charCodeAt(0));
+  const bytes = bytesFromBase64(fileB64);
 
   const { error: uploadError } = await supabase.storage
     .from(WHISPER_BUCKET)

@@ -6,6 +6,7 @@ import { useEntitlements } from './EntitlementsContext';
 import { updateWidgetPartnerName } from '../services/widgetData';
 import { NicknameEngine } from '../services/PolishEngine';
 import { getVerifiedCoupleState, unlinkCouple } from '../services/couple/CouplePresenceService';
+import { APP_LOCK_MODES, normalizeAppLockMode } from '../utils/appLockAuth';
 
 const initialState = {
   userId: null,
@@ -18,6 +19,9 @@ const initialState = {
   isLoading: true,
   userProfile: null,
   appLockEnabled: false,
+  appLockMode: APP_LOCK_MODES.DEVICE,
+  appLockAutoLockTime: 5,
+  hidePreview: false,
   
   // Premium Value Loop State
   currentVibe: null,
@@ -44,6 +48,7 @@ const ACTIONS = {
   LEAVE_COUPLE: 'LEAVE_COUPLE',
   JOIN_COUPLE: 'JOIN_COUPLE',
   SET_APP_LOCK: 'SET_APP_LOCK',
+  SET_APP_LOCK_SETTINGS: 'SET_APP_LOCK_SETTINGS',
   UPDATE_PARTNER_ACTIVITY: 'UPDATE_PARTNER_ACTIVITY',
 };
 
@@ -117,6 +122,14 @@ function reducer(state, action) {
       };
     case ACTIONS.SET_APP_LOCK:
       return { ...state, appLockEnabled: action.payload };
+    case ACTIONS.SET_APP_LOCK_SETTINGS:
+      return {
+        ...state,
+        appLockEnabled: !!action.payload?.enabled,
+        appLockMode: normalizeAppLockMode(action.payload?.mode),
+        appLockAutoLockTime: action.payload?.autoLockTime ?? state.appLockAutoLockTime,
+        hidePreview: action.payload?.hidePreview ?? state.hidePreview,
+      };
     case ACTIONS.UPDATE_PARTNER_ACTIVITY:
       return { ...state, lastPartnerActivity: action.payload };
     default:
@@ -146,6 +159,9 @@ export function AppProvider({ children }) {
       userProfile,
       coupleId,
       appLockEnabled,
+      appLockMode,
+      appLockAutoLockTime,
+      hidePreview,
       lastPartnerActivity,
     }) => {
       if (!active) return;
@@ -158,6 +174,9 @@ export function AppProvider({ children }) {
           coupleId: coupleId || null,
           isLinked: !!coupleId,
           appLockEnabled: !!appLockEnabled,
+          appLockMode: normalizeAppLockMode(appLockMode),
+          appLockAutoLockTime: appLockAutoLockTime ?? 5,
+          hidePreview: !!hidePreview,
           isPremium: isPremiumRef.current,
           isCouplePremium: isCouplePremiumRef.current,
           lastPartnerActivity: coupleId ? lastPartnerActivity : null,
@@ -179,6 +198,7 @@ export function AppProvider({ children }) {
         legacyPartnerLabel,
         coupleId,
         appLockEnabled,
+        privacySettings,
         lastPartnerActivity
         ] = await Promise.all([
           storage.get(STORAGE_KEYS.ONBOARDING_COMPLETED, false),
@@ -186,6 +206,7 @@ export function AppProvider({ children }) {
           storage.get(STORAGE_KEYS.PARTNER_LABEL, null),
           storage.get(STORAGE_KEYS.COUPLE_ID, null),
           settingsStorage.getAppLockEnabled(),
+          settingsStorage.getPrivacySettings(),
           storage.get(STORAGE_KEYS.LAST_PARTNER_ACTIVITY, null),
         ]);
 
@@ -206,6 +227,9 @@ export function AppProvider({ children }) {
         userProfile: hydratedUserProfile,
         coupleId: resolvedCoupleId,
         appLockEnabled,
+        appLockMode: privacySettings?.appLockMode || (privacySettings?.biometricsEnabled ? APP_LOCK_MODES.BIOMETRIC : APP_LOCK_MODES.DEVICE),
+        appLockAutoLockTime: privacySettings?.autoLockTime ?? 5,
+        hidePreview: privacySettings?.hidePreview ?? false,
         lastPartnerActivity: effectivePartnerActivity,
       });
 
@@ -448,6 +472,31 @@ export function AppProvider({ children }) {
     setAppLockEnabled: async (enabled) => {
       await settingsStorage.setAppLockEnabled(enabled);
       dispatch({ type: ACTIONS.SET_APP_LOCK, payload: enabled });
+    },
+
+    setAppLockSettings: async ({ enabled, mode, autoLockTime, hidePreview } = {}) => {
+      const normalizedMode = normalizeAppLockMode(mode);
+      const currentSettings = await settingsStorage.getPrivacySettings();
+      const nextAutoLockTime = autoLockTime ?? currentSettings?.autoLockTime ?? 5;
+      const nextHidePreview = hidePreview ?? currentSettings?.hidePreview ?? false;
+      await settingsStorage.setPrivacySettings({
+        ...(currentSettings && typeof currentSettings === 'object' ? currentSettings : {}),
+        appLockEnabled: !!enabled,
+        appLockMode: normalizedMode,
+        biometricsEnabled: normalizedMode === APP_LOCK_MODES.BIOMETRIC,
+        autoLockTime: nextAutoLockTime,
+        hidePreview: !!nextHidePreview,
+      });
+      await settingsStorage.setAppLockEnabled(!!enabled);
+      dispatch({
+        type: ACTIONS.SET_APP_LOCK_SETTINGS,
+        payload: {
+          enabled: !!enabled,
+          mode: normalizedMode,
+          autoLockTime: nextAutoLockTime,
+          hidePreview: !!nextHidePreview,
+        },
+      });
     },
     
     updatePartnerActivity: async () => {

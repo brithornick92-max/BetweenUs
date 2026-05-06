@@ -33,6 +33,11 @@ import { withAlpha, SPACING } from "../utils/theme";
 import GlowOrb from "../components/GlowOrb";
 import FilmGrain from "../components/FilmGrain";
 import CloseScreenHeader, { CLOSE_HEADER_STYLES } from "../components/CloseScreenHeader";
+import {
+  PHOTO_LIBRARY_PRIVACY_NOTE,
+  PRIVATE_MEDIA_PICKER_OPTIONS,
+} from "../utils/photoLibraryPrivacy";
+import { stripPhotoMetadataFromAsset } from "../utils/mediaPrivacy";
 
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
 const SERIF_FONT = Platform.select({ ios: 'Georgia', android: 'serif' });
@@ -174,14 +179,27 @@ export default function JournalEntryScreen({ navigation, route }) {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ['images', 'videos'],
+        ...PRIVATE_MEDIA_PICKER_OPTIONS,
         quality: 0.85,
         allowsEditing: false,
       });
 
       if (!result.canceled && result.assets?.[0]?.uri) {
-        const asset = result.assets[0];
+        const pickedAsset = result.assets[0];
+        const maxBytes = pickedAsset.type === 'video' ? 25_000_000 : 5_000_000;
+
+        if (pickedAsset.fileSize && pickedAsset.fileSize > maxBytes) {
+          Alert.alert(
+            pickedAsset.type === 'video' ? 'Video Too Large' : 'Image Too Large',
+            pickedAsset.type === 'video' ? 'Please choose a video under 25 MB.' : 'Please choose a photo under 5 MB.'
+          );
+          return;
+        }
+
+        const asset = await stripPhotoMetadataFromAsset(pickedAsset, {
+          fileNamePrefix: 'journal',
+        });
         const assetMimeType = asset.mimeType || (asset.type === 'video' ? 'video/quicktime' : 'image/jpeg');
-        const maxBytes = asset.type === 'video' ? 25_000_000 : 5_000_000;
 
         if (asset.fileSize && asset.fileSize > maxBytes) {
           Alert.alert(
@@ -201,7 +219,7 @@ export default function JournalEntryScreen({ navigation, route }) {
       }
     } catch (err) {
       if (__DEV__) console.warn('[JournalEntry] Media pick failed:', err?.message);
-      Alert.alert("Error", "Couldn't open your library.");
+      Alert.alert("Error", "Couldn't open or prepare your library selection.");
     }
   };
 
@@ -355,6 +373,11 @@ export default function JournalEntryScreen({ navigation, route }) {
                   </Text>
                 </TouchableOpacity>
               )}
+              {!mediaUri && !isReadOnly ? (
+                <Text style={[styles.photoPrivacyNote, { color: colors.textMuted }]}>
+                  {PHOTO_LIBRARY_PRIVACY_NOTE}
+                </Text>
+              ) : null}
             </Animated.View>
 
             <Animated.View entering={FadeInDown.delay(300).duration(800)} style={styles.writingSurface}>
@@ -551,6 +574,14 @@ const createStyles = (colors) => StyleSheet.create({
     fontFamily: SYSTEM_FONT,
     fontSize: 14,
     fontWeight: '500',
+  },
+  photoPrivacyNote: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 12,
+    lineHeight: 17,
+    fontWeight: '500',
+    marginTop: 10,
+    textAlign: 'center',
   },
   writingSurface: {
     marginBottom: SPACING.xxxl,

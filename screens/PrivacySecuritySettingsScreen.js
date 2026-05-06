@@ -30,6 +30,13 @@ import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
 import { useAppContext } from '../context/AppContext';
 import { settingsStorage } from '../utils/storage';
+import {
+  APP_LOCK_MODES,
+  buildAppLockAuthOptions,
+  getBiometricLabel,
+  isDeviceAuthAvailable,
+  normalizeAppLockMode,
+} from '../utils/appLockAuth';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
@@ -51,9 +58,10 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
   const styles = useMemo(() => createStyles(colors, isDark, theme), [colors, isDark, theme]);
 
   const [appLockEnabled, setAppLockEnabled] = useState(false);
-  const [biometricsEnabled, setBiometricsEnabled] = useState(false);
   const [biometricsAvailable, setBiometricsAvailable] = useState(false);
+  const [deviceAuthAvailable, setDeviceAuthAvailable] = useState(false);
   const [biometricType, setBiometricType] = useState('');
+  const [appLockMode, setAppLockMode] = useState(APP_LOCK_MODES.DEVICE);
   const [autoLockTime, setAutoLockTime] = useState(5); // minutes
   const [hidePreview, setHidePreview] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -65,21 +73,19 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
 
   const checkBiometrics = async () => {
     try {
-      const compatible = await LocalAuthentication.hasHardwareAsync();
-      const enrolled = await LocalAuthentication.isEnrolledAsync();
+      const [compatible, enrolled, enrolledLevel] = await Promise.all([
+        LocalAuthentication.hasHardwareAsync().catch(() => false),
+        LocalAuthentication.isEnrolledAsync().catch(() => false),
+        LocalAuthentication.getEnrolledLevelAsync().catch(() => LocalAuthentication.SecurityLevel.NONE),
+      ]);
       const available = compatible && enrolled;
       
       setBiometricsAvailable(available);
+      setDeviceAuthAvailable(isDeviceAuthAvailable(enrolledLevel, LocalAuthentication, available));
 
       if (available) {
         const types = await LocalAuthentication.supportedAuthenticationTypesAsync();
-        if (types.includes(LocalAuthentication.AuthenticationType.FACIAL_RECOGNITION)) {
-          setBiometricType('Face ID');
-        } else if (types.includes(LocalAuthentication.AuthenticationType.FINGERPRINT)) {
-          setBiometricType('Touch ID');
-        } else {
-          setBiometricType('Biometrics');
-        }
+        setBiometricType(getBiometricLabel(types, LocalAuthentication));
       }
     } catch (error) {
       if (__DEV__) console.error('Failed to check biometrics:', error);
@@ -91,7 +97,8 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
       const settings = await settingsStorage.getPrivacySettings();
       if (settings) {
         setAppLockEnabled(settings.appLockEnabled ?? false);
-        setBiometricsEnabled(settings.biometricsEnabled ?? false);
+        const nextMode = normalizeAppLockMode(settings.appLockMode || (settings.biometricsEnabled ? APP_LOCK_MODES.BIOMETRIC : APP_LOCK_MODES.DEVICE));
+        setAppLockMode(nextMode);
         setAutoLockTime(settings.autoLockTime ?? 5);
         setHidePreview(settings.hidePreview ?? false);
       }
@@ -101,22 +108,28 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
   };
 
   const handleToggleAppLock = async (value) => {
-    if (value && biometricsAvailable) {
+    if (value && deviceAuthAvailable) {
+      const modeToUse = appLockMode === APP_LOCK_MODES.BIOMETRIC && !biometricsAvailable
+        ? APP_LOCK_MODES.DEVICE
+        : appLockMode;
       const result = await LocalAuthentication.authenticateAsync({
-        promptMessage: 'Authenticate to enable app lock',
-        fallbackLabel: 'Use passcode',
+        ...buildAppLockAuthOptions({
+          mode: modeToUse,
+          promptMessage: 'Authenticate to enable app lock',
+        }),
       });
 
       if (result.success) {
         setAppLockEnabled(true);
-        impact(ImpactFeedbackStyle.Success);
+        setAppLockMode(modeToUse);
+        notification(NotificationFeedbackType.Success);
       } else {
         Alert.alert('Authentication Failed', 'Please try again.');
       }
-    } else if (value && !biometricsAvailable) {
+    } else if (value && !deviceAuthAvailable) {
       Alert.alert(
-        'Biometrics Not Available',
-        'Please set up Face ID or Touch ID in your device settings to use app lock.',
+        'Device Lock Not Available',
+        'Set up a device passcode, Face ID, or Touch ID in your device settings to use Vault Lock.',
         [
           { text: 'Cancel', style: 'cancel' },
           { text: 'Open Settings', onPress: () => LocalAuthentication.openSettingsAsync?.() },
@@ -124,36 +137,58 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
       );
     } else {
       setAppLockEnabled(false);
-      setBiometricsEnabled(false);
       impact(ImpactFeedbackStyle.Light);
     }
   };
 
-  const handleToggleBiometrics = async (value) => {
-    if (value) {
+  const handleSelectLockMode = async (mode) => {
+    const nextMode = normalizeAppLockMode(mode);
+    if (nextMode === appLockMode) return;
+
+    if (nextMode === APP_LOCK_MODES.BIOMETRIC && !biometricsAvailable) {
+      Alert.alert(
+        'Biometrics Not Available',
+        'Set up Face ID or Touch ID in your device settings before choosing biometric-only unlock.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Open Settings', onPress: () => LocalAuthentication.openSettingsAsync?.() },
+        ]
+      );
+      return;
+    }
+
+    if (appLockEnabled) {
       const result = await LocalAuthentication.authenticateAsync({
-        promptMessage: `Authenticate with ${biometricType}`,
-        fallbackLabel: 'Use passcode',
+        ...buildAppLockAuthOptions({
+          mode: nextMode,
+          promptMessage: nextMode === APP_LOCK_MODES.BIOMETRIC
+            ? `Authenticate with ${biometricType || 'Biometrics'}`
+            : 'Authenticate with device passcode or biometrics',
+        }),
       });
 
-      if (result.success) {
-        setBiometricsEnabled(true);
-        impact(ImpactFeedbackStyle.Success);
+      if (!result.success) {
+        Alert.alert('Authentication Failed', 'Please try again.');
+        return;
       }
-    } else {
-      setBiometricsEnabled(false);
-      impact(ImpactFeedbackStyle.Light);
     }
+
+    setAppLockMode(nextMode);
+    selection();
   };
 
   const handleSave = async () => {
     try {
       setIsSaving(true);
       impact(ImpactFeedbackStyle.Medium);
+      const savedLockMode = appLockMode === APP_LOCK_MODES.BIOMETRIC && !biometricsAvailable
+        ? APP_LOCK_MODES.DEVICE
+        : appLockMode;
 
       const settings = {
         appLockEnabled,
-        biometricsEnabled,
+        biometricsEnabled: savedLockMode === APP_LOCK_MODES.BIOMETRIC,
+        appLockMode: savedLockMode,
         autoLockTime,
         hidePreview,
       };
@@ -161,11 +196,18 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
       await settingsStorage.setPrivacySettings(settings);
       await settingsStorage.setAppLockEnabled(appLockEnabled);
       
-      if (actions?.setAppLockEnabled) {
+      if (actions?.setAppLockSettings) {
+        await actions.setAppLockSettings({
+          enabled: appLockEnabled,
+          mode: savedLockMode,
+          autoLockTime,
+          hidePreview,
+        });
+      } else if (actions?.setAppLockEnabled) {
         actions.setAppLockEnabled(appLockEnabled);
       }
 
-      impact(ImpactFeedbackStyle.Success);
+      notification(NotificationFeedbackType.Success);
       Alert.alert('Success', 'Privacy settings updated!', [
         { text: 'OK', onPress: () => navigation.goBack() },
       ]);
@@ -238,36 +280,49 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
 
               {renderSettingRow(
                 'Enable Vault Lock',
-                biometricsAvailable 
-                  ? `Require ${biometricType} to open the app`
-                  : 'Biometrics not available on this device',
+                deviceAuthAvailable
+                  ? 'Require device authentication to open the app'
+                  : 'Set up a device passcode, Face ID, or Touch ID first',
                 appLockEnabled,
                 handleToggleAppLock,
-                !biometricsAvailable,
-                !(appLockEnabled && biometricsAvailable) && !appLockEnabled
-              )}
-
-              {appLockEnabled && biometricsAvailable && renderSettingRow(
-                `Use ${biometricType}`,
-                `Unlock with ${biometricType} instead of passcode`,
-                biometricsEnabled,
-                handleToggleBiometrics,
-                false,
+                !deviceAuthAvailable,
                 !appLockEnabled
               )}
 
               {appLockEnabled && (
-                <TouchableOpacity
-                  style={[styles.actionRow, { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: theme.glassBorder }]}
-                  onPress={() => navigation.navigate('SetPin')}
-                  activeOpacity={0.7}
-                >
-                  <View style={styles.actionInfo}>
-                    <Text style={[styles.actionTitle, { color: colors.text }]}>Set Fallback PIN</Text>
-                    <Text style={[styles.actionDescription, { color: colors.textMuted || 'gray' }]}>Optional backup if biometrics fail</Text>
+                <View style={[styles.modeGroup, { borderTopColor: theme.glassBorder }]}>
+                  <Text style={[styles.modeLabel, { color: colors.textMuted || 'gray' }]}>UNLOCK METHOD</Text>
+                  <View style={styles.modeButtons}>
+                    <TouchableOpacity
+                      style={[
+                        styles.modeButton,
+                        { borderColor: theme.glassBorder, backgroundColor: appLockMode === APP_LOCK_MODES.DEVICE ? theme.crimson + '18' : 'transparent' },
+                      ]}
+                      onPress={() => handleSelectLockMode(APP_LOCK_MODES.DEVICE)}
+                      activeOpacity={0.85}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: appLockMode === APP_LOCK_MODES.DEVICE }}
+                    >
+                      <Icon name="keypad-outline" size={18} color={appLockMode === APP_LOCK_MODES.DEVICE ? theme.crimson : colors.textMuted || 'gray'} />
+                      <Text style={[styles.modeButtonText, { color: colors.text }]}>Passcode or {biometricType || 'Biometrics'}</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={[
+                        styles.modeButton,
+                        { borderColor: theme.glassBorder, backgroundColor: appLockMode === APP_LOCK_MODES.BIOMETRIC ? theme.crimson + '18' : 'transparent', opacity: biometricsAvailable ? 1 : 0.45 },
+                      ]}
+                      onPress={() => handleSelectLockMode(APP_LOCK_MODES.BIOMETRIC)}
+                      activeOpacity={0.85}
+                      disabled={!biometricsAvailable}
+                      accessibilityRole="button"
+                      accessibilityState={{ selected: appLockMode === APP_LOCK_MODES.BIOMETRIC, disabled: !biometricsAvailable }}
+                    >
+                      <Icon name={biometricType === 'Face ID' ? 'face-recognition' : 'fingerprint'} size={18} color={appLockMode === APP_LOCK_MODES.BIOMETRIC ? theme.crimson : colors.textMuted || 'gray'} />
+                      <Text style={[styles.modeButtonText, { color: colors.text }]}>{biometricType || 'Biometrics'} Only</Text>
+                    </TouchableOpacity>
                   </View>
-                  <Icon name="chevron-forward" size={20} color={colors.textMuted || 'gray'} />
-                </TouchableOpacity>
+                </View>
               )}
             </BlurView>
 
@@ -533,6 +588,38 @@ const createStyles = (colors, isDark, theme) => StyleSheet.create({
     fontSize: 14,
     lineHeight: 20,
     fontWeight: '500',
+  },
+  modeGroup: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingTop: 18,
+    marginTop: 2,
+  },
+  modeLabel: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 10,
+    fontWeight: '900',
+    letterSpacing: 1.5,
+    marginBottom: 10,
+  },
+  modeButtons: {
+    gap: 10,
+  },
+  modeButton: {
+    minHeight: 48,
+    borderWidth: 1,
+    borderRadius: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  modeButtonText: {
+    flex: 1,
+    fontFamily: SYSTEM_FONT,
+    fontSize: 14,
+    fontWeight: '800',
+    letterSpacing: -0.1,
   },
 
   actionRow: {

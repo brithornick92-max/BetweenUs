@@ -41,6 +41,11 @@ import {
   NotificationFeedbackType,
 } from '../utils/haptics';
 import { SPACING, withAlpha } from '../utils/theme';
+import {
+  PHOTO_LIBRARY_PRIVACY_NOTE,
+  PRIVATE_MEDIA_PICKER_OPTIONS,
+} from '../utils/photoLibraryPrivacy';
+import { stripPhotoMetadataFromAssets } from '../utils/mediaPrivacy';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 
@@ -386,6 +391,7 @@ export default function AddMemoryScreen() {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ['images', 'videos'],
+        ...PRIVATE_MEDIA_PICKER_OPTIONS,
         quality: 0.88,
         allowsEditing: false,
         allowsMultipleSelection: true,
@@ -394,13 +400,28 @@ export default function AddMemoryScreen() {
       });
 
       if (!result.canceled && result.assets?.length) {
-        addAssetsToComposer(result.assets);
+        const remainingSlots = Math.max(0, MAX_MEDIA_ITEMS - mediaItems.length);
+        const assetsToAdd = result.assets.slice(0, remainingSlots);
+
+        if (result.assets.length > remainingSlots) {
+          Alert.alert(
+            'Limit Reached',
+            `You can add up to ${MAX_MEDIA_ITEMS} photos or videos to one memory.`
+          );
+        }
+
+        if (!assetsToAdd.length || !validateAssets(assetsToAdd)) return;
+
+        const privateAssets = await stripPhotoMetadataFromAssets(assetsToAdd, {
+          fileNamePrefix: 'snapshot',
+        });
+        addAssetsToComposer(privateAssets);
       }
     } catch (err) {
       if (__DEV__) console.warn('[AddMemory] Media pick failed:', err?.message);
-      Alert.alert('Error', "Couldn't open your photo library.");
+      Alert.alert('Error', "Couldn't open or prepare your photo library selection.");
     }
-  }, [addAssetsToComposer]);
+  }, [addAssetsToComposer, mediaItems.length, validateAssets]);
 
   const handleRemoveMedia = useCallback((itemId) => {
     selection();
@@ -697,6 +718,10 @@ export default function AddMemoryScreen() {
 
                     <Text style={[styles.uploadTitle, { color: t.text }]}>
                       Upload Photos or Videos
+                    </Text>
+
+                    <Text style={[styles.uploadBody, { color: t.subtext }]}>
+                      {PHOTO_LIBRARY_PRIVACY_NOTE}
                     </Text>
 
                     <View

@@ -37,6 +37,11 @@ import { DataLayer } from '../services/localfirst';
 import { impact, notification, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { SPACING, withAlpha } from '../utils/theme';
 import { getPartnerDisplayName } from '../utils/profileNames';
+import {
+  PHOTO_LIBRARY_PRIVACY_NOTE,
+  PRIVATE_MEDIA_PICKER_OPTIONS,
+} from '../utils/photoLibraryPrivacy';
+import { stripPhotoMetadataFromAsset } from '../utils/mediaPrivacy';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
@@ -101,12 +106,19 @@ export default function ThinkingOfYouScreen() {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ['images', 'videos'],
+        ...PRIVATE_MEDIA_PICKER_OPTIONS,
         allowsEditing: false,
         quality: 0.92,
       });
       if (!result.canceled && result.assets?.[0]) {
         impact(ImpactFeedbackStyle.Light);
-        const asset = result.assets[0];
+        const pickedAsset = result.assets[0];
+
+        if (!validatePickedAsset(pickedAsset)) return;
+
+        const asset = await stripPhotoMetadataFromAsset(pickedAsset, {
+          fileNamePrefix: 'thinking_of_you',
+        });
 
         if (!validatePickedAsset(asset)) return;
 
@@ -119,33 +131,45 @@ export default function ThinkingOfYouScreen() {
       }
     } catch (err) {
       if (__DEV__) console.warn('[ThinkingOfYou] Media pick failed:', err?.message);
-      Alert.alert('Error', "Couldn't open your photo library.");
+      Alert.alert('Error', "Couldn't open or prepare your photo library selection.");
     }
   }, []);
 
   const openCamera = useCallback(async () => {
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permission needed', 'Allow camera access in Settings to take a photo.');
-      return;
-    }
-    const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ['images', 'videos'],
-      allowsEditing: false,
-      quality: 0.92,
-    });
-    if (!result.canceled && result.assets?.[0]) {
-      impact(ImpactFeedbackStyle.Light);
-      const asset = result.assets[0];
-
-      if (!validatePickedAsset(asset)) return;
-
-      setMedia({
-        uri: asset.uri,
-        type: asset.type || 'image',
-        mimeType: asset.mimeType || (asset.type === 'video' ? 'video/quicktime' : 'image/jpeg'),
-        fileName: asset.fileName || `media_${Date.now()}`,
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission needed', 'Allow camera access in Settings to take a photo.');
+        return;
+      }
+      const result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ['images', 'videos'],
+        exif: false,
+        allowsEditing: false,
+        quality: 0.92,
       });
+      if (!result.canceled && result.assets?.[0]) {
+        impact(ImpactFeedbackStyle.Light);
+        const pickedAsset = result.assets[0];
+
+        if (!validatePickedAsset(pickedAsset)) return;
+
+        const asset = await stripPhotoMetadataFromAsset(pickedAsset, {
+          fileNamePrefix: 'thinking_of_you',
+        });
+
+        if (!validatePickedAsset(asset)) return;
+
+        setMedia({
+          uri: asset.uri,
+          type: asset.type || 'image',
+          mimeType: asset.mimeType || (asset.type === 'video' ? 'video/quicktime' : 'image/jpeg'),
+          fileName: asset.fileName || `media_${Date.now()}`,
+        });
+      }
+    } catch (err) {
+      if (__DEV__) console.warn('[ThinkingOfYou] Camera pick failed:', err?.message);
+      Alert.alert('Error', "Couldn't open or prepare your camera capture.");
     }
   }, []);
 
@@ -245,20 +269,26 @@ export default function ThinkingOfYouScreen() {
               </Animated.View>
             ) : (
               <Animated.View entering={FadeInDown.duration(400)} style={styles.pickWrapper}>
-                <TouchableOpacity
-                  style={[styles.pickBtn, { backgroundColor: t.surface, borderColor: t.border }]}
-                  onPress={openCamera}
-                >
-                  <Icon name="camera-outline" size={32} color={t.primary} />
-                  <Text style={[styles.pickBtnLabel, { color: t.text }]}>Take Photo</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.pickBtn, { backgroundColor: t.surface, borderColor: t.border }]}
-                  onPress={pickFromLibrary}
-                >
-                  <Icon name="images-outline" size={32} color={t.primary} />
-                  <Text style={[styles.pickBtnLabel, { color: t.text }]}>Choose Photo</Text>
-                </TouchableOpacity>
+                <View style={styles.pickActions}>
+                  <TouchableOpacity
+                    style={[styles.pickBtn, { backgroundColor: t.surface, borderColor: t.border }]}
+                    onPress={openCamera}
+                  >
+                    <Icon name="camera-outline" size={32} color={t.primary} />
+                    <Text style={[styles.pickBtnLabel, { color: t.text }]}>Take Photo</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.pickBtn, { backgroundColor: t.surface, borderColor: t.border }]}
+                    onPress={pickFromLibrary}
+                  >
+                    <Icon name="images-outline" size={32} color={t.primary} />
+                    <Text style={[styles.pickBtnLabel, { color: t.text }]}>Choose Photo</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <Text style={[styles.photoPrivacyNote, { color: t.subtext }]}>
+                  {PHOTO_LIBRARY_PRIVACY_NOTE}
+                </Text>
               </Animated.View>
             )}
 
@@ -344,9 +374,12 @@ const styles = StyleSheet.create({
   },
   // Media pickers
   pickWrapper: {
+    gap: 10,
+    marginTop: 8,
+  },
+  pickActions: {
     flexDirection: 'row',
     gap: 12,
-    marginTop: 8,
   },
   pickBtn: {
     flex: 1,
@@ -361,6 +394,14 @@ const styles = StyleSheet.create({
     fontFamily: SYSTEM_FONT,
     fontSize: 14,
     fontWeight: '600',
+  },
+  photoPrivacyNote: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 12,
+    lineHeight: 17,
+    fontWeight: '500',
+    textAlign: 'center',
+    paddingHorizontal: 8,
   },
   // Preview
   previewWrapper: {

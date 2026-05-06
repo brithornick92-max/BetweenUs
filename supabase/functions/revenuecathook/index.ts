@@ -95,8 +95,12 @@ Deno.serve(async (req: Request) => {
   }
 
   // Create Supabase admin client (service_role bypasses RLS)
-  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-  const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const supabaseUrl = Deno.env.get("SUPABASE_URL");
+  const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+  if (!supabaseUrl || !supabaseServiceKey) {
+    console.error("Supabase service credentials are not configured");
+    return new Response("Server misconfigured", { status: 500 });
+  }
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
   let isPremium: boolean;
@@ -184,7 +188,7 @@ Deno.serve(async (req: Request) => {
       .eq("id", membership.couple_id)
       .maybeSingle();
 
-    await supabase
+    const { error: coupleUpdateError } = await supabase
       .from("couples")
       .update({
         is_premium: anyPremium,
@@ -195,6 +199,11 @@ Deno.serve(async (req: Request) => {
         updated_at: new Date().toISOString(),
       })
       .eq("id", membership.couple_id);
+
+    if (coupleUpdateError) {
+      console.error("Failed to update couple premium status:", coupleUpdateError);
+      return new Response("Database error", { status: 500 });
+    }
   }
 
   console.log(

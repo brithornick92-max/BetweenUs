@@ -15,7 +15,7 @@ import {
 } from "@react-navigation/native";
 import { StatusBar } from "expo-status-bar";
 import * as SplashScreen from "expo-splash-screen";
-import { AppState, View, Text } from "react-native";
+import { AppState, View, Text, StyleSheet } from "react-native";
 import { useFonts } from "expo-font";
 import { Lato_400Regular, Lato_700Bold } from "@expo-google-fonts/lato";
 import { DMSerifDisplay_400Regular } from "@expo-google-fonts/dm-serif-display";
@@ -48,7 +48,6 @@ SplashScreen.preventAutoHideAsync();
 
 const isLightweightDevMode =
   __DEV__ && process.env.EXPO_PUBLIC_LIGHTWEIGHT_DEV === "1";
-const LOCK_GRACE_PERIOD_MS = 5 * 60 * 1000;
 const SAFE_DEEP_LINK_ID_RE = /^[a-zA-Z0-9_\-:.]{1,128}$/;
 
 let analyticsServiceInstance = null;
@@ -267,7 +266,7 @@ function AppContent() {
     paywallFeature,
     hidePaywall,
   } = useEntitlements();
-  const { navigationTheme, isDark } = useTheme();
+  const { navigationTheme, isDark, colors } = useTheme();
   const navTheme = useMemo(
     () => ({
       dark: navigationTheme.dark,
@@ -281,18 +280,20 @@ function AppContent() {
   const [navReady, setNavReady] = useState(false);
   const [appStateVisible, setAppStateVisible] = useState(AppState.currentState);
   const backgroundTimeRef = useRef(null);
+  const lockGracePeriodMs = Math.max(0, Number(state.appLockAutoLockTime ?? 5)) * 60 * 1000;
+  const hideAppPreview = !!state.hidePreview && appStateVisible !== "active";
 
   useEffect(() => {
     if (state.appLockEnabled && appStateVisible === "active") {
       const lastBackgroundTime = backgroundTimeRef.current;
       if (
         !lastBackgroundTime ||
-        Date.now() - lastBackgroundTime > LOCK_GRACE_PERIOD_MS
+        Date.now() - lastBackgroundTime > lockGracePeriodMs
       ) {
         setIsLocked(true);
       }
     }
-  }, [appStateVisible, state.appLockEnabled]);
+  }, [appStateVisible, lockGracePeriodMs, state.appLockEnabled]);
 
   useEffect(() => {
     const handleAppStateChange = (nextAppState) => {
@@ -306,7 +307,7 @@ function AppContent() {
           const backgroundTime = backgroundTimeRef.current;
           if (
             backgroundTime &&
-            Date.now() - backgroundTime > LOCK_GRACE_PERIOD_MS
+            Date.now() - backgroundTime > lockGracePeriodMs
           ) {
             setIsLocked(true);
           }
@@ -331,7 +332,7 @@ function AppContent() {
       handleAppStateChange
     );
     return () => subscription?.remove();
-  }, [appStateVisible, isLocked, state.appLockEnabled]);
+  }, [appStateVisible, isLocked, lockGracePeriodMs, state.appLockEnabled]);
 
   useEffect(() => {
     if (isLightweightDevMode || !navReady) return;
@@ -548,7 +549,7 @@ function AppContent() {
   };
 
   if (state.appLockEnabled && isLocked) {
-    return <LockScreen onUnlock={handleUnlock} />;
+    return <LockScreen onUnlock={handleUnlock} lockMode={state.appLockMode} />;
   }
 
   const linking = {
@@ -590,28 +591,61 @@ function AppContent() {
   };
 
   return (
-    <NavigationContainer
-      linking={linking}
-      theme={navTheme}
-      ref={navigationRef}
-      onReady={() => {
-        setNavReady(true);
-        if (!isLightweightDevMode) {
-          getDeepLinkHandler().setNavigationRef(navigationRef);
-        }
-      }}
-      onUnhandledAction={(action) => {
-        CrashReporting.captureMessage(
-          `Unhandled nav action: ${action?.type}`,
-          "warning"
-        );
-      }}
-    >
-      <StatusBar style={isDark ? "light" : "dark"} />
-      <RootNavigator />
-    </NavigationContainer>
+    <View style={styles.appShell}>
+      <NavigationContainer
+        linking={linking}
+        theme={navTheme}
+        ref={navigationRef}
+        onReady={() => {
+          setNavReady(true);
+          if (!isLightweightDevMode) {
+            getDeepLinkHandler().setNavigationRef(navigationRef);
+          }
+        }}
+        onUnhandledAction={(action) => {
+          CrashReporting.captureMessage(
+            `Unhandled nav action: ${action?.type}`,
+            "warning"
+          );
+        }}
+      >
+        <StatusBar style={isDark ? "light" : "dark"} />
+        <RootNavigator />
+      </NavigationContainer>
+
+      {hideAppPreview ? (
+        <View
+          pointerEvents="none"
+          style={[
+            styles.privacyPreviewOverlay,
+            { backgroundColor: colors?.background || (isDark ? "#070509" : "#FFF8F5") },
+          ]}
+        >
+          <Text style={[styles.privacyPreviewTitle, { color: colors?.text || (isDark ? "#F2E9E6" : "#1F1720") }]}>
+            Between Us
+          </Text>
+        </View>
+      ) : null}
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  appShell: {
+    flex: 1,
+  },
+  privacyPreviewOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 9999,
+  },
+  privacyPreviewTitle: {
+    fontSize: 22,
+    fontWeight: "900",
+    letterSpacing: 0,
+  },
+});
 
 function App() {
   const [fontsLoaded] = useFonts({

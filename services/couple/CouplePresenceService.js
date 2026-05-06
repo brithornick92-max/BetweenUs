@@ -31,11 +31,19 @@ export async function clearLocalCoupleState({
 } = {}) {
   const { storageRouter, storageApi } = getDependencies(dependencies);
 
-  await storageApi.remove(STORAGE_KEYS.COUPLE_ID);
-  await storageApi.remove(STORAGE_KEYS.COUPLE_ROLE);
-  await storageApi.remove(STORAGE_KEYS.PARTNER_PROFILE);
-  await storageApi.remove(STORAGE_KEYS.LAST_PARTNER_ACTIVITY);
-  await clearCouplePremiumCache();
+  const cacheClearResults = await Promise.allSettled([
+    storageApi.remove(STORAGE_KEYS.COUPLE_ID),
+    storageApi.remove(STORAGE_KEYS.COUPLE_ROLE),
+    storageApi.remove(STORAGE_KEYS.PARTNER_PROFILE),
+    storageApi.remove(STORAGE_KEYS.LAST_PARTNER_ACTIVITY),
+    clearCouplePremiumCache(),
+  ]);
+
+  cacheClearResults.forEach((result) => {
+    if (result.status === 'rejected') {
+      console.warn('[CouplePresence] Failed to clear local couple cache:', result.reason);
+    }
+  });
 
   if (userId) {
     try {
@@ -45,7 +53,11 @@ export async function clearLocalCoupleState({
     }
   }
 
-  await onProfileCleared?.({ coupleId: null });
+  try {
+    await onProfileCleared?.({ coupleId: null });
+  } catch (e) {
+    console.warn('[CouplePresence] Failed to clear profile couple state:', e);
+  }
   return true;
 }
 

@@ -153,6 +153,14 @@ jest.mock('expo-image-picker', () => ({
   MediaTypeOptions: { Images: 'Images' },
 }));
 
+jest.mock('expo-file-system/legacy', () => ({
+  cacheDirectory: 'file:///cache/',
+  EncodingType: { Base64: 'base64' },
+  getInfoAsync: jest.fn().mockResolvedValue({ exists: true, size: 1024 }),
+  readAsStringAsync: jest.fn().mockResolvedValue(''),
+  writeAsStringAsync: jest.fn().mockResolvedValue(undefined),
+}));
+
 jest.mock('../../context/ThemeContext', () => ({
   useTheme: () => ({
     colors: {

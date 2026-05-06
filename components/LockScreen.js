@@ -1,109 +1,121 @@
 // components/LockScreen.js
-import React, { useCallback, useState, useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   SafeAreaView,
-  Animated,
- Platform } from "react-native";
+  Platform,
+  ActivityIndicator,
+} from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import Icon from './Icon';
 import { impact, ImpactFeedbackStyle } from '../utils/haptics';
 import * as LocalAuthentication from "expo-local-authentication";
 import { useTheme } from "../context/ThemeContext";
 import { SPACING, TYPOGRAPHY } from "../utils/theme";
+import {
+  APP_LOCK_MODES,
+  buildAppLockAuthOptions,
+  getBiometricLabel,
+  isDeviceAuthAvailable,
+  normalizeAppLockMode,
+} from "../utils/appLockAuth";
 
-const PIN_LENGTH = 4;
-const MAX_ATTEMPTS = 5;
-const LOCKOUT_DURATION = 30000; // 30 seconds
-
-export default function LockScreen({ onUnlock }) {
+export default function LockScreen({ onUnlock, lockMode = APP_LOCK_MODES.DEVICE }) {
   const { colors, gradients, isDark } = useTheme();
-  const keyBgStyle = { backgroundColor: isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0, 0, 0, 0.05)' };
-  const [pin, setPin] = useState("");
-  const [error] = useState(false);
-  const [attempts] = useState(0);
-  const [lockedUntil, setLockedUntil] = useState(0);
-  const [biometricType, setBiometricType] = useState(null);
+  const [authenticating, setAuthenticating] = useState(false);
+  const [authAvailable, setAuthAvailable] = useState(false);
+  const [biometricsAvailable, setBiometricsAvailable] = useState(false);
+  const [biometricType, setBiometricType] = useState('Biometrics');
+  const [errorMessage, setErrorMessage] = useState('');
+  const autoPromptedRef = useRef(false);
 
-  const shakeAnim = useRef(new Animated.Value(0)).current;
-  const fadeAnim = useRef(new Animated.Value(1)).current;
+  const requestedMode = normalizeAppLockMode(lockMode);
+  const effectiveMode = requestedMode === APP_LOCK_MODES.BIOMETRIC && !biometricsAvailable
+    ? APP_LOCK_MODES.DEVICE
+    : requestedMode;
+  const biometricOnly = effectiveMode === APP_LOCK_MODES.BIOMETRIC;
 
-  const isLockedOut = Date.now() < lockedUntil;
+  const unlockLabel = useMemo(() => {
+    if (biometricOnly) return `Unlock with ${biometricType}`;
+    return biometricsAvailable ? `Unlock with ${biometricType} or Passcode` : 'Unlock with Device Passcode';
+  }, [biometricOnly, biometricType, biometricsAvailable]);
 
-  const authenticateBiometrically = useCallback(async () => {
+  const unlockIcon = biometricOnly && biometricType === 'Face ID'
+    ? 'face-recognition'
+    : biometricOnly
+      ? 'fingerprint'
+      : 'lock-open-outline';
+
+  const authenticate = useCallback(async () => {
+    if (Platform.OS === "web" || authenticating) return;
+
     try {
-      if (Platform.OS === "web") return;
-      const result = await LocalAuthentication.authenticateAsync({
-        promptMessage: "Unlock Between Us",
-        fallbackLabel: "Use PIN",
-      });
+      setAuthenticating(true);
+      setErrorMessage('');
+
+      const result = await LocalAuthentication.authenticateAsync(buildAppLockAuthOptions({
+        mode: effectiveMode,
+        promptMessage: 'Unlock Between Us',
+      }));
+
       if (result.success) {
+        impact(ImpactFeedbackStyle.Light);
         onUnlock?.();
+        return;
+      }
+
+      if (result.error && !['user_cancel', 'app_cancel', 'system_cancel'].includes(result.error)) {
+        setErrorMessage(
+          result.error === 'lockout'
+            ? 'Too many attempts. Try again after your device allows authentication.'
+            : 'Authentication did not complete. Please try again.'
+        );
       }
     } catch (err) {
-      if (__DEV__) console.warn("[LockScreen] Biometric auth error:", err);
+      if (__DEV__) console.warn("[LockScreen] Authentication error:", err);
+      setErrorMessage('Authentication is unavailable right now.');
+    } finally {
+      setAuthenticating(false);
     }
-  }, [onUnlock]);
+  }, [authenticating, effectiveMode, onUnlock]);
 
   const initializeLock = useCallback(async () => {
     try {
-      if (Platform.OS !== "web") {
-        const hasHardware = await LocalAuthentication.hasHardwareAsync();
-        const isEnrolled = await LocalAuthentication.isEnrolledAsync();
+      if (Platform.OS === "web") return;
 
-        if (hasHardware && isEnrolled) {
-          const types = await LocalAuthentication.supportedAuthenticationTypesAsync();
-          if (types.includes(LocalAuthentication.AuthenticationType.FACIAL_RECOGNITION)) {
-            setBiometricType("face-recognition");
-          } else if (types.includes(LocalAuthentication.AuthenticationType.FINGERPRINT)) {
-            setBiometricType("fingerprint");
-          } else {
-            setBiometricType("generic");
-          }
+      const [hasHardware, isEnrolled, enrolledLevel] = await Promise.all([
+        LocalAuthentication.hasHardwareAsync().catch(() => false),
+        LocalAuthentication.isEnrolledAsync().catch(() => false),
+        LocalAuthentication.getEnrolledLevelAsync().catch(() => LocalAuthentication.SecurityLevel.NONE),
+      ]);
+      const biometricReady = hasHardware && isEnrolled;
 
-          // Auto-prompt biometrics on load
-          authenticateBiometrically();
-        }
+      setBiometricsAvailable(biometricReady);
+      setAuthAvailable(isDeviceAuthAvailable(enrolledLevel, LocalAuthentication, biometricReady));
+
+      if (biometricReady) {
+        const types = await LocalAuthentication.supportedAuthenticationTypesAsync().catch(() => []);
+        setBiometricType(getBiometricLabel(types, LocalAuthentication));
       }
     } catch (err) {
       if (__DEV__) console.warn("[LockScreen] Initialization error:", err);
+      setAuthAvailable(false);
     }
-  }, [authenticateBiometrically]);
+  }, []);
 
   useEffect(() => {
     initializeLock();
   }, [initializeLock]);
 
-  const handlePressDigit = async (digit) => {
-    if (isLockedOut || pin.length >= PIN_LENGTH) return;
-
-          impact(ImpactFeedbackStyle.Light);
-    const newPin = pin + digit;
-    setPin(newPin);
-
-    if (newPin.length === PIN_LENGTH) {
-      onUnlock?.();
-      if (attempts >= MAX_ATTEMPTS) {
-        setLockedUntil(Date.now() + LOCKOUT_DURATION);
-      }
+  useEffect(() => {
+    if (authAvailable && !autoPromptedRef.current) {
+      autoPromptedRef.current = true;
+      authenticate();
     }
-  };
-
-  const handleDelete = () => {
-    if (pin.length > 0) {
-      setPin(pin.slice(0, -1));
-              impact(ImpactFeedbackStyle.Light);
-    }
-  };
-
-  const keypadRows = [
-    ["1", "2", "3"],
-    ["4", "5", "6"],
-    ["7", "8", "9"],
-  ];
+  }, [authAvailable, authenticate]);
 
   return (
     <LinearGradient
@@ -111,115 +123,47 @@ export default function LockScreen({ onUnlock }) {
       style={styles.container}
     >
       <SafeAreaView style={styles.safeArea}>
-        <Animated.View style={[styles.content, { opacity: fadeAnim }]}>
+        <View style={styles.content}>
           <View style={styles.header}>
-            <Icon name="lock-closed-outline" size={60} color={colors.primary} />
-            <Text style={[TYPOGRAPHY.h1, { color: colors.text, marginTop: SPACING.lg, textAlign: "center" }]}>
+            <View style={[styles.iconWrap, { backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)' }]}>
+              <Icon name="lock-closed-outline" size={48} color={colors.primary} />
+            </View>
+            <Text style={[TYPOGRAPHY.h1, styles.title, { color: colors.text }]}>
               Between Us
             </Text>
-            <Text style={[TYPOGRAPHY.body, { color: colors.textMuted, marginTop: SPACING.xs, textAlign: "center" }]}>
-              {isLockedOut ? "Too many attempts. Try again later." : "Enter PIN to unlock"}
+            <Text style={[TYPOGRAPHY.body, styles.subtitle, { color: colors.textMuted }]}>
+              {authAvailable ? unlockLabel : 'Set a device passcode or biometric unlock to use Vault Lock.'}
             </Text>
+            {!!errorMessage && (
+              <Text style={[styles.errorText, { color: colors.danger || colors.primary }]}>
+                {errorMessage}
+              </Text>
+            )}
           </View>
 
-          <Animated.View
-            style={[
-              styles.dotsContainer,
-              { transform: [{ translateX: shakeAnim }] },
-            ]}
-            accessibilityLabel={`PIN entry: ${pin.length} of ${PIN_LENGTH} digits entered`}
-            accessibilityRole="text"
+          <TouchableOpacity
+            style={[styles.unlockButton, { backgroundColor: colors.primary }, (!authAvailable || authenticating) && styles.disabledButton]}
+            onPress={authenticate}
+            disabled={!authAvailable || authenticating}
+            activeOpacity={0.85}
+            accessibilityRole="button"
+            accessibilityLabel={unlockLabel}
+            accessibilityState={{ disabled: !authAvailable || authenticating, busy: authenticating }}
           >
-            {Array(PIN_LENGTH).fill(0).map((_, i) => (
-              <View
-                key={i}
-                style={[
-                  styles.dot,
-                  { borderColor: colors.primary },
-                  (i < pin.length && !error) && { backgroundColor: colors.primary },
-                  error && { backgroundColor: colors.danger, borderColor: colors.danger },
-                ]}
-              />
-            ))}
-          </Animated.View>
-
-          <View style={styles.keypad}>
-            {keypadRows.map((row, i) => (
-              <View key={i} style={styles.row}>
-                {row.map((digit) => (
-                  <Key
-                    key={digit}
-                    label={digit}
-                    onPress={() => handlePressDigit(digit)}
-                    disabled={isLockedOut}
-                    textColor={colors.text}
-                    keyBgStyle={keyBgStyle}
-                  />
-                ))}
-              </View>
-            ))}
-            <View style={styles.row}>
-              <TouchableOpacity
-                style={[styles.key, keyBgStyle]}
-                onPress={authenticateBiometrically}
-                disabled={!biometricType || isLockedOut}
-                accessibilityRole="button"
-                accessibilityLabel={biometricType === 'face-recognition' ? 'Unlock with Face ID' : 'Unlock with fingerprint'}
-                accessibilityState={{ disabled: !biometricType || isLockedOut }}
-              >
-                {biometricType && (
-                  <Icon
-                    name={biometricType === "face-recognition" ? "face-recognition" : "fingerprint"}
-                    size={32}
-                    color={colors.primary}
-                    style={{ opacity: isLockedOut ? 0.3 : 1 }}
-                  />
-                )}
-              </TouchableOpacity>
-              <Key
-                label="0"
-                onPress={() => handlePressDigit("0")}
-                disabled={isLockedOut}
-                textColor={colors.text}
-                keyBgStyle={keyBgStyle}
-              />
-              <TouchableOpacity
-                style={[styles.key, keyBgStyle]}
-                onPress={handleDelete}
-                disabled={isLockedOut}
-                activeOpacity={0.7}
-                accessibilityRole="button"
-                accessibilityLabel="Delete last digit"
-                accessibilityState={{ disabled: isLockedOut }}
-              >
-                <Icon
-                  name="backspace-outline"
-                  size={28}
-                  color={colors.textMuted}
-                  style={{ opacity: isLockedOut ? 0.3 : 1 }}
-                />
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Animated.View>
+            {authenticating ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <>
+                <Icon name={unlockIcon} size={22} color="#FFFFFF" />
+                <Text style={styles.unlockButtonText}>{unlockLabel}</Text>
+              </>
+            )}
+          </TouchableOpacity>
+        </View>
       </SafeAreaView>
     </LinearGradient>
   );
 }
-
-const Key = ({ label, onPress, disabled, textColor, keyBgStyle }) => (
-  <TouchableOpacity
-    style={[styles.key, keyBgStyle, disabled && { opacity: 0.3 }]}
-    onPress={onPress}
-    disabled={disabled}
-    activeOpacity={0.7}
-    accessibilityRole="button"
-    accessibilityLabel={`Digit ${label}`}
-    accessibilityState={{ disabled }}
-  >
-    <Text style={[styles.keyText, { color: textColor }]}>{label}</Text>
-  </TouchableOpacity>
-);
 
 const styles = StyleSheet.create({
   container: {
@@ -236,42 +180,54 @@ const styles = StyleSheet.create({
     paddingHorizontal: SPACING.xl,
   },
   header: {
+    flex: 1,
     alignItems: "center",
-    marginTop: SPACING.xl,
-  },
-  dotsContainer: {
-    flexDirection: "row",
     justifyContent: "center",
-    marginVertical: SPACING.xxl,
-  },
-  dot: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    borderWidth: 1.5,
-    marginHorizontal: SPACING.sm,
-    backgroundColor: "transparent",
-  },
-  keypad: {
     width: "100%",
-    maxWidth: 320,
-    marginBottom: SPACING.xl,
   },
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
+  iconWrap: {
+    width: 104,
+    height: 104,
+    borderRadius: 52,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: SPACING.lg,
   },
-  key: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+  title: {
+    marginTop: SPACING.sm,
+    textAlign: "center",
+  },
+  subtitle: {
+    marginTop: SPACING.sm,
+    textAlign: "center",
+    maxWidth: 320,
+  },
+  errorText: {
+    marginTop: SPACING.md,
+    textAlign: 'center',
+    fontSize: 14,
+    fontWeight: '600',
+    maxWidth: 320,
+  },
+  unlockButton: {
+    width: "100%",
+    maxWidth: 340,
+    minHeight: 56,
+    borderRadius: 28,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.05)",
+    flexDirection: 'row',
+    gap: 10,
+    paddingHorizontal: SPACING.lg,
+    marginBottom: SPACING.xl,
   },
-  keyText: {
-    fontSize: 32,
-    fontWeight: "400",
+  disabledButton: {
+    opacity: 0.45,
+  },
+  unlockButtonText: {
+    color: '#FFFFFF',
+    fontSize: 15,
+    fontWeight: '800',
+    textAlign: 'center',
   },
 });

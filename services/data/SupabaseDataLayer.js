@@ -22,6 +22,7 @@ import CrashReporting from '../CrashReporting';
 import { getPromptById } from '../../utils/contentLoader';
 import { getDailyContentDateKey } from '../../utils/dailyContentDate';
 import { loveNoteStorage, storage, STORAGE_KEYS } from '../../utils/storage';
+import { bytesFromBase64 } from '../../utils/base64Bytes';
 
 // ─── Module state ────────────────────────────────────────────────────────────
 
@@ -582,12 +583,12 @@ async function uploadMedia({ localUri, mimeType, coupleId, throwOnError = false 
       encoding: FileSystem.EncodingType.Base64,
     });
 
-    const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+    const bytes = bytesFromBase64(b64);
 
     const { error } = await sb.storage
       .from(bucket)
       .upload(storagePath, bytes, {
-        contentType: isVideo ? 'application/octet-stream' : mimeType,
+        contentType: mimeType || (isVideo ? 'application/octet-stream' : 'image/jpeg'),
         upsert: false,
       });
 

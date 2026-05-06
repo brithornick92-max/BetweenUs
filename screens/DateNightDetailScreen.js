@@ -21,7 +21,7 @@ import CloseScreenHeader, { CLOSE_HEADER_STYLES } from '../components/CloseScree
 import { useTheme } from "../context/ThemeContext";
 import { useAppContext } from "../context/AppContext";
 import { useEntitlements } from "../context/EntitlementsContext";
-import { impact, selection, ImpactFeedbackStyle } from "../utils/haptics";
+import { impact, notification, selection, ImpactFeedbackStyle, NotificationFeedbackType } from "../utils/haptics";
 import { withAlpha } from "../utils/theme";
 import { getAllDates, getDateById } from "../utils/contentLoader";
 import { getPartnerDisplayName, personalizePartnerText } from "../utils/profileNames";
@@ -748,7 +748,7 @@ export default function DateNightDetailScreen({ route, navigation }) {
             title={currentStep === steps.length - 1 ? "Finish Experience" : "Next Step"}
             onPress={() => {
               if (currentStep === steps.length - 1) {
-                impact(ImpactFeedbackStyle.Success);
+                notification(NotificationFeedbackType.Success);
                 logDateComplete()
                   .catch(() => {})
                   .finally(() => {

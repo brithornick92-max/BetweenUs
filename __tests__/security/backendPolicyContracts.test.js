@@ -27,6 +27,30 @@ describe('backend security policy contracts', () => {
     expect(migrationSql).toContain('guard_profile_premium_fields_before_update');
   });
 
+  test('trusted premium maintenance can refresh cached profile flags', () => {
+    const productionSql = readRepoFile('database/supabase-production-setup.sql');
+    const migrationSql = readRepoFile('supabase/migrations/20260506190000_allow_profile_premium_maintenance.sql');
+    const serviceRoleMigrationSql = readRepoFile('supabase/migrations/20260506200000_allow_service_role_premium_webhook.sql');
+    const revenueCatHook = readRepoFile('supabase/functions/revenuecathook/index.ts');
+
+    for (const sql of [productionSql, migrationSql]) {
+      expect(sql).toContain("current_setting('app.allow_profile_premium_update', true) = 'true'");
+      expect(sql).toContain("set_config('app.allow_profile_premium_update', 'true', true)");
+      expect(sql).toContain("profiles.is_premium is managed server-side");
+      expect(sql).toContain('leave_couple');
+    }
+
+    for (const sql of [productionSql, migrationSql, serviceRoleMigrationSql]) {
+      expect(sql).toContain("current_setting('app.allow_profile_premium_update', true) <> 'true'");
+      expect(sql).toContain("couples.is_premium is managed server-side");
+      expect(sql).toContain("auth.role() <> 'service_role'");
+      expect(sql).toContain('CREATE OR REPLACE FUNCTION');
+    }
+
+    expect(revenueCatHook).toContain('coupleUpdateError');
+    expect(revenueCatHook).toContain('Failed to update couple premium status');
+  });
+
   test('account and couple deletion clean up private storage objects', () => {
     const productionSql = readRepoFile('database/supabase-production-setup.sql');
     const migrationSql = readRepoFile('supabase/migrations/20260429001000_cleanup_storage_on_account_delete.sql');
@@ -45,6 +69,8 @@ describe('backend security policy contracts', () => {
     const supabaseConfig = readRepoFile('config/supabase.js');
 
     expect(supabaseConfig).toContain('import * as SecureStore from "expo-secure-store"');
+    expect(supabaseConfig).toContain('INSTALL_MARKER_KEY');
+    expect(supabaseConfig).toContain('shouldIgnorePersistedAuthForFreshInstall');
     expect(supabaseConfig).toContain('SecureStore.getItemAsync(key)');
     expect(supabaseConfig).toContain('SecureStore.setItemAsync(key, value)');
     expect(supabaseConfig).toContain('SecureStore.deleteItemAsync(key)');

@@ -1,23 +1,20 @@
 /**
- * SetPinScreen — Privacy & Security configuration
- * Sexy Red Intimacy & Apple Editorial Updates Integrated.
- * * High-fidelity control center for application-level locking.
- * Device app lock no longer stores a local PIN secret.
+ * SetPinScreen — Device passcode handoff
+ *
+ * Between Us uses the operating system app-lock prompt. We do not store a
+ * separate local PIN secret, so this screen only routes users to device settings.
  */
 
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   Text,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
-  TextInput,
-  Alert,
   Platform,
-  KeyboardAvoidingView,
-  ActivityIndicator,
 } from 'react-native';
+import * as LocalAuthentication from 'expo-local-authentication';
 import Icon from '../components/Icon';
 import { impact, ImpactFeedbackStyle } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
@@ -26,233 +23,120 @@ import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
 
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 
-function sanitizePin(input) {
-  return (input || '').replace(/[^\d]/g, '').slice(0, 4);
-}
-
 const SetPinScreen = ({ navigation }) => {
   const { colors, isDark } = useTheme();
 
-  // ─── SEXY RED x APPLE EDITORIAL THEME MAP ───
   const t = useMemo(() => ({
-    background: colors.background, 
     surface: isDark ? '#131016' : '#FFFFFF',
-    surfaceSecondary: isDark ? '#1C1520' : '#F2F2F7',
-    primary: colors.primary || '#D2121A', 
+    primary: colors.primary || '#D2121A',
     text: colors.text,
     subtext: isDark ? 'rgba(242,233,230,0.6)' : 'rgba(60, 60, 67, 0.6)',
     border: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.05)',
   }), [colors, isDark]);
 
-  const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
+  const styles = useMemo(() => createStyles(t), [t]);
 
-  const [pinRaw, setPinRaw] = useState('');
-  const [confirmPinRaw, setConfirmPinRaw] = useState('');
-  const [pin, setPin] = useState('');
-  const [confirmPin, setConfirmPin] = useState('');
-  const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    const next = sanitizePin(pinRaw);
-    if (next !== pin) setPin(next);
-  }, [pinRaw, pin]);
-
-  useEffect(() => {
-    const next = sanitizePin(confirmPinRaw);
-    if (next !== confirmPin) setConfirmPin(next);
-  }, [confirmPinRaw, confirmPin]);
-
-  const handleSave = async () => {
-    if (pin.length !== 4 || confirmPin.length !== 4) {
-      Alert.alert('Invalid Entry', 'Please enter a complete 4-digit PIN.');
-      return;
-    }
-    if (pin !== confirmPin) {
-      Alert.alert('Mismatch', 'The entered PINs do not match.');
-      return;
-    }
-
-    try {
-      setSaving(true);
-      impact(ImpactFeedbackStyle.Medium);
-      Alert.alert('App Lock Updated', 'Your app lock preference has been updated.', [
-        { text: 'OK', onPress: () => navigation.goBack() },
-      ]);
-    } catch (_error) {
-      Alert.alert('Error', 'Failed to secure your space. Please try again.');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleClear = async () => {
-    try {
-      setSaving(true);
-      impact(ImpactFeedbackStyle.Light);
-      Alert.alert('Lock Removed', 'Your app lock has been cleared.', [
-        { text: 'OK', onPress: () => navigation.goBack() },
-      ]);
-    } catch (_error) {
-      Alert.alert('Error', 'Failed to clear the security key.');
-    } finally {
-      setSaving(false);
-    }
+  const openDeviceSettings = () => {
+    impact(ImpactFeedbackStyle.Medium);
+    LocalAuthentication.openSettingsAsync?.();
   };
 
   return (
     <EditorialScreenScaffold
       navigation={navigation}
-      headerTitle="App Lock"
-      keyboardAvoiding
+      headerTitle="Device Passcode"
       scroll={false}
     >
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-          
-          <View style={[styles.formCard, { backgroundColor: t.surface, borderColor: t.border }]}>
-            <Text style={[styles.label, { color: t.primary }]}>NEW PIN</Text>
-            <TextInput
-              value={pinRaw}
-              onChangeText={setPinRaw}
-              keyboardType="number-pad"
-              secureTextEntry
-              style={[styles.input, { color: t.text, borderColor: t.border }]}
-              placeholder="••••"
-              placeholderTextColor={withAlpha(t.text, 0.2)}
-              editable={!saving}
-              blurOnSubmit={false}
-              autoCorrect={false}
-              autoCapitalize="none"
-              textContentType="oneTimeCode"
-              autoComplete="off"
-              importantForAutofill="no"
-              selectionColor={t.primary}
-            />
-
-            <Text style={[styles.label, { color: t.primary, marginTop: 12 }]}>CONFIRM PIN</Text>
-            <TextInput
-              value={confirmPinRaw}
-              onChangeText={setConfirmPinRaw}
-              keyboardType="number-pad"
-              secureTextEntry
-              style={[styles.input, { color: t.text, borderColor: t.border }]}
-              placeholder="••••"
-              placeholderTextColor={withAlpha(t.text, 0.2)}
-              editable={!saving}
-              blurOnSubmit={false}
-              autoCorrect={false}
-              autoCapitalize="none"
-              textContentType="oneTimeCode"
-              autoComplete="off"
-              importantForAutofill="no"
-              selectionColor={t.primary}
-            />
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
+        <View style={[styles.infoCard, { backgroundColor: t.surface, borderColor: t.border }]}>
+          <View style={[styles.iconWrap, { backgroundColor: withAlpha(t.primary, 0.12) }]}>
+            <Icon name="lock-closed-outline" size={34} color={t.primary} />
           </View>
+          <Text style={[styles.title, { color: t.text }]}>Use your device lock</Text>
+          <Text style={[styles.body, { color: t.subtext }]}>
+            Between Us unlocks with the passcode, Face ID, or Touch ID already configured on this device.
+          </Text>
+        </View>
 
-          <View style={styles.actionContainer}>
-            <TouchableOpacity
-              style={[styles.primaryButton, { backgroundColor: t.primary }]}
-              onPress={handleSave}
-              disabled={saving}
-              activeOpacity={0.9}
-            >
-              {saving ? <ActivityIndicator color="#FFF" /> : <Text style={styles.primaryButtonText}>Enable Protection</Text>}
-            </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.primaryButton, { backgroundColor: t.primary }]}
+          onPress={openDeviceSettings}
+          activeOpacity={0.9}
+        >
+          <Icon name="settings-outline" size={20} color="#FFFFFF" />
+          <Text style={styles.primaryButtonText}>Open Device Settings</Text>
+        </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.clearButton}
-              onPress={handleClear}
-              disabled={saving}
-              activeOpacity={0.7}
-            >
-              <Text style={[styles.clearButtonText, { color: t.subtext }]}>Deactivate Lock</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.securityBadge}>
-            <Icon name="shield-checkmark-outline" size={14} color={t.subtext} />
-            <Text style={[styles.securityText, { color: t.subtext }]}>DEVICE APP LOCK</Text>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+        <TouchableOpacity
+          style={styles.secondaryButton}
+          onPress={() => navigation.goBack()}
+          activeOpacity={0.7}
+        >
+          <Text style={[styles.secondaryButtonText, { color: t.subtext }]}>Back to Privacy Settings</Text>
+        </TouchableOpacity>
+      </ScrollView>
     </EditorialScreenScaffold>
   );
 };
 
-const createStyles = (t, isDark) => StyleSheet.create({
-  container: { flex: 1 },
+const createStyles = (t) => StyleSheet.create({
   scrollView: { flex: 1 },
   scrollContent: { padding: 24, paddingBottom: 60 },
-  paywallContent: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingHorizontal: 16 },
-  formCard: {
+  infoCard: {
+    alignItems: 'center',
     padding: 24,
-    borderRadius: 24, // High-end Apple Squircle
+    borderRadius: 24,
     borderWidth: 1,
     marginBottom: 24,
   },
-  label: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 11,
-    fontWeight: '800',
-    letterSpacing: 1.5,
-    marginBottom: 8,
+  iconWrap: {
+    width: 72,
+    height: 72,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 18,
   },
-  input: {
+  title: {
     fontFamily: SYSTEM_FONT,
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    height: 56,
-    fontSize: 20,
-    letterSpacing: 8,
-    fontWeight: '700',
-    marginBottom: 12,
+    fontSize: 24,
+    fontWeight: '900',
+    letterSpacing: -0.4,
+    textAlign: 'center',
+    marginBottom: 10,
   },
-  actionContainer: { gap: 12 },
+  body: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 15,
+    lineHeight: 22,
+    fontWeight: '600',
+    textAlign: 'center',
+  },
   primaryButton: {
+    minHeight: 56,
+    borderRadius: 28,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    height: 56,
-    borderRadius: 28,
     gap: 10,
-    ...Platform.select({
-      ios: { shadowColor: '#D2121A', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.3, shadowRadius: 12 },
-      android: { elevation: 6 },
-    }),
   },
   primaryButtonText: {
     color: '#FFFFFF',
     fontFamily: SYSTEM_FONT,
-    fontSize: 16,
-    fontWeight: '800',
-    textTransform: 'uppercase',
-    letterSpacing: -0.2,
+    fontSize: 15,
+    fontWeight: '900',
   },
-  clearButton: {
+  secondaryButton: {
     height: 56,
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: 8,
   },
-  clearButtonText: {
+  secondaryButtonText: {
     fontFamily: SYSTEM_FONT,
     fontSize: 14,
-    fontWeight: '700',
-    textDecorationLine: 'underline',
-  },
-  securityBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 40,
-    gap: 6,
-  },
-  securityText: {
-    fontFamily: SYSTEM_FONT,
-    fontSize: 10,
     fontWeight: '800',
-    letterSpacing: 1,
-  }
+  },
 });
 
 export default SetPinScreen;

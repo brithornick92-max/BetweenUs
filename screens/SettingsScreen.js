@@ -35,7 +35,7 @@ import ReAnimated, {
 
 // Context & Services
 import { useAuth } from '../context/AuthContext';
-import { useEntitlements, clearCouplePremiumCache } from '../context/EntitlementsContext';
+import { useEntitlements } from '../context/EntitlementsContext';
 import { useContent } from '../context/ContentContext';
 import { useTheme } from '../context/ThemeContext';
 
@@ -49,8 +49,7 @@ import FilmGrain from '../components/FilmGrain';
 import { cloudSyncStorage, settingsStorage, STORAGE_KEYS, storage } from '../utils/storage';
 import CrashReporting from '../services/CrashReporting';
 import RevenueCatService from '../services/RevenueCatService';
-import CoupleService from '../services/supabase/CoupleService';
-import { getVerifiedCoupleState } from '../services/couple/CouplePresenceService';
+import { getVerifiedCoupleState, unlinkCouple } from '../services/couple/CouplePresenceService';
 import StorageRouter from '../services/storage/StorageRouter';
 import SeasonSelector from '../components/SeasonSelector';
 import EnergyMatcher from '../components/EnergyMatcher';
@@ -307,30 +306,17 @@ export default function SettingsScreen({ navigation }) {
     if (unlinkInFlightRef.current) return;
     unlinkInFlightRef.current = true;
     try {
-      // Server unlink must succeed before we clear any local state
-      await CoupleService.unlinkFromCouple();
-      // Clear local cache only after successful server unlink
-      await storage.remove(STORAGE_KEYS.COUPLE_ID);
-      await storage.remove(STORAGE_KEYS.COUPLE_ROLE);
-      await storage.remove(STORAGE_KEYS.PARTNER_PROFILE);
-      await storage.remove(STORAGE_KEYS.LAST_PARTNER_ACTIVITY);
-      // Clear stale invite state so polling cannot re-link immediately
-      
-      try {
-        await updateProfile?.({ coupleId: null });
-      } catch (profileErr) {
-        if (__DEV__) console.warn('Failed updating local profile after unlink:', profileErr?.message || profileErr);
-      }
-      try {
-        await clearCouplePremiumCache();
-      } catch (premiumErr) {
-        if (__DEV__) console.warn('Failed clearing couple premium cache:', premiumErr?.message || premiumErr);
-      }
+      await unlinkCouple({
+        coupleId: await storage.get(STORAGE_KEYS.COUPLE_ID, null),
+        userId: user?.id || user?.uid,
+        onProfileCleared: updateProfile,
+      });
       setPaired(false);
       setShowUnlinkConfirm(false);
       Alert.alert('Unpaired', 'You have been unpaired successfully.');
     } catch (err) {
       if (__DEV__) console.warn('Unlink failed:', err?.message || err);
+      CrashReporting.captureException(err, { context: 'settings_unlink_partner' });
       Alert.alert(
         'Could not unpair',
         "We couldn't complete the unpair request right now, so your connection was left unchanged. Please try again."
@@ -344,24 +330,11 @@ export default function SettingsScreen({ navigation }) {
     if (unlinkInFlightRef.current) return;
     unlinkInFlightRef.current = true;
     try {
-      // Do not proceed to reconnect unless server unlink succeeds
-      await CoupleService.unlinkFromCouple();
-      await storage.remove(STORAGE_KEYS.COUPLE_ID);
-      await storage.remove(STORAGE_KEYS.COUPLE_ROLE);
-      await storage.remove(STORAGE_KEYS.PARTNER_PROFILE);
-      await storage.remove(STORAGE_KEYS.LAST_PARTNER_ACTIVITY);
-      // Prevent stale invite polling from restoring the old pairing
-      
-      try {
-        await updateProfile?.({ coupleId: null });
-      } catch (profileErr) {
-        if (__DEV__) console.warn('Failed updating local profile after unlink:', profileErr?.message || profileErr);
-      }
-      try {
-        await clearCouplePremiumCache();
-      } catch (premiumErr) {
-        if (__DEV__) console.warn('Failed clearing couple premium cache:', premiumErr?.message || premiumErr);
-      }
+      await unlinkCouple({
+        coupleId: await storage.get(STORAGE_KEYS.COUPLE_ID, null),
+        userId: user?.id || user?.uid,
+        onProfileCleared: updateProfile,
+      });
       setPaired(false);
       setShowUnlinkConfirm(false);
       Alert.alert(
@@ -371,6 +344,7 @@ export default function SettingsScreen({ navigation }) {
       navigation.navigate('ConnectPartner');
     } catch (err) {
       if (__DEV__) console.warn('Unlink and reconnect failed:', err?.message || err);
+      CrashReporting.captureException(err, { context: 'settings_unlink_and_reconnect' });
       Alert.alert(
         'Could not unpair',
         "We couldn't complete the unpair request, so your connection was left unchanged. Please try again."

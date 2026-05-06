@@ -567,6 +567,10 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 BEGIN
+  IF current_setting('app.allow_profile_premium_update', true) = 'true' THEN
+    RETURN NEW;
+  END IF;
+
   IF auth.role() <> 'service_role'
     AND NEW.is_premium IS DISTINCT FROM OLD.is_premium
   THEN
@@ -685,6 +689,8 @@ BEGIN
 
   should_be_premium := active_premium_user IS NOT NULL;
 
+  PERFORM set_config('app.allow_profile_premium_update', 'true', true);
+
   UPDATE couples SET
     is_premium = should_be_premium,
     premium_since = CASE
@@ -695,6 +701,8 @@ BEGIN
     premium_source = COALESCE(active_premium_user::text, 'none'),
     updated_at = now()
   WHERE id = input_couple_id;
+
+  PERFORM set_config('app.allow_profile_premium_update', 'false', true);
 END;
 $$;
 
@@ -706,8 +714,15 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 BEGIN
+  IF current_setting('app.allow_profile_premium_update', true) <> 'true'
+    AND auth.role() <> 'service_role'
+  THEN
+    RAISE EXCEPTION 'couples.is_premium is managed server-side';
+  END IF;
+
   UPDATE profiles SET is_premium = NEW.is_premium, updated_at = now()
   WHERE id IN (SELECT user_id FROM couple_members WHERE couple_id = NEW.id);
+
   RETURN NEW;
 END;
 $$;
@@ -1009,6 +1024,8 @@ BEGIN
     DELETE FROM partner_link_codes WHERE couple_id = old_couple_id;
     DELETE FROM couples WHERE id = old_couple_id;
 
+    PERFORM set_config('app.allow_profile_premium_update', 'true', true);
+
     UPDATE profiles SET
       is_premium = EXISTS (
         SELECT 1 FROM user_entitlements ue
@@ -1018,6 +1035,8 @@ BEGIN
       ),
       updated_at = now()
     WHERE id = ANY(affected_member_ids);
+
+    PERFORM set_config('app.allow_profile_premium_update', 'false', true);
   END IF;
 
   INSERT INTO couples (created_by) VALUES (caller_id)
@@ -1074,6 +1093,8 @@ BEGIN
   DELETE FROM couples WHERE id = the_couple_id;
 
   -- Reset each former member's profile premium to their own entitlement status.
+  PERFORM set_config('app.allow_profile_premium_update', 'true', true);
+
   UPDATE profiles SET
     is_premium = EXISTS (
       SELECT 1 FROM user_entitlements ue
@@ -1083,6 +1104,8 @@ BEGIN
     ),
     updated_at = now()
   WHERE id = ANY(affected_member_ids);
+
+  PERFORM set_config('app.allow_profile_premium_update', 'false', true);
 
   RETURN jsonb_build_object('success', true, 'couple_id', the_couple_id);
 END;

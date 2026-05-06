@@ -12,6 +12,9 @@ import { AppState } from "react-native";
 
 export const SUPABASE_URL = process.env.EXPO_PUBLIC_SUPABASE_URL;
 export const SUPABASE_ANON_KEY = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+const INSTALL_MARKER_KEY = "@betweenus:cache:installMarker";
+const APP_STORAGE_PREFIX = "@betweenus:";
+let installMarkerCheck = null;
 
 if (__DEV__ && (!SUPABASE_URL || !SUPABASE_ANON_KEY)) {
   console.warn(
@@ -20,6 +23,48 @@ if (__DEV__ && (!SUPABASE_URL || !SUPABASE_ANON_KEY)) {
   );
 }
 
+async function markInstallPresent() {
+  await AsyncStorage.setItem(
+    INSTALL_MARKER_KEY,
+    JSON.stringify({ createdAt: Date.now() })
+  ).catch(() => {});
+}
+
+function createInstallMarkerCheck() {
+  return (async () => {
+    try {
+      const marker = await AsyncStorage.getItem(INSTALL_MARKER_KEY);
+      if (marker) return false;
+
+      const keys = await AsyncStorage.getAllKeys();
+      const hasExistingAppState = keys.some((existingKey) => (
+        existingKey !== INSTALL_MARKER_KEY &&
+        typeof existingKey === "string" &&
+        existingKey.startsWith(APP_STORAGE_PREFIX)
+      ));
+
+      await markInstallPresent();
+      return !hasExistingAppState;
+    } catch {
+      // If install state is unreadable, prefer signed-out over resurrecting
+      // a Keychain/SecureStore token after a possible reinstall.
+      return true;
+    }
+  })();
+}
+
+async function shouldIgnorePersistedAuthForFreshInstall() {
+  if (!installMarkerCheck) {
+    installMarkerCheck = createInstallMarkerCheck();
+  }
+
+  return installMarkerCheck;
+}
+
+// Capture install state at module load, before providers or startup services can
+// create new app-cache keys that would make a reinstall look like an app update.
+installMarkerCheck = createInstallMarkerCheck();
+
 /**
  * Custom storage adapter for Supabase auth that wraps AsyncStorage.
  * This ensures compatibility with Supabase JS v2's expected storage interface.
@@ -27,6 +72,12 @@ if (__DEV__ && (!SUPABASE_URL || !SUPABASE_ANON_KEY)) {
 const SupabaseAsyncStorage = {
   getItem: async (key) => {
     try {
+      if (await shouldIgnorePersistedAuthForFreshInstall()) {
+        await SecureStore.deleteItemAsync(key).catch(() => {});
+        await AsyncStorage.removeItem(key).catch(() => {});
+        return null;
+      }
+
       const secureValue = await SecureStore.getItemAsync(key);
       if (secureValue !== null) return secureValue;
 
@@ -46,6 +97,9 @@ const SupabaseAsyncStorage = {
     }
   },
   setItem: async (key, value) => {
+    installMarkerCheck = Promise.resolve(false);
+    await markInstallPresent();
+
     try {
       await SecureStore.setItemAsync(key, value);
       await AsyncStorage.removeItem(key).catch(() => {});
