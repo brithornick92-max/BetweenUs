@@ -237,6 +237,38 @@ export function isSameExistingMediaSet(items, originalIds) {
     && nextIds.every((id, index) => id === currentIds[index]);
 }
 
+export function getKeepsakeSaveType({ mediaCount = 0, fallbackType = 'moment' } = {}) {
+  return mediaCount > 1 ? 'snapshot' : fallbackType;
+}
+
+export function getKeepsakeSaveConfirmation({ isEditMode = false, mediaItems = [] } = {}) {
+  const mediaCount = mediaItems.length;
+
+  if (mediaCount > 1) {
+    return {
+      title: isEditMode ? 'Keepsake updated' : 'Saved to Keepsake',
+      message: `${mediaCount} items have been saved to one Keepsake post.`,
+    };
+  }
+
+  if (mediaCount === 1) {
+    const item = mediaItems[0];
+    const mediaName = item?.type === 'video' || item?.mimeType?.startsWith?.('video/')
+      ? 'video'
+      : 'photo';
+
+    return {
+      title: isEditMode ? 'Keepsake updated' : 'Saved to Keepsake',
+      message: `Your ${mediaName} has been saved to Keepsake.`,
+    };
+  }
+
+  return {
+    title: isEditMode ? 'Keepsake updated' : 'Saved to Keepsake',
+    message: 'Your note has been saved to Keepsake.',
+  };
+}
+
 async function deleteMemoryById(memoryId) {
   if (!memoryId) return;
 
@@ -340,6 +372,21 @@ export default function AddMemoryScreen() {
   }), [colors, isDark]);
 
   const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
+
+  const closeScreen = useCallback(() => {
+    const canGoBack = typeof navigation.canGoBack === 'function'
+      ? navigation.canGoBack()
+      : true;
+
+    if (canGoBack && typeof navigation.goBack === 'function') {
+      navigation.goBack();
+      return;
+    }
+
+    if (typeof navigation.navigate === 'function') {
+      navigation.navigate('OurStory');
+    }
+  }, [navigation]);
 
   const validateAssets = useCallback((assets) => {
     for (const asset of assets) {
@@ -582,11 +629,16 @@ export default function AddMemoryScreen() {
           notifyPartner: isLinked,
         });
       } else {
+        const saveType = getKeepsakeSaveType({
+          mediaCount: mediaItems.length,
+          fallbackType: isEditMode ? originalMemoryType : promptRevealDraft.type,
+        });
+
         await saveSnapshotItems({
           snapshotId,
           trimmed,
           items: mediaItems,
-          type: isEditMode ? originalMemoryType : promptRevealDraft.type,
+          type: saveType,
           snapshotCreatedAt: originalSnapshotCreatedAt,
           notifyPartner: isLinked,
         });
@@ -597,7 +649,19 @@ export default function AddMemoryScreen() {
       }
 
       notification(NotificationFeedbackType.Success);
-      navigation.goBack();
+      setSaving(false);
+
+      const confirmation = getKeepsakeSaveConfirmation({
+        isEditMode,
+        mediaItems,
+      });
+
+      Alert.alert(
+        confirmation.title,
+        confirmation.message,
+        [{ text: 'OK', onPress: closeScreen }],
+        { cancelable: false }
+      );
     } catch (err) {
       setSaving(false);
       if (__DEV__) console.warn('[AddMemory] Save failed:', err?.message);
@@ -611,12 +675,12 @@ export default function AddMemoryScreen() {
     }
   }, [
     content,
+    closeScreen,
     editSnapshotId,
     editItem?.kind,
     isLinked,
     isEditMode,
     mediaItems,
-    navigation,
     originalMemoryIds,
     originalMemoryType,
     originalSnapshotCreatedAt,
@@ -663,7 +727,7 @@ export default function AddMemoryScreen() {
           subtitle={isEditMode ? 'UPDATE KEEPSAKE' : 'ADD TO KEEPSAKE'}
           titleColor={t.text}
           closeColor={t.text}
-          onClose={() => navigation.goBack()}
+          onClose={closeScreen}
           rightAccessory={(
             <TouchableOpacity
               onPress={handleSave}

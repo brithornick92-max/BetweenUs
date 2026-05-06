@@ -4,6 +4,9 @@ const renderer = require('react-test-renderer');
 const mockUpdateJournalEntry = jest.fn();
 const mockSaveJournalEntry = jest.fn();
 const mockGetJournalEntries = jest.fn();
+const mockSaveMemory = jest.fn();
+const mockUpdateMemory = jest.fn();
+const mockDeleteMemory = jest.fn();
 const mockSavePromptAnswer = jest.fn();
 const mockGetPromptAnswers = jest.fn();
 const mockGetSharedPromptAnswers = jest.fn();
@@ -21,6 +24,12 @@ const mockEntitlements = {
   showPaywall: mockShowPaywall,
 };
 let mockAppContextState = { userId: 'user-1' };
+let mockNavigation = {
+  goBack: jest.fn(),
+  navigate: jest.fn(),
+  canGoBack: jest.fn(() => true),
+};
+let mockRoute = { params: {} };
 
 function mockCreateHostComponent(name) {
   const Component = (props) => React.createElement(name, props, props.children);
@@ -126,6 +135,8 @@ jest.mock('react-native-reanimated', () => ({
 jest.mock('@react-navigation/native', () => {
   const ReactLocal = require('react');
   return {
+    useNavigation: () => mockNavigation,
+    useRoute: () => mockRoute,
     useFocusEffect: (callback) => {
       ReactLocal.useEffect(() => {
         const cleanup = callback();
@@ -200,6 +211,9 @@ jest.mock('../../services/localfirst', () => ({
     updateJournalEntry: (...args) => mockUpdateJournalEntry(...args),
     saveJournalEntry: (...args) => mockSaveJournalEntry(...args),
     getJournalEntries: (...args) => mockGetJournalEntries(...args),
+    saveMemory: (...args) => mockSaveMemory(...args),
+    updateMemory: (...args) => mockUpdateMemory(...args),
+    deleteMemory: (...args) => mockDeleteMemory(...args),
     savePromptAnswer: (...args) => mockSavePromptAnswer(...args),
     getPromptAnswers: (...args) => mockGetPromptAnswers(...args),
     getSharedPromptAnswers: (...args) => mockGetSharedPromptAnswers(...args),
@@ -287,9 +301,16 @@ function resetScreenHarnessMocks() {
   jest.clearAllMocks();
   mockEntitlements.isPremiumEffective = true;
   mockAppContextState = { userId: 'user-1' };
+  mockNavigation = createNavigation({
+    canGoBack: jest.fn(() => true),
+  });
+  mockRoute = { params: {} };
   mockUpdateJournalEntry.mockResolvedValue(undefined);
   mockSaveJournalEntry.mockResolvedValue(undefined);
   mockGetJournalEntries.mockResolvedValue([]);
+  mockSaveMemory.mockResolvedValue(undefined);
+  mockUpdateMemory.mockResolvedValue(undefined);
+  mockDeleteMemory.mockResolvedValue(undefined);
   mockSavePromptAnswer.mockResolvedValue(undefined);
   mockGetPromptAnswers.mockResolvedValue([]);
   mockGetSharedPromptAnswers.mockResolvedValue([]);
@@ -310,6 +331,23 @@ function setAppContextMock(state = {}) {
   mockAppContextState = { userId: 'user-1', ...state };
 }
 
+function setNavigationMock(overrides = {}) {
+  mockNavigation = createNavigation(overrides);
+  return mockNavigation;
+}
+
+function getNavigationMock() {
+  return mockNavigation;
+}
+
+function setRouteMock(route = {}) {
+  mockRoute = {
+    params: {},
+    ...route,
+  };
+  return mockRoute;
+}
+
 module.exports = {
   renderer,
   Image,
@@ -322,6 +360,9 @@ module.exports = {
   mockUpdateJournalEntry,
   mockSaveJournalEntry,
   mockGetJournalEntries,
+  mockSaveMemory,
+  mockUpdateMemory,
+  mockDeleteMemory,
   mockSavePromptAnswer,
   mockGetPromptAnswers,
   mockGetSharedPromptAnswers,
@@ -336,4 +377,7 @@ module.exports = {
   mockShowPaywall,
   setAppContextMock,
   setEntitlementsMock,
+  setNavigationMock,
+  getNavigationMock,
+  setRouteMock,
 };
