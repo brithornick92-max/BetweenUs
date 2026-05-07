@@ -998,7 +998,7 @@ export default function HomeScreen({ navigation }) {
           </Text>
 
           <View style={styles.headerRow}>
-            <Text style={styles.headerName} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.5}>
+            <Text style={styles.headerName} numberOfLines={2} ellipsizeMode="tail">
               {preferredName || 'You'}
             </Text>
 
@@ -1308,12 +1308,14 @@ const createStyles = (t, isDark) => StyleSheet.create({
   },
   headerName: {
     fontFamily: systemFont,
-    fontSize: 36,
+    fontSize: 40,
     fontWeight: '900',
-    letterSpacing: -1,
-    lineHeight: 42,
+    letterSpacing: 0,
+    lineHeight: 46,
     color: t.text,
     flex: 1,
+    flexShrink: 1,
+    minWidth: 0,
     paddingRight: SPACING.md,
   },
   vibeButton: {
