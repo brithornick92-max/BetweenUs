@@ -1321,10 +1321,10 @@ const createStyles = (t, isDark) => StyleSheet.create({
   },
   headerName: {
     fontFamily: systemFont,
-    fontSize: 40,
+    fontSize: 36,
     fontWeight: '900',
-    letterSpacing: 0,
-    lineHeight: 46,
+    letterSpacing: -1,
+    lineHeight: 42,
     color: t.text,
     flex: 1,
     flexShrink: 1,
