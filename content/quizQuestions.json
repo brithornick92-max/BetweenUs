@@ -260,7 +260,7 @@
     },
     {
       "id": "q044",
-      "text": "What's {partner}'s favorite memory of you two together?",
+      "text": "Which photo from your relationship would {partner} be most likely to frame?",
       "category": "love",
       "icon": "camera-outline"
     },
@@ -662,7 +662,7 @@
     },
     {
       "id": "q111",
-      "text": "What is {partner}'s go-to fast-food order when they are exhausted?",
+      "text": "Which drive-through side or snack does {partner} crave after a long day?",
       "category": "playful",
       "icon": "restaurant-outline"
     },
@@ -938,7 +938,7 @@
     },
     {
       "id": "q157",
-      "text": "How does {partner} handle the stress of a busy airport?",
+      "text": "What is {partner}'s airport personality: early, efficient, snack-focused, or quietly panicking?",
       "category": "future",
       "icon": "airplane-outline"
     },
@@ -1172,7 +1172,7 @@
     },
     {
       "id": "q196",
-      "text": "What core value does {partner} refuse to compromise on?",
+      "text": "Which personal principle guides {partner}'s hardest decisions?",
       "category": "deep",
       "icon": "sparkles-outline"
     },
@@ -1466,7 +1466,7 @@
     },
     {
       "id": "q245",
-      "text": "What is {partner}'s favorite memory from your best date night?",
+      "text": "Which detail from your best date night would {partner} want to recreate?",
       "category": "love",
       "icon": "heart-outline"
     },
@@ -1826,7 +1826,7 @@
     },
     {
       "id": "q305",
-      "text": "What aesthetic, design style, or color palette makes {partner} feel calm?",
+      "text": "Which color does {partner} reach for when they want a room to feel grounded?",
       "category": "personality",
       "icon": "color-palette-outline"
     },
@@ -2108,7 +2108,7 @@
     },
     {
       "id": "q352",
-      "text": "How does {partner} define a thriving relationship?",
+      "text": "What everyday sign tells {partner} your relationship is growing in the right direction?",
       "category": "love",
       "icon": "infinite-outline"
     },
@@ -2126,7 +2126,7 @@
     },
     {
       "id": "q355",
-      "text": "What tradition would {partner} want to turn into a lasting part of your story?",
+      "text": "Which yearly ritual would {partner} want to make feel more meaningful?",
       "category": "love",
       "icon": "infinite-outline"
     },
@@ -2156,7 +2156,7 @@
     },
     {
       "id": "q360",
-      "text": "What shared ambition has {partner} not yet turned into a plan?",
+      "text": "Which long-term goal does {partner} quietly hope you revisit soon?",
       "category": "love",
       "icon": "infinite-outline"
     },

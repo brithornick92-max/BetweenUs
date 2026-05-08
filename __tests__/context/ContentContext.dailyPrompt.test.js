@@ -1,6 +1,7 @@
 const React = require('react');
 const renderer = require('react-test-renderer');
 const { getDailyContentDateKey } = require('../../utils/dailyContentDate');
+const { getNoRepeatRotationItem } = require('../../utils/noRepeatContentRotation');
 
 const TODAY_KEY = getDailyContentDateKey();
 const DAILY_PROMPT_CACHE_KEY = '@betweenus:cache:dailyPromptSelection';
@@ -199,20 +200,12 @@ async function mountProvider() {
   return tree;
 }
 
-function stableHash(value) {
-  const input = String(value || '');
-  let hash = 0;
-  for (let index = 0; index < input.length; index += 1) {
-    hash = ((hash << 5) - hash + input.charCodeAt(index)) | 0;
-  }
-  return Math.abs(hash);
-}
-
 function expectedCouplePromptId(dateKey, coupleId) {
   const promptPool = [mockPromptCatalog.allowed, mockPromptCatalog.blocked]
     .sort((a, b) => String(a.id).localeCompare(String(b.id)));
-  const index = stableHash(`${dateKey}:couple:${coupleId}:daily_prompt`) % promptPool.length;
-  return promptPool[index].id;
+  return getNoRepeatRotationItem(promptPool, dateKey, {
+    seed: `couple:${coupleId}:today-between-us`,
+  }).id;
 }
 
 describe('ContentContext daily prompt stability', () => {

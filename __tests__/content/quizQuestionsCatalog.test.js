@@ -1,4 +1,5 @@
 const quizCatalog = require('../../content/quizQuestions.json');
+const { MINIMUM_QUESTION_REPEAT_DAYS } = require('../../utils/noRepeatContentRotation');
 
 const STOP_WORDS = new Set(
   'what is the a an and or of to in on for with by from about how does do did would could should if when where which who whose your you they them their theirs it its into most more less very one two three through while after before at as be being been has have had partner partners'
@@ -42,6 +43,7 @@ describe('Daily Quiz question catalog', () => {
     const texts = new Set();
 
     expect(questions).toHaveLength(365);
+    expect(questions.length).toBeGreaterThanOrEqual(MINIMUM_QUESTION_REPEAT_DAYS);
 
     questions.forEach((question, index) => {
       expect(question.id).toBe(`q${String(index + 1).padStart(3, '0')}`);

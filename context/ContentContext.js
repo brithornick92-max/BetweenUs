@@ -3,7 +3,6 @@
 import React, { createContext, useContext, useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import StorageRouter from '../services/storage/StorageRouter';
 import PremiumGatekeeper from '../services/PremiumGatekeeper';
-import contentAccessService from '../services/ContentAccessService';
 import { updateWidgetPrompt } from '../services/widgetData';
 import { SupabaseAuthService } from '../services/supabase/SupabaseAuthService';
 import { useAuth } from './AuthContext';
@@ -33,6 +32,7 @@ import {
   getDailyContentDateKey,
   getMsUntilNextDailyContentRollover,
 } from '../utils/dailyContentDate';
+import { TODAY_BETWEEN_US_HEAT_LEVELS, selectTodayBetweenUsPrompt } from '../utils/todayBetweenUsRotation';
 import { storage } from '../utils/storage';
 import { dateOnlyToLocalDate, isFutureLocalDate, normalizeDateOnlyKey } from '../utils/dateOnly';
 
@@ -43,34 +43,15 @@ function getDailyPromptScope(userId, coupleId) {
   return coupleId ? `couple:${coupleId}` : `user:${userId}`;
 }
 
-function getStableHash(value) {
-  const input = String(value || '');
-  let hash = 0;
-  for (let index = 0; index < input.length; index += 1) {
-    hash = ((hash << 5) - hash + input.charCodeAt(index)) | 0;
-  }
-  return Math.abs(hash);
-}
-
 function getSharedPromptId(selection) {
   return selection?.value?.promptId || selection?.promptId || null;
 }
 
-function getDailyPromptHeatFilters(profile = {}, isPremium = false) {
-  const heatLevels = contentAccessService.getAllowedHeatLevels(isPremium, profile);
-
-  if (!heatLevels.length) {
-    return {
-      minHeatLevel: 1,
-      maxHeatLevel: 0,
-      heatLevels: [],
-    };
-  }
-
+function getDailyPromptHeatFilters() {
   return {
-    minHeatLevel: Math.min(...heatLevels),
-    maxHeatLevel: Math.max(...heatLevels),
-    heatLevels,
+    minHeatLevel: 1,
+    maxHeatLevel: 3,
+    heatLevels: TODAY_BETWEEN_US_HEAT_LEVELS,
   };
 }
 
@@ -85,8 +66,7 @@ function selectCanonicalCoupleDailyPrompt(dateKey, scope, heatFilters = {}) {
 
   if (!promptPool.length) return FALLBACK_PROMPT;
 
-  const promptIndex = getStableHash(`${dateKey}:${scope}:daily_prompt`) % promptPool.length;
-  return promptPool[promptIndex];
+  return selectTodayBetweenUsPrompt(promptPool, dateKey, scope) || promptPool[0];
 }
 
 function normalizeRelationshipStartDate(value) {
@@ -173,16 +153,31 @@ export const ContentProvider = ({ children }) => {
     }
   }, [userProfile]);
 
-  const filterVisiblePromptsForProfile = useCallback(async (promptPool, profile) => {
+  const filterTodayPromptsForProfile = useCallback(async (promptPool, profile = {}) => {
     const normalizedPool = Array.isArray(promptPool) ? promptPool.filter(Boolean) : [];
     if (!normalizedPool.length) return [];
 
-    if (profile) {
-      return PreferenceEngine.filterPrompts(normalizedPool, profile);
-    }
+    const boundaries = profile?.boundaries || {};
+    const hiddenCategories = new Set([
+      ...(Array.isArray(profile?.hiddenCategories) ? profile.hiddenCategories : []),
+      ...(Array.isArray(boundaries?.hiddenCategories) ? boundaries.hiddenCategories : []),
+    ]);
+    const pausedIds = new Set([
+      ...(Array.isArray(profile?.pausedEntries) ? profile.pausedEntries : []),
+      ...(Array.isArray(profile?.pausedPrompts) ? profile.pausedPrompts : []),
+      ...(Array.isArray(boundaries?.pausedEntries) ? boundaries.pausedEntries : []),
+      ...(Array.isArray(boundaries?.pausedPrompts) ? boundaries.pausedPrompts : []),
+    ].filter(Boolean).map(String));
+
+    const boundaryFiltered = normalizedPool.filter((prompt) => {
+      if (!prompt) return false;
+      if (prompt?.category && hiddenCategories.has(prompt.category)) return false;
+      if (prompt?.id && pausedIds.has(String(prompt.id))) return false;
+      return true;
+    });
 
     const checks = await Promise.all(
-      normalizedPool.map(async (prompt) => ({
+      boundaryFiltered.map(async (prompt) => ({
         prompt,
         ok: await SoftBoundaries.shouldShowPrompt(prompt),
       }))
@@ -354,7 +349,7 @@ export const ContentProvider = ({ children }) => {
         throw new Error('No prompts available for your preferences');
       }
 
-      promptsData = await filterVisiblePromptsForProfile(promptsData, profile);
+      promptsData = await filterTodayPromptsForProfile(promptsData, profile);
 
       if (promptsData.length === 0) {
         throw new Error('No prompts available for your preferences');
@@ -375,8 +370,7 @@ export const ContentProvider = ({ children }) => {
         .sort((a, b) => String(a.id).localeCompare(String(b.id)));
 
       if (deterministicPool.length > 0) {
-        const promptIndex = getStableHash(`${today}:${scope}:daily_prompt`) % deterministicPool.length;
-        selectedPrompt = deterministicPool[promptIndex];
+        selectedPrompt = selectTodayBetweenUsPrompt(deterministicPool, today, scope);
       }
 
       // Guard against prompt missing .text — still respect boundaries
@@ -436,7 +430,7 @@ export const ContentProvider = ({ children }) => {
       }
   }, [
     ensureSupabaseSession,
-    filterVisiblePromptsForProfile,
+    filterTodayPromptsForProfile,
     isPremium,
     loadContentProfile,
     personalizePrompt,

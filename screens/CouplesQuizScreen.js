@@ -50,6 +50,7 @@ import {
   getDailyContentDateKey,
   getMsUntilNextDailyContentRollover,
 } from '../utils/dailyContentDate';
+import { getNoRepeatRotationIndex } from '../utils/noRepeatContentRotation';
 
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
 
@@ -79,7 +80,6 @@ const QUIZ_QUESTIONS = loadQuizQuestions();
 const TODAY_QUIZ_KEY = '@betweenus:cache:quizDateKey';
 const TODAY_QUIZ_QUESTION_KEY = '@betweenus:cache:quizQuestionId';
 const MY_QUIZ_ANSWER_KEY = '@betweenus:cache:quizMyAnswer';
-const MS_PER_DAY = 24 * 60 * 60 * 1000;
 const DAILY_QUIZ_ROTATION_ANCHOR_UTC = Date.UTC(2026, 0, 1);
 
 export function getQuizPromptId(questionId) {
@@ -128,23 +128,9 @@ export function getQuizQuestionById(questionId) {
 }
 
 function getStableQuestionIndex(dateKey, totalQuestions) {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(dateKey || ''));
-
-  if (match) {
-    const [, year, month, day] = match;
-    const dayUtc = Date.UTC(Number(year), Number(month) - 1, Number(day));
-
-    if (!Number.isNaN(dayUtc)) {
-      const offset = Math.floor((dayUtc - DAILY_QUIZ_ROTATION_ANCHOR_UTC) / MS_PER_DAY);
-      return ((offset % totalQuestions) + totalQuestions) % totalQuestions;
-    }
-  }
-
-  let hash = 0;
-  for (let i = 0; i < String(dateKey || '').length; i++) {
-    hash = (hash * 31 + String(dateKey).charCodeAt(i)) & 0xffffffff;
-  }
-  return Math.abs(hash) % totalQuestions;
+  return getNoRepeatRotationIndex(dateKey, totalQuestions, {
+    anchorUtc: DAILY_QUIZ_ROTATION_ANCHOR_UTC,
+  });
 }
 
 function substitutePartnerName(text, partnerName) {

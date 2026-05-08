@@ -23,6 +23,7 @@ const CouplesQuizModule = require('../../screens/CouplesQuizScreen');
 const CouplesQuizScreen = CouplesQuizModule.default;
 const { getDailyQuestion, getQuizAnswerCacheKey, getQuizCacheKeys } = CouplesQuizModule;
 const { getDailyContentDateKey } = require('../../utils/dailyContentDate');
+const { MINIMUM_QUESTION_REPEAT_DAYS } = require('../../utils/noRepeatContentRotation');
 const { Text } = require('react-native');
 
 function flattenText(children) {
@@ -158,17 +159,23 @@ describe('CouplesQuizScreen', () => {
   it('uses every Daily Quiz question before repeating the rotation', () => {
     const questions = require('../../content/quizQuestions.json').questions;
     const seenQuestionIds = new Set();
+    const firstSixMonthIds = new Set();
 
     for (let offset = 0; offset < questions.length; offset += 1) {
       const date = new Date(Date.UTC(2026, 0, 1 + offset));
       const dateKey = date.toISOString().slice(0, 10);
-      seenQuestionIds.add(getDailyQuestion(dateKey).id);
+      const questionId = getDailyQuestion(dateKey).id;
+      seenQuestionIds.add(questionId);
+      if (offset < MINIMUM_QUESTION_REPEAT_DAYS) {
+        firstSixMonthIds.add(questionId);
+      }
     }
 
     const repeatDate = new Date(Date.UTC(2026, 0, 1 + questions.length));
     const repeatDateKey = repeatDate.toISOString().slice(0, 10);
 
     expect(seenQuestionIds.size).toBe(questions.length);
+    expect(firstSixMonthIds.size).toBe(MINIMUM_QUESTION_REPEAT_DAYS);
     expect(getDailyQuestion(repeatDateKey).id).toBe(getDailyQuestion('2026-01-01').id);
   });
 

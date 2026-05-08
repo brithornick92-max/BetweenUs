@@ -2,9 +2,9 @@
   "meta": {
     "type": "today-between-us-prompts",
     "app": "Between Us",
-    "version": "1.2.0",
+    "version": "1.3.0",
     "description": "Daily Today Between Us prompt library, separate from the draw and browse prompt catalog.",
-    "totalPrompts": 150,
+    "totalPrompts": 183,
     "heatLevels": {
       "1": {
         "name": "Surface & Spark",
@@ -1216,6 +1216,270 @@
     {
       "id": "tbu_l3_048",
       "text": "What is the most profound, unspoken vow you hold in your heart regarding how you will protect and honor our connection until the very end?",
+      "category": "romance",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_049",
+      "text": "What small detail in our morning routine says the most about who we are right now?",
+      "category": "memory",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_050",
+      "text": "If today had a theme word for us, what would you choose and why?",
+      "category": "playful",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_051",
+      "text": "What ordinary sound, smell, or sight has been making life feel a little more beautiful lately?",
+      "category": "sensory",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_052",
+      "text": "What is one tiny tradition you would like us to protect, even when life gets busy?",
+      "category": "romance",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_053",
+      "text": "What question would you ask me today if you wanted to understand my inner weather better?",
+      "category": "emotional",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_054",
+      "text": "What is something simple we already do well as a team?",
+      "category": "romance",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_055",
+      "text": "If our day needed one small act of courage, what might it be?",
+      "category": "future",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_056",
+      "text": "What have you noticed about me recently that you have not said out loud yet?",
+      "category": "romance",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_057",
+      "text": "What would make tonight feel like a soft landing after the rest of the day?",
+      "category": "romance",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_058",
+      "text": "What is a belief about everyday happiness that has changed for you over time?",
+      "category": "emotional",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_059",
+      "text": "What part of our life feels quietly worth celebrating this morning?",
+      "category": "romance",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_060",
+      "text": "What is a small kindness from anyone that stayed with you longer than expected?",
+      "category": "emotional",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l1_061",
+      "text": "What would you like us to be more curious about today?",
+      "category": "playful",
+      "heat": 1,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_055",
+      "text": "What emotion have you been carrying lately that you wish had more room in our day?",
+      "category": "emotional",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_056",
+      "text": "Where do you feel most supported by us right now, and where could we make that support easier?",
+      "category": "emotional",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_057",
+      "text": "What is one pattern in our week that helps us feel close without demanding much energy?",
+      "category": "romance",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_058",
+      "text": "What kind of encouragement lands best for you when the day starts heavy?",
+      "category": "emotional",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_059",
+      "text": "What have you learned about asking for what you need before resentment builds?",
+      "category": "emotional",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_060",
+      "text": "What is one conversation we keep postponing that could become gentler if we started small?",
+      "category": "emotional",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l2_061",
+      "text": "What does being on the same team look like in the next 24 hours?",
+      "category": "romance",
+      "heat": 2,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_049",
+      "text": "What part of your life story feels like it is asking to be understood with more compassion?",
+      "category": "memory",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_050",
+      "text": "What value do you want our relationship to practice more visibly this season?",
+      "category": "future",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_051",
+      "text": "When you imagine us looking back on this chapter, what do you hope we are proud of?",
+      "category": "future",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_052",
+      "text": "What fear gets quieter when you remember we are facing life together?",
+      "category": "emotional",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_053",
+      "text": "What does emotional safety mean to you on an ordinary weekday morning?",
+      "category": "emotional",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_054",
+      "text": "What part of yourself are you learning to protect without closing yourself off from me?",
+      "category": "emotional",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_055",
+      "text": "What inherited idea about love are you actively choosing to keep, question, or rewrite?",
+      "category": "romance",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_056",
+      "text": "What kind of future would feel honest for us, not impressive to anyone else, just true?",
+      "category": "future",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_057",
+      "text": "What do you need me to understand about the pressure you put on yourself?",
+      "category": "emotional",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_058",
+      "text": "What would it look like for us to move through a hard season without losing tenderness?",
+      "category": "romance",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_059",
+      "text": "What promise do you want our daily choices to quietly keep making?",
+      "category": "future",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_060",
+      "text": "What part of our connection helps you become more yourself, not less?",
+      "category": "romance",
+      "heat": 3,
+      "relationshipDuration": ["universal"],
+      "dailyOnly": true
+    },
+    {
+      "id": "tbu_l3_061",
+      "text": "What would we do differently today if we treated time together as something sacred but simple?",
       "category": "romance",
       "heat": 3,
       "relationshipDuration": ["universal"],

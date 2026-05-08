@@ -5,6 +5,7 @@
 
 import { getDailyContentDateKey } from './dailyContentDate';
 import { normalizeHeatLevels, profileAllowsHeatLevel } from './heatLevelRanges';
+import { getNoRepeatRotationItem } from './noRepeatContentRotation';
 
 const isDevRuntime = typeof __DEV__ !== "undefined" && __DEV__;
 
@@ -219,16 +220,26 @@ export function getPromptOfTheDay(sharedKey = "", userFilters = {}) {
         return normalizePrompt(null, { dateKey, isDaily: true, isFallback: true });
       }
 
-      const index = getStableHash(seed) % fallbackPrompts.length;
-      return normalizePrompt(fallbackPrompts[index], {
+      const prompt = getNoRepeatRotationItem(
+        [...fallbackPrompts].sort((a, b) => String(a?.id || '').localeCompare(String(b?.id || ''))),
+        dateKey,
+        { seed }
+      );
+
+      return normalizePrompt(prompt, {
         dateKey,
         isDaily: true,
         isFallback: true,
       });
     }
 
-    const index = getStableHash(seed) % filteredPrompts.length;
-    return normalizePrompt(filteredPrompts[index], { dateKey, isDaily: true });
+    const prompt = getNoRepeatRotationItem(
+      [...filteredPrompts].sort((a, b) => String(a?.id || '').localeCompare(String(b?.id || ''))),
+      dateKey,
+      { seed }
+    );
+
+    return normalizePrompt(prompt, { dateKey, isDaily: true });
   } catch (error) {
     if (isDevRuntime) console.error("getPromptOfTheDay error:", error);
     return normalizePrompt(null, { dateKey, isDaily: true, isFallback: true });

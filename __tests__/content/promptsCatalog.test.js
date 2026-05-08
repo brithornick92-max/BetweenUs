@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const promptsCatalog = require('../../content/prompts.json');
+const { MINIMUM_QUESTION_REPEAT_DAYS } = require('../../utils/noRepeatContentRotation');
 
 const LEGACY_HEAT_PREFIX_MISMATCH_IDS = [
   'h1_001',
@@ -145,6 +146,12 @@ describe('prompts catalog integrity', () => {
   it('uses unique text for every prompt', () => {
     const texts = items.map((prompt) => prompt.text.trim().toLowerCase());
     expect(new Set(texts).size).toBe(texts.length);
+  });
+
+  it('has enough unique prompts for the six-month no-repeat daily rotation', () => {
+    expect(new Set(items.map((prompt) => prompt.id)).size).toBeGreaterThanOrEqual(
+      MINIMUM_QUESTION_REPEAT_DAYS
+    );
   });
 
   it('uses valid heat levels for every prompt', () => {
