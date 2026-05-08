@@ -13,6 +13,7 @@ import {
   Platform,
   Animated,
   useWindowDimensions,
+  ActivityIndicator,
 } from 'react-native';
 import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
 
@@ -118,6 +119,8 @@ export default function IntimacyPositionsScreen() {
   const [positionMatches, setPositionMatches] = useState({});
   const [triedPositions, setTriedPositions] = useState({});
   const [weeklyPositionSet, setWeeklyPositionSet] = useState(null);
+  const [positionsLoading, setPositionsLoading] = useState(true);
+  const [positionsError, setPositionsError] = useState(null);
   const [favoriteBusy, setFavoriteBusy] = useState(false);
   const [triedBusy, setTriedBusy] = useState(false);
   const [ratingBusy, setRatingBusy] = useState(false);
@@ -222,37 +225,28 @@ export default function IntimacyPositionsScreen() {
     setWeeklyPositionSet(weeklySet);
   }, [allowSexPositionContent, contentAnchorDate, isPremiumEffective, positionCatalog, userProfile]);
 
-  useEffect(() => {
-    let active = true;
-
-    (async () => {
-      try {
-        await loadPositionAccess();
-      } catch {
-        if (active) {
-          setWeeklyPositionSet(null);
-        }
+  const refreshPositionAccess = useCallback(async () => {
+    setPositionsLoading(true);
+    setPositionsError(null);
+    try {
+      await loadPositionAccess();
+    } catch (error) {
+      if (__DEV__) {
+        console.warn('[IntimacyPositions] Failed to load position library:', error?.message);
       }
-    })();
-
-    return () => {
-      active = false;
-    };
+      setWeeklyPositionSet(null);
+      setPositionsError("We couldn't load this week's intimacy library. Please check your connection and try again.");
+    } finally {
+      setPositionsLoading(false);
+    }
   }, [loadPositionAccess]);
 
   useFocusEffect(
     useCallback(() => {
-      let active = true;
+      refreshPositionAccess().catch(() => {});
 
-      loadPositionAccess().catch(() => {
-        if (!active) return;
-        setWeeklyPositionSet(null);
-      });
-
-      return () => {
-        active = false;
-      };
-    }, [loadPositionAccess])
+      return undefined;
+    }, [refreshPositionAccess])
   );
 
   useEffect(() => {
@@ -488,48 +482,73 @@ export default function IntimacyPositionsScreen() {
                   <Text style={[styles.cardEmail, { color: t.subtext }]}>{intimacyForLine}</Text>
                 </View>
 
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.pickerRow}
-                  style={styles.pickerScroll}
-                >
-                  {availablePositions.map((p, i) => {
-                    const active = i === selectedIndexSafe;
-                    return (
-                      <TouchableOpacity
-                        key={p.id}
-                        onPress={() => {
-                          selection();
-                          rememberSelectedPosition(p);
-                        }}
-                        activeOpacity={0.7}
-                        style={[
-                          styles.pickerPill,
-                          {
-                            backgroundColor: active ? t.primary : t.surfaceSecondary,
-                            borderColor: active ? t.primary : t.border,
-                          },
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            styles.pickerText,
-                            { color: active ? '#FFFFFF' : t.primary },
-                          ]}
-                          numberOfLines={2}
-                        >
-                          {p.title}
-                        </Text>
-                        {p.isLockedPreview || p.requiresPremium ? (
-                          <Icon name="lock-closed-outline" size={13} color={active ? '#FFFFFF' : t.primary} />
-                        ) : null}
-                      </TouchableOpacity>
-                    );
-                  })}
-                </ScrollView>
+                {positionsLoading ? (
+                  <View style={[styles.answerBubble, styles.loadingBubble, { backgroundColor: t.surfaceSecondary, borderColor: t.border }]}>
+                    <ActivityIndicator size="small" color={t.primary} />
+                    <Text style={[styles.answerText, { color: t.text }]}>
+                      Loading this week's intimacy library...
+                    </Text>
+                  </View>
+                ) : positionsError ? (
+                  <View style={[styles.answerBubble, styles.loadingBubble, { backgroundColor: t.surfaceSecondary, borderColor: t.border }]}>
+                    <Icon name="alert-circle-outline" size={24} color={t.primary} />
+                    <Text style={[styles.answerText, { color: t.text }]}>
+                      {positionsError}
+                    </Text>
+                    <TouchableOpacity
+                      activeOpacity={0.85}
+                      onPress={refreshPositionAccess}
+                      style={[styles.cta, { backgroundColor: t.primary, marginTop: SPACING.md }]}
+                      accessibilityRole="button"
+                      accessibilityLabel="Try loading intimacy library again"
+                    >
+                      <Text style={[styles.ctaLabel, { color: '#FFFFFF' }]}>Try Again</Text>
+                    </TouchableOpacity>
+                  </View>
+                ) : (
+                  <>
+                    <ScrollView
+                      horizontal
+                      showsHorizontalScrollIndicator={false}
+                      contentContainerStyle={styles.pickerRow}
+                      style={styles.pickerScroll}
+                    >
+                      {availablePositions.map((p, i) => {
+                        const active = i === selectedIndexSafe;
+                        return (
+                          <TouchableOpacity
+                            key={p.id}
+                            onPress={() => {
+                              selection();
+                              rememberSelectedPosition(p);
+                            }}
+                            activeOpacity={0.7}
+                            style={[
+                              styles.pickerPill,
+                              {
+                                backgroundColor: active ? t.primary : t.surfaceSecondary,
+                                borderColor: active ? t.primary : t.border,
+                              },
+                            ]}
+                          >
+                            <Text
+                              style={[
+                                styles.pickerText,
+                                { color: active ? '#FFFFFF' : t.primary },
+                              ]}
+                              numberOfLines={2}
+                            >
+                              {p.title}
+                            </Text>
+                            {p.isLockedPreview || p.requiresPremium ? (
+                              <Icon name="lock-closed-outline" size={13} color={active ? '#FFFFFF' : t.primary} />
+                            ) : null}
+                          </TouchableOpacity>
+                        );
+                      })}
+                    </ScrollView>
 
-                {position && (position.isLockedPreview || position.requiresPremium) && (
+                    {position && (position.isLockedPreview || position.requiresPremium) && (
                   <View style={[styles.answerBubble, styles.lockedPreviewBubble, { backgroundColor: t.surfaceSecondary, borderColor: t.border }]}>
                     <View style={styles.lockedPreviewHeader}>
                       <Icon name="lock-closed-outline" size={18} color={t.primary} />
@@ -549,9 +568,9 @@ export default function IntimacyPositionsScreen() {
                       </Text>
                     </TouchableOpacity>
                   </View>
-                )}
+                    )}
 
-                {position && !(position.isLockedPreview || position.requiresPremium) && (
+                    {position && !(position.isLockedPreview || position.requiresPremium) && (
                   <IntimacyPositionCard
                     key={position.id}
                     position={position}
@@ -569,11 +588,13 @@ export default function IntimacyPositionsScreen() {
                     isMatch={!!positionMatches[position.id]?.isMatch}
                     compact={isCompact}
                   />
-                )}
-                {!position && (
+                    )}
+                    {!position && (
                   <View style={[styles.answerBubble, { backgroundColor: t.surfaceSecondary, borderColor: t.border }]}>
                     <Text style={[styles.answerText, { color: t.text }]}>No positions match your current boundaries.</Text>
                   </View>
+                    )}
+                  </>
                 )}
               </View>
             </View>
@@ -733,6 +754,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: SPACING.lg,
     marginBottom: SPACING.xl,
+  },
+  loadingBubble: {
+    alignItems: 'center',
+    gap: SPACING.md,
   },
   answerText: {
     fontFamily: systemFont,

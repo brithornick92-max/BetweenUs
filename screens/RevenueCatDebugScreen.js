@@ -55,7 +55,7 @@ export default function RevenueCatDebugScreen({ navigation }) {
         currentEntitlementId: 'Between Us Pro',
       });
     } catch (err) {
-      console.error('Debug screen error:', err);
+      if (__DEV__) console.error('Debug screen error:', err);
       setError(err.message);
     } finally {
       setLoading(false);

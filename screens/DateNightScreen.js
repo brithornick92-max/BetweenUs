@@ -358,6 +358,8 @@ const CardStack = forwardRef(function CardStack(
       {/* Card 3 — furthest back */}
       {nextNextCard && (
         <Animated.View
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
           style={[
             cardBase,
             { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF', zIndex: 1 },
@@ -371,6 +373,8 @@ const CardStack = forwardRef(function CardStack(
       {/* Card 2 */}
       {nextCard && (
         <Animated.View
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
           style={[
             cardBase,
             { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF', zIndex: 2 },
@@ -384,6 +388,10 @@ const CardStack = forwardRef(function CardStack(
       {/* Card 1 — top, gesture-enabled */}
       <GestureDetector gesture={composedGesture}>
         <Animated.View
+          accessible
+          accessibilityRole="button"
+          accessibilityLabel={isFlipped ? `Date idea: ${topCard.title || 'Untitled date idea'}` : 'Hidden date idea card'}
+          accessibilityHint={isFlipped ? 'Double tap to open details. Use the buttons below to skip or save this idea.' : 'Double tap to reveal this date idea.'}
           style={[
             cardBase,
             { zIndex: 3 },
@@ -449,6 +457,7 @@ export default function DateNightScreen({ navigation, route }) {
   const isFromReveal = route?.params?.source === 'prompt_reveal';
 
   const [ready, setReady] = useState(false);
+  const [loadError, setLoadError] = useState(null);
   const [allDates, setAllDates] = useState([]);
   const [weeklyDateSet, setWeeklyDateSet] = useState(null);
   const [contentProfile, setContentProfile] = useState(null);
@@ -465,6 +474,7 @@ export default function DateNightScreen({ navigation, route }) {
   const [shuffleBusy, setShuffleBusy] = useState(false);
   const shuffleBusyRef = useRef(false);
   const shuffleTimeoutRef = useRef(null);
+  const loadCleanupRef = useRef(null);
   const emptyShuffleAnim = useSharedValue(0);
   const contentAnchorDate = useMemo(() => resolveWeeklyContentAnchorDate({
     isPremium,
@@ -475,12 +485,15 @@ export default function DateNightScreen({ navigation, route }) {
 
   // Defer heavy work until the tab transition animation finishes.
   // Reload on focus so season, tone, energy, and boundaries changes take effect.
-  useFocusEffect(
-    useCallback(() => {
-      setReady(false);
-      const task = InteractionManager.runAfterInteractions(async () => {
+  const startDateDeckLoad = useCallback(() => {
+    loadCleanupRef.current?.();
+    let active = true;
+    setReady(false);
+    setLoadError(null);
+    const task = InteractionManager.runAfterInteractions(async () => {
+      try {
         const dates = getAllDates();
-        
+
         // Get content profile, boundaries, and recent completions first.
         let profile = null;
         let bounds = null;
@@ -492,6 +505,8 @@ export default function DateNightScreen({ navigation, route }) {
           getDateHistory(),
           getRestoredDeckItemIds(CONTENT_TYPES.DATES),
         ]);
+
+        if (!active) return;
 
         if (profileResult.status === 'fulfilled') {
           profile = profileResult.value;
@@ -540,6 +555,7 @@ export default function DateNightScreen({ navigation, route }) {
           date: new Date(),
         });
 
+        if (!active) return;
         setWeeklyDateSet(weeklySet);
 
         if (userId) {
@@ -548,6 +564,7 @@ export default function DateNightScreen({ navigation, route }) {
             getDateMatchState(userId).catch(() => ({})),
           ])
             .then(([rows, matches]) => {
+              if (!active) return;
               const ids = new Set((rows || []).map((row) => row.date_id));
               setLikedDates(boundaryEligible.filter((date) => ids.has(date.id)));
               setDateMatches(matches || {});
@@ -556,9 +573,29 @@ export default function DateNightScreen({ navigation, route }) {
         }
 
         setReady(true);
-      });
-      return () => task.cancel();
-    }, [contentAnchorDate, isPremium, userId, userProfile])
+      } catch (error) {
+        if (__DEV__) console.warn('[DateNight] Failed to load date deck:', error?.message);
+        if (!active) return;
+        setAllDates([]);
+        setWeeklyDateSet(null);
+        setLoadError("We couldn't load date ideas right now. Please check your connection and try again.");
+        setReady(true);
+      }
+    });
+
+    const cleanup = () => {
+      active = false;
+      task.cancel();
+    };
+    loadCleanupRef.current = cleanup;
+    return cleanup;
+  }, [contentAnchorDate, isPremium, userId, userProfile]);
+
+  useFocusEffect(
+    useCallback(() => {
+      startDateDeckLoad();
+      return () => loadCleanupRef.current?.();
+    }, [startDateDeckLoad])
   );
 
   const visibleDateDeck = useMemo(() => {
@@ -888,6 +925,9 @@ export default function DateNightScreen({ navigation, route }) {
               onPress={handleReset}
               disabled={freeDeckDone || shuffleBusy}
               activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="Shuffle date ideas"
+              accessibilityState={{ disabled: freeDeckDone || shuffleBusy, busy: shuffleBusy }}
             >
               <Icon name="shuffle-outline" size={16} color={t.primary} />
               <Text style={[styles.shuffleText, { color: t.text }]}>Shuffle Deck</Text>
@@ -922,7 +962,22 @@ export default function DateNightScreen({ navigation, route }) {
         <>
         {/* Card Stack Content */}
         <View style={styles.stackWrapper}>
-          {deck.length === 0 ? (
+          {loadError ? (
+            <View style={styles.emptyStack}>
+              <Icon name="alert-circle-outline" size={40} color={colors.textMuted} />
+              <Text style={[styles.emptyTitle, { color: colors.text }]}>Dates couldn't load</Text>
+              <Text style={[styles.emptyBody, { color: colors.textMuted }]}>{loadError}</Text>
+              <TouchableOpacity
+                style={[styles.resetBtn, { backgroundColor: colors.text }]}
+                onPress={startDateDeckLoad}
+                activeOpacity={0.85}
+                accessibilityRole="button"
+                accessibilityLabel="Try loading date ideas again"
+              >
+                <Text style={[styles.resetTxt, { color: colors.background }]}>Try Again</Text>
+              </TouchableOpacity>
+            </View>
+          ) : deck.length === 0 ? (
             <View style={styles.emptyStack}>
               <Icon name="search-outline" size={40} color={colors.textMuted} />
               <Text style={[styles.emptyTitle, { color: colors.text }]}>No Matches</Text>
@@ -960,6 +1015,9 @@ export default function DateNightScreen({ navigation, route }) {
                       onPress={handleReset}
                       disabled={shuffleBusy}
                       activeOpacity={0.85}
+                      accessibilityRole="button"
+                      accessibilityLabel="Shuffle date ideas"
+                      accessibilityState={{ disabled: shuffleBusy, busy: shuffleBusy }}
                     >
                       <Icon name="shuffle-outline" size={18} color={colors.background} />
                       <Text style={[styles.resetTxt, { color: colors.background }]}>Shuffle Deck</Text>
@@ -995,6 +1053,8 @@ export default function DateNightScreen({ navigation, route }) {
               style={[styles.actionBtn, { backgroundColor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(242,242,247,0.9)' }]}
               onPress={() => stackRef.current?.swipeLeft()}
               activeOpacity={0.8}
+              accessibilityRole="button"
+              accessibilityLabel="Skip date idea"
             >
               <Icon name="close-outline" size={28} color={colors.text + '80'} />
             </TouchableOpacity>
@@ -1009,6 +1069,8 @@ export default function DateNightScreen({ navigation, route }) {
               style={styles.likeBtn}
               onPress={() => stackRef.current?.swipeRight()}
               activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel="Save date idea for today"
             >
               <LinearGradient
                 colors={[colors.primary, '#9A0F14']}
@@ -1055,11 +1117,14 @@ export default function DateNightScreen({ navigation, route }) {
                     onPress={() => openDate(d)}
                     onLongPress={() => handlePauseDate(d)}
                     activeOpacity={0.85}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Open saved date ${d.title || 'date idea'}`}
+                    accessibilityHint="Double tap and hold to pause this date idea."
                   >
                     <TouchableOpacity
                       accessibilityRole="checkbox"
                       accessibilityState={{ checked: true, disabled: !!shortlistBusyIds[d.id] }}
-                      accessibilityLabel="Remove saved date"
+                      accessibilityLabel={`Remove saved date ${d.title || 'date idea'}`}
                       activeOpacity={0.75}
                       disabled={!!shortlistBusyIds[d.id]}
                       onPress={() => handleToggleShortlist(d)}

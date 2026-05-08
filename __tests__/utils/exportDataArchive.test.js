@@ -15,6 +15,7 @@ const makeDataLayer = (overrides = {}) => ({
   getLoveNotes: jest.fn().mockResolvedValue([{ id: 'note-1', body: 'Love note' }]),
   getCalendarEvents: jest.fn().mockResolvedValue([{ id: 'event-1', title: 'Date night' }]),
   getDatePlans: jest.fn().mockResolvedValue([{ id: 'date-1', title: 'Dinner' }]),
+  getDateShortlist: jest.fn().mockResolvedValue([{ date_id: 'date-idea-1', created_at: '2026-05-01T00:00:00.000Z' }]),
   ...overrides,
 });
 
@@ -22,14 +23,16 @@ describe('exportDataArchive', () => {
   it('gathers every export section and removes internal fields', async () => {
     const dataLayer = makeDataLayer();
 
-    const data = await gatherExportData(dataLayer);
+    const data = await gatherExportData(dataLayer, { userId: 'user-1' });
 
     expect(dataLayer.getJournalEntries).toHaveBeenCalledWith({ limit: 10000 });
     expect(dataLayer.getLoveNotes).toHaveBeenCalledWith({ limit: 10000 });
     expect(dataLayer.getDatePlans).toHaveBeenCalledWith({ limit: 10000 });
+    expect(dataLayer.getDateShortlist).toHaveBeenCalledWith({ userId: 'user-1' });
     expect(data.journalEntries).toEqual([{ id: 'journal-1', body: 'Entry' }]);
     expect(data.memories).toEqual([{ id: 'memory-1', content: 'Memory' }]);
     expect(data.loveNotes).toEqual([{ id: 'note-1', body: 'Love note' }]);
+    expect(data.dateShortlist).toEqual([{ date_id: 'date-idea-1', created_at: '2026-05-01T00:00:00.000Z' }]);
   });
 
   it('continues with an empty section when one data source fails', async () => {

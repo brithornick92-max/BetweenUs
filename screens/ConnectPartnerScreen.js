@@ -29,7 +29,15 @@ import { SPACING, SYSTEM_FONT, withAlpha } from '../utils/theme';
 import { SupabaseAuthService } from '../services/supabase/SupabaseAuthService';
 
 
-export default function ConnectPartnerScreen({ navigation }) {
+function formatInviteCodeForEntry(value) {
+  const cleaned = String(value || '').replace(/[^A-Z0-9]/gi, '').toUpperCase().slice(0, 8);
+  if (cleaned.length > 4) {
+    return `${cleaned.slice(0, 4)}-${cleaned.slice(4)}`;
+  }
+  return cleaned;
+}
+
+export default function ConnectPartnerScreen({ navigation, route }) {
   const { colors, isDark } = useTheme();
   const { user, updateProfile } = useAuth();
   const { actions } = useAppContext();
@@ -41,6 +49,17 @@ export default function ConnectPartnerScreen({ navigation }) {
   const [joinPhase, setJoinPhase] = useState('idle');
 
   const activeRef = useRef(true);
+  const appliedRouteCodeRef = useRef(null);
+
+  useEffect(() => {
+    const routeCode = formatInviteCodeForEntry(route?.params?.code);
+    if (!routeCode || appliedRouteCodeRef.current === routeCode) return;
+
+    appliedRouteCodeRef.current = routeCode;
+    setPartnerCode(routeCode);
+    setJoinPhase('idle');
+    setJoinStatus('Invite code ready.');
+  }, [route?.params?.code]);
 
   const t = {
     background: colors.background || '#070509',
@@ -88,7 +107,7 @@ export default function ConnectPartnerScreen({ navigation }) {
       }
     } catch (err) {
       if (err?.message !== 'You are already in a couple' && __DEV__) {
-        console.warn('Code gen failed:', err?.message);
+        if (__DEV__) console.warn('Code gen failed:', err?.message);
       }
     } finally {
       if (activeRef.current) setCodeLoading(false);
@@ -237,11 +256,23 @@ export default function ConnectPartnerScreen({ navigation }) {
               )}
 
               <View style={styles.codeActions}>
-                <TouchableOpacity style={[styles.actionBtn, { borderColor: t.border }]} onPress={handleCopyCode} disabled={!myCode}>
+                <TouchableOpacity
+                  style={[styles.actionBtn, { borderColor: t.border }]}
+                  onPress={handleCopyCode}
+                  disabled={!myCode}
+                  accessibilityRole="button"
+                  accessibilityLabel="Copy invite code"
+                  accessibilityState={{ disabled: !myCode }}
+                >
                   <Icon name="copy-outline" size={16} color={t.text} />
                   <Text style={[styles.actionText, { color: t.text }]}>Copy</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[styles.actionBtn, { borderColor: t.border }]} onPress={generateCode}>
+                <TouchableOpacity
+                  style={[styles.actionBtn, { borderColor: t.border }]}
+                  onPress={generateCode}
+                  accessibilityRole="button"
+                  accessibilityLabel="Generate new invite code"
+                >
                   <Icon name="refresh-outline" size={16} color={t.text} />
                   <Text style={[styles.actionText, { color: t.text }]}>New</Text>
                 </TouchableOpacity>
@@ -281,6 +312,8 @@ export default function ConnectPartnerScreen({ navigation }) {
                 editable={joinPhase === 'idle' || joinPhase === 'error'}
                 returnKeyType="go"
                 onSubmitEditing={handleJoin}
+                accessibilityLabel="Partner invite code"
+                accessibilityHint="Enter your partner's invite code to link accounts."
               />
 
               {(joinStatus !== '' || joinPhase === 'error') && (
@@ -300,6 +333,9 @@ export default function ConnectPartnerScreen({ navigation }) {
                 ]}
                 onPress={handleJoin}
                 disabled={!partnerCode || joinPhase === 'joining'}
+                accessibilityRole="button"
+                accessibilityLabel="Link with partner"
+                accessibilityState={{ disabled: !partnerCode || joinPhase === 'joining', busy: joinPhase === 'joining' }}
               >
                 {joinPhase === 'joining' ? (
                   <ActivityIndicator color="#FFFFFF" />

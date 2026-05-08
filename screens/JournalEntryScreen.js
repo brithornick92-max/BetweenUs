@@ -95,7 +95,6 @@ export default function JournalEntryScreen({ navigation, route }) {
     Keyboard.dismiss();
 
     setIsSaving(true);
-    notification(NotificationFeedbackType.Success);
 
     try {
       const entryData = {
@@ -130,9 +129,10 @@ export default function JournalEntryScreen({ navigation, route }) {
         await DataLayer.saveJournalEntry(entryData);
       }
 
+      notification(NotificationFeedbackType.Success);
       navigation.goBack();
     } catch (_error) {
-      Alert.alert("Error", "Failed to save journal entry. Please try again.");
+      Alert.alert("Could not save entry", "Please check your connection and try again.");
     } finally {
       setIsSaving(false);
     }
@@ -153,7 +153,7 @@ export default function JournalEntryScreen({ navigation, route }) {
               await DataLayer.deleteJournalEntry(entry.id);
               navigation.goBack();
             } catch (_error) {
-              Alert.alert("Error", "Failed to delete entry. Please try again.");
+              Alert.alert("Could not delete entry", "Please try again.");
             }
           },
         },
@@ -276,6 +276,9 @@ export default function JournalEntryScreen({ navigation, route }) {
                   onPress={handleSave}
                   disabled={isSaving}
                   activeOpacity={0.8}
+                  accessibilityRole="button"
+                  accessibilityLabel={entry?.id ? "Save journal changes" : "Save journal entry"}
+                  accessibilityState={{ disabled: isSaving, busy: isSaving }}
                 >
                   {isSaving ? (
                     <ActivityIndicator size="small" color="#FFF" />
@@ -303,6 +306,7 @@ export default function JournalEntryScreen({ navigation, route }) {
                 multiline
                 editable={!isReadOnly}
                 selectionColor={colors.primary}
+                accessibilityLabel="Journal entry title"
               />
             </Animated.View>
 
@@ -316,12 +320,15 @@ export default function JournalEntryScreen({ navigation, route }) {
                       contentFit="contain"
                       fullscreenOptions={{ enable: true }}
                       allowsPictureInPicture
+                      accessibilityLabel="Journal entry video"
                     />
                   ) : (
                     <Image
                       source={{ uri: mediaUri }}
                       style={styles.imagePreview}
                       resizeMode="contain"
+                      accessible
+                      accessibilityLabel="Journal entry photo"
                     />
                   )}
 
@@ -341,6 +348,9 @@ export default function JournalEntryScreen({ navigation, route }) {
                         setMediaType(null);
                         setMediaFileName(null);
                       }}
+                      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                      accessibilityRole="button"
+                      accessibilityLabel={isVideoMedia ? "Remove journal video" : "Remove journal photo"}
                     >
                       <Icon name="close-outline" size={16} color="#FFF" />
                     </TouchableOpacity>
@@ -354,6 +364,10 @@ export default function JournalEntryScreen({ navigation, route }) {
                   ]}
                   onPress={handlePickMedia}
                   disabled={isReadOnly}
+                  accessibilityRole="button"
+                  accessibilityLabel="Add a photo or video"
+                  accessibilityHint="Opens your private media library picker."
+                  accessibilityState={{ disabled: isReadOnly }}
                 >
                   <Icon name="images-outline" size={24} color={colors.primary} />
                   <Text style={[styles.placeholderText, { color: colors.textMuted }]}>
@@ -390,6 +404,7 @@ export default function JournalEntryScreen({ navigation, route }) {
                 editable={!isReadOnly}
                 selectionColor={colors.primary}
                 autoFocus={!entry && !isReadOnly}
+                accessibilityLabel="Journal entry reflection"
               />
             </Animated.View>
 
@@ -420,6 +435,9 @@ export default function JournalEntryScreen({ navigation, route }) {
                     onPress={handleDelete}
                     style={[styles.deleteButton, { backgroundColor: withAlpha('#D2121A', 0.1) }]}
                     activeOpacity={0.7}
+                    accessibilityRole="button"
+                    accessibilityLabel="Delete journal entry"
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                   >
                     <Icon name="trash-outline" size={20} color="#D2121A" />
                   </TouchableOpacity>

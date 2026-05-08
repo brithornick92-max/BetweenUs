@@ -132,7 +132,10 @@ function isRecurringPackage(pkg) {
   return true;
 }
 
-const SUBSCRIPTION_DISCLOSURE = "Payment is charged to your Apple ID at confirmation. Subscriptions renew automatically unless canceled at least 24 hours before the end of the current period. Your account may be charged for renewal within 24 hours before the current period ends. You can manage or cancel your subscription in your App Store account settings.";
+const SUBSCRIPTION_DISCLOSURES = {
+  ios: "Payment is charged to your Apple ID at confirmation. Subscriptions renew automatically unless canceled at least 24 hours before the end of the current period. Your account may be charged for renewal within 24 hours before the current period ends. You can manage or cancel your subscription in your App Store account settings.",
+  android: "Payment is charged to your Google Play account at confirmation. Subscriptions renew automatically unless canceled at least 24 hours before the end of the current period. You can manage or cancel your subscription in your Google Play subscription settings.",
+};
 
 const RevenueCatPaywall = ({ onDismiss, onPurchaseSuccess, navigation, route }) => {
   const { checkSubscriptionStatus } = useSubscription();
@@ -166,6 +169,9 @@ const RevenueCatPaywall = ({ onDismiss, onPurchaseSuccess, navigation, route }) 
   }), [colors, isDark]);
 
   const copy = getFeatureCopy(feature);
+  const subscriptionDisclosure = Platform.OS === "android"
+    ? SUBSCRIPTION_DISCLOSURES.android
+    : SUBSCRIPTION_DISCLOSURES.ios;
 
   const openLegalScreen = (screenName) => {
     navigation?.navigate?.(screenName, { fromPaywall: true });
@@ -303,6 +309,8 @@ const RevenueCatPaywall = ({ onDismiss, onPurchaseSuccess, navigation, route }) 
                 style={styles.backToBenefits}
                 onPress={() => setShowPlans(false)}
                 activeOpacity={0.75}
+                accessibilityRole="button"
+                accessibilityLabel="Back to premium benefits"
               >
                 <Icon name="chevron-back-outline" size={18} color={t.primary} />
                 <Text style={[styles.backToBenefitsText, { color: t.primary }]}>Benefits</Text>
@@ -343,6 +351,8 @@ const RevenueCatPaywall = ({ onDismiss, onPurchaseSuccess, navigation, route }) 
                       activeOpacity={0.82}
                       accessibilityRole="radio"
                       accessibilityState={{ selected }}
+                      accessibilityLabel={`${getPackageLabel(pkg)}, ${pkg?.product?.priceString || pkg?.product?.price_string || "price unavailable"}`}
+                      accessibilityHint="Select this premium plan."
                     >
                       <View style={styles.planCardMain}>
                         <View style={styles.planTitleRow}>
@@ -375,18 +385,18 @@ const RevenueCatPaywall = ({ onDismiss, onPurchaseSuccess, navigation, route }) 
 
               <View style={[styles.legalBlock, { borderColor: t.border }]}>
                 <Text style={[styles.legalText, { color: t.subtext }]}>
-                  {SUBSCRIPTION_DISCLOSURE}
+                  {subscriptionDisclosure}
                 </Text>
                 <View style={styles.legalLinksRow}>
-                  <TouchableOpacity onPress={() => openLegalScreen("Terms")} activeOpacity={0.75}>
+                  <TouchableOpacity onPress={() => openLegalScreen("Terms")} activeOpacity={0.75} accessibilityRole="link" accessibilityLabel="Terms of Service">
                     <Text style={[styles.legalLink, { color: t.primary }]}>Terms</Text>
                   </TouchableOpacity>
                   <Text style={[styles.legalSeparator, { color: t.subtext }]}>/</Text>
-                  <TouchableOpacity onPress={() => openLegalScreen("PrivacyPolicy")} activeOpacity={0.75}>
+                  <TouchableOpacity onPress={() => openLegalScreen("PrivacyPolicy")} activeOpacity={0.75} accessibilityRole="link" accessibilityLabel="Privacy Policy">
                     <Text style={[styles.legalLink, { color: t.primary }]}>Privacy</Text>
                   </TouchableOpacity>
                   <Text style={[styles.legalSeparator, { color: t.subtext }]}>/</Text>
-                  <TouchableOpacity onPress={() => openLegalScreen("EULA")} activeOpacity={0.75}>
+                  <TouchableOpacity onPress={() => openLegalScreen("EULA")} activeOpacity={0.75} accessibilityRole="link" accessibilityLabel="Apple standard EULA">
                     <Text style={[styles.legalLink, { color: t.primary }]}>Apple EULA</Text>
                   </TouchableOpacity>
                 </View>
@@ -437,18 +447,20 @@ const RevenueCatPaywall = ({ onDismiss, onPurchaseSuccess, navigation, route }) 
 
               <View style={[styles.legalBlock, { borderColor: t.border }]}>
                 <Text style={[styles.legalText, { color: t.subtext }]}>
-                  Auto-renewing subscription. Cancel at least 24 hours before renewal in your App Store account settings.
+                  {Platform.OS === "android"
+                    ? "Auto-renewing subscription. Cancel at least 24 hours before renewal in your Google Play subscription settings."
+                    : "Auto-renewing subscription. Cancel at least 24 hours before renewal in your App Store account settings."}
                 </Text>
                 <View style={styles.legalLinksRow}>
-                  <TouchableOpacity onPress={() => openLegalScreen("Terms")} activeOpacity={0.75}>
+                  <TouchableOpacity onPress={() => openLegalScreen("Terms")} activeOpacity={0.75} accessibilityRole="link" accessibilityLabel="Terms of Service">
                     <Text style={[styles.legalLink, { color: t.primary }]}>Terms</Text>
                   </TouchableOpacity>
                   <Text style={[styles.legalSeparator, { color: t.subtext }]}>/</Text>
-                  <TouchableOpacity onPress={() => openLegalScreen("PrivacyPolicy")} activeOpacity={0.75}>
+                  <TouchableOpacity onPress={() => openLegalScreen("PrivacyPolicy")} activeOpacity={0.75} accessibilityRole="link" accessibilityLabel="Privacy Policy">
                     <Text style={[styles.legalLink, { color: t.primary }]}>Privacy</Text>
                   </TouchableOpacity>
                   <Text style={[styles.legalSeparator, { color: t.subtext }]}>/</Text>
-                  <TouchableOpacity onPress={() => openLegalScreen("EULA")} activeOpacity={0.75}>
+                  <TouchableOpacity onPress={() => openLegalScreen("EULA")} activeOpacity={0.75} accessibilityRole="link" accessibilityLabel="Apple standard EULA">
                     <Text style={[styles.legalLink, { color: t.primary }]}>Apple EULA</Text>
                   </TouchableOpacity>
                 </View>
@@ -464,7 +476,11 @@ const RevenueCatPaywall = ({ onDismiss, onPurchaseSuccess, navigation, route }) 
             onPress={handlePrimaryAction}
             disabled={isPurchasing || isLoadingPlans || (showPlans && !selectedPackage)}
             accessibilityRole="button"
-            accessibilityLabel="View premium plans"
+            accessibilityLabel={showPlans ? "Continue with selected premium plan" : "View premium plans"}
+            accessibilityState={{
+              disabled: isPurchasing || isLoadingPlans || (showPlans && !selectedPackage),
+              busy: isPurchasing || isLoadingPlans,
+            }}
           >
             {isPurchasing || isLoadingPlans ? (
               <ActivityIndicator size="small" color="#FFFFFF" />
@@ -484,6 +500,8 @@ const RevenueCatPaywall = ({ onDismiss, onPurchaseSuccess, navigation, route }) 
             disabled={isPurchasing}
             activeOpacity={0.75}
             accessibilityRole="button"
+            accessibilityLabel="Restore purchase"
+            accessibilityState={{ disabled: isPurchasing, busy: isPurchasing }}
           >
             <Text style={[styles.restoreText, { color: t.subtext }]}>Restore purchase</Text>
           </TouchableOpacity>

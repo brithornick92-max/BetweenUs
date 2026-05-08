@@ -299,7 +299,7 @@ class StorageRouter {
             session = await SupabaseAuthService.getSession();
           } catch (error) {
             if (__DEV__) {
-              console.warn('[StorageRouter] Initial auth session check failed; preserving unknown auth state:', error?.message);
+              if (__DEV__) console.warn('[StorageRouter] Initial auth session check failed; preserving unknown auth state:', error?.message);
             }
 
             // Timeout/network failure means auth is unknown, not signed out.
@@ -321,7 +321,7 @@ class StorageRouter {
         })
         .catch((error) => {
           if (__DEV__) {
-            console.warn('[StorageRouter] Initial auth listener callback failed:', error?.message);
+            if (__DEV__) console.warn('[StorageRouter] Initial auth listener callback failed:', error?.message);
           }
         });
     }

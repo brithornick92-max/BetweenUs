@@ -4,6 +4,9 @@
 
 This document provides an overview of all legal documents for the Between Us app.
 
+**Operator:** Brittany Apps
+**Primary Contact:** hello@brittanyapps.com
+
 ---
 
 ## Documents Overview
@@ -85,22 +88,23 @@ This document provides an overview of all legal documents for the Between Us app
 ## Contact Information
 
 ### General Support
-**Email:** brittanyapps@outlook.com
+**Operator:** Brittany Apps
+**Email:** hello@brittanyapps.com
 **Response Time:** 24-48 hours
 
 ### Privacy Questions
-**Email:** brittanyapps@outlook.com
-**Data Requests:** brittanyapps@outlook.com
+**Email:** hello@brittanyapps.com
+**Data Requests:** hello@brittanyapps.com
 
 ### Legal Inquiries
-**Email:** brittanyapps@outlook.com
+**Email:** hello@brittanyapps.com
 
 ### Safety Concerns
-**Email:** brittanyapps@outlook.com
+**Email:** hello@brittanyapps.com
 **Urgent:** If you are in immediate danger, contact local emergency services or a qualified crisis/safety resource. Between Us is not an emergency service.
 
 ### Feedback
-**Email:** brittanyapps@outlook.com
+**Email:** hello@brittanyapps.com
 
 ---
 
@@ -190,4 +194,4 @@ All legal documents are:
 
 ---
 
-**Questions?** Contact us at brittanyapps@outlook.com
+**Questions?** Contact us at hello@brittanyapps.com

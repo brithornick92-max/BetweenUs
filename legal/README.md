@@ -2,6 +2,9 @@
 
 This directory contains all legal documents for the Between Us app.
 
+**Operator:** Brittany Apps
+**Primary Contact:** hello@brittanyapps.com
+
 ---
 
 ## 📄 Documents
@@ -59,9 +62,10 @@ This directory contains all legal documents for the Between Us app.
 - ✅ Limited pseudonymous analytics and diagnostics are used to improve reliability
 
 **Questions?**
-- General: brittanyapps@outlook.com
-- Privacy: brittanyapps@outlook.com
-- Legal: brittanyapps@outlook.com
+- Operator: Brittany Apps
+- General: hello@brittanyapps.com
+- Privacy: hello@brittanyapps.com
+- Legal: hello@brittanyapps.com
 
 ### For Developers
 
@@ -163,24 +167,24 @@ This directory contains all legal documents for the Between Us app.
 ### Support Channels
 
 **General Support**
-- Email: brittanyapps@outlook.com
+- Email: hello@brittanyapps.com
 - Response: 24-48 hours
 
 **Privacy Inquiries**
-- Email: brittanyapps@outlook.com
-- Data Requests: brittanyapps@outlook.com
+- Email: hello@brittanyapps.com
+- Data Requests: hello@brittanyapps.com
 
 **Legal Questions**
-- Email: brittanyapps@outlook.com
-- Business: brittanyapps@outlook.com
+- Email: hello@brittanyapps.com
+- Business: hello@brittanyapps.com
 
 **Safety & Abuse**
-- Email: brittanyapps@outlook.com
+- Email: hello@brittanyapps.com
 - Priority: as soon as available
 
 **Feedback**
-- Email: brittanyapps@outlook.com
-- Feature Requests: brittanyapps@outlook.com
+- Email: hello@brittanyapps.com
+- Feature Requests: hello@brittanyapps.com
 
 ---
 
@@ -196,7 +200,7 @@ This directory contains all legal documents for the Between Us app.
 - Portuguese
 - More languages based on demand
 
-**Request a language:** brittanyapps@outlook.com
+**Request a language:** hello@brittanyapps.com
 
 ---
 
@@ -305,7 +309,6 @@ We communicate material privacy and security changes through updated legal docum
 - High contrast
 - Clear hierarchy
 - Alternative formats available
-- Multiple languages (planned)
 
 ---
 
@@ -348,4 +351,4 @@ Before launching Between Us:
 ---
 
 **Questions about these documents?**
-Contact: brittanyapps@outlook.com
+Contact: hello@brittanyapps.com

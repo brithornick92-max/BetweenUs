@@ -237,6 +237,7 @@ export default function PromptsScreen({ navigation }) {
   const [rawBoundaries, setRawBoundaries] = useState(null);
   const [prompts, setPrompts] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState(null);
   const [shuffleNonce, setShuffleNonce] = useState(0);
   const [promptDeckIndex, setPromptDeckIndex] = useState(0);
   const [promptDeckRevealsCards, setPromptDeckRevealsCards] = useState(false);
@@ -305,6 +306,7 @@ export default function PromptsScreen({ navigation }) {
 
   const loadPrompts = useCallback(async () => {
     setLoading(true);
+    setLoadError(null);
     try {
       const allPrompts = ALL_BUNDLED.map(normalizePrompt);
       const [dataLayerPromptAnswers, localPromptAnswers, restoredPromptIds] = await Promise.all([
@@ -347,9 +349,11 @@ export default function PromptsScreen({ navigation }) {
 
       setWeeklyPromptSet(weeklySet);
       setPrompts(resolveWeeklyDeckItems(weeklySet));
-    } catch {
+    } catch (error) {
+      if (__DEV__) console.warn('[Prompts] Failed to load prompt deck:', error?.message);
       setPrompts([]);
       setWeeklyPromptSet(null);
+      setLoadError("We couldn't load this week's prompt deck. Please check your connection and try again.");
     } finally {
       setLoading(false);
     }
@@ -626,6 +630,9 @@ export default function PromptsScreen({ navigation }) {
               onPress={handleShuffle}
               disabled={freeDeckDone || shuffleBusy}
               activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel="Shuffle prompt deck"
+              accessibilityState={{ disabled: freeDeckDone || shuffleBusy, busy: shuffleBusy }}
             >
               <Icon name="shuffle-outline" size={16} color={t.primary} />
               <Text style={[styles.shuffleText, { color: t.text }]}>Shuffle Deck</Text>
@@ -636,6 +643,20 @@ export default function PromptsScreen({ navigation }) {
           {loading ? (
             <View style={styles.centered}>
               <ActivityIndicator size="large" color={t.primary} />
+            </View>
+          ) : loadError ? (
+            <View style={styles.centered}>
+              <Icon name="alert-circle-outline" size={48} color={withAlpha(t.text, 0.16)} />
+              <Text style={[styles.emptyText, { color: t.subtext }]}>{loadError}</Text>
+              <TouchableOpacity
+                style={[styles.retryButton, { backgroundColor: t.primary }]}
+                onPress={loadPrompts}
+                activeOpacity={0.82}
+                accessibilityRole="button"
+                accessibilityLabel="Try loading prompts again"
+              >
+                <Text style={styles.retryButtonText}>Try Again</Text>
+              </TouchableOpacity>
             </View>
           ) : deckPrompts.length === 0 ? (
             <View style={styles.centered}>
@@ -701,6 +722,8 @@ export default function PromptsScreen({ navigation }) {
                         ]}
                         onPress={() => handlePromptSelect(prompt)}
                         activeOpacity={0.75}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Open saved prompt: ${prompt.text || 'Saved prompt'}`}
                       >
                         <Icon name="bookmark-outline" size={13} color={t.primary} />
                         <Text style={[styles.savedLaterText, { color: t.text }]} numberOfLines={2}>
@@ -875,5 +898,20 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "600",
     textAlign: "center",
+    lineHeight: 22,
+    paddingHorizontal: 36,
+  },
+  retryButton: {
+    minHeight: 46,
+    borderRadius: 23,
+    paddingHorizontal: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  retryButtonText: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#FFFFFF',
   },
 });

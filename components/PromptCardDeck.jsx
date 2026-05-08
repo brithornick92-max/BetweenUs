@@ -109,6 +109,9 @@ function DeckCard({ item, index, isTop, initiallyRevealed, onSwipeRight, onSwipe
   const promptLineHeight = promptLength > 180 ? 30 : promptLength > 120 ? 34 : 39;
   const skipHintBackground = isDark ? colors.surface2 : colors.text;
   const skipHintTextColor = isDark ? "#FFF" : colors.background;
+  const promptAccessibilityLabel = item?.text
+    ? `Prompt card: ${item.text}`
+    : `${heatLabel} prompt card`;
 
   const rotationSensor = useAnimatedSensor(SensorType.ROTATION, { interval: 16 });
 
@@ -233,7 +236,15 @@ function DeckCard({ item, index, isTop, initiallyRevealed, onSwipeRight, onSwipe
 
   return (
     <GestureDetector gesture={gesture}>
-      <Animated.View style={[styles.cardContainer, { width: cardWidth, height: cardHeight }, containerStyle]}>
+      <Animated.View
+        style={[styles.cardContainer, { width: cardWidth, height: cardHeight }, containerStyle]}
+        accessible={isTop && !isFlipped}
+        accessibilityRole={isTop && !isFlipped ? "button" : undefined}
+        accessibilityLabel={isTop && !isFlipped ? `${heatLabel} prompt card` : undefined}
+        accessibilityHint={isTop && !isFlipped ? "Double tap to reveal the prompt. Long press to hide this prompt." : undefined}
+        accessibilityElementsHidden={!isTop}
+        importantForAccessibility={isTop ? "auto" : "no-hide-descendants"}
+      >
 
         {/* BACK FACE (The Cover) */}
         <Animated.View style={[styles.card, backStyle, { borderColor: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.08)" }]}>
@@ -313,6 +324,8 @@ function DeckCard({ item, index, isTop, initiallyRevealed, onSwipeRight, onSwipe
                   style={styles.footerAction}
                   onPress={handleSaveForLater}
                   activeOpacity={0.75}
+                  accessibilityRole="button"
+                  accessibilityLabel="Save prompt for later"
                 >
                   <Icon name="bookmark-outline" size={14} color={neon.bloom} />
                   <Text style={[styles.frontFooterText, { color: neon.bloom }]}>Save</Text>
@@ -322,6 +335,9 @@ function DeckCard({ item, index, isTop, initiallyRevealed, onSwipeRight, onSwipe
                   style={styles.footerAction}
                   onPress={() => onSelect?.(item)}
                   activeOpacity={0.75}
+                  accessibilityRole="button"
+                  accessibilityLabel={promptAccessibilityLabel}
+                  accessibilityHint="Open this prompt to answer it."
                 >
                   <Text style={[styles.frontFooterText, { color: neon.bloom }]}>Reflect</Text>
                   <Icon name="arrow-forward" size={14} color={neon.bloom} />

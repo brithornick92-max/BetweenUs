@@ -29,6 +29,15 @@ import Icon from '../components/Icon';
 
 const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 
+const getFriendlyCallbackError = (error) => {
+  const raw = String(error?.message || '');
+  if (raw.includes('Supabase is not configured')) return 'Server connection not configured. Please contact support.';
+  if (raw.includes('expired')) return 'This sign-in link may have expired. Please request a new one.';
+  if (raw.includes('network') || raw.includes('Network') || raw.includes('fetch')) return 'Network error. Check your connection and try again.';
+  if (raw.includes('timed out')) return 'Verification timed out. Check your connection and try again.';
+  return 'Unable to complete sign-in.';
+};
+
 export default function AuthCallbackScreen({ navigation, route }) {
   const { colors, isDark } = useTheme();
   const { isPremiumEffective: isPremium } = useEntitlements();
@@ -79,7 +88,14 @@ export default function AuthCallbackScreen({ navigation, route }) {
         }
 
         const syncStatus = await cloudSyncStorage.getSyncStatus();
-        const syncEnabled = !!syncStatus?.enabled;
+        const syncEnabled = !!session;
+        if (session) {
+          await cloudSyncStorage.setSyncStatus({
+            ...(syncStatus || {}),
+            enabled: true,
+            email: session.user?.email || syncStatus?.email || null,
+          });
+        }
 
         if (!active) return;
 
@@ -95,7 +111,8 @@ export default function AuthCallbackScreen({ navigation, route }) {
         setStatus(session ? 'Identity verified.' : 'The link may have expired.');
       } catch (error) {
         if (!active) return;
-        setStatus(error?.message || 'Unable to complete sign-in.');
+        if (__DEV__) console.warn('[AuthCallback] verification failed:', error?.message);
+        setStatus(getFriendlyCallbackError(error));
         setHasSession(false);
       } finally {
         if (!active) return;

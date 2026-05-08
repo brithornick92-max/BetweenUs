@@ -27,10 +27,10 @@ try {
     promptsData = loadedPrompts;
     if (isDevRuntime) console.log("OK: ContentLoader: Loaded", promptsData.items.length, "prompts");
   } else {
-    console.warn("Warning: ContentLoader: prompts.json loaded but missing items[]");
+    if (isDevRuntime) console.warn("Warning: ContentLoader: prompts.json loaded but missing items[]");
   }
 } catch (e) {
-  console.error("Error: ContentLoader: Failed to load prompts", e?.message || e);
+  if (isDevRuntime) console.error("Error: ContentLoader: Failed to load prompts", e?.message || e);
 }
 
 try {
@@ -39,10 +39,10 @@ try {
     todayBetweenUsPromptsData = loadedTodayPrompts;
     if (isDevRuntime) console.log("OK: ContentLoader: Loaded", todayBetweenUsPromptsData.items.length, "Today Between Us prompts");
   } else {
-    console.warn("Warning: ContentLoader: today-between-us-prompts.json loaded but missing items[]");
+    if (isDevRuntime) console.warn("Warning: ContentLoader: today-between-us-prompts.json loaded but missing items[]");
   }
 } catch (e) {
-  console.error("Error: ContentLoader: Failed to load Today Between Us prompts", e?.message || e);
+  if (isDevRuntime) console.error("Error: ContentLoader: Failed to load Today Between Us prompts", e?.message || e);
 }
 
 try {
@@ -51,10 +51,10 @@ try {
     datesData = loadedDates;
     if (isDevRuntime) console.log("OK: ContentLoader: Loaded", datesData.items.length, "dates");
   } else {
-    console.warn("Warning: ContentLoader: dates.json loaded but missing items[]");
+    if (isDevRuntime) console.warn("Warning: ContentLoader: dates.json loaded but missing items[]");
   }
 } catch (e) {
-  console.error("Error: ContentLoader: Failed to load dates", e?.message || e);
+  if (isDevRuntime) console.error("Error: ContentLoader: Failed to load dates", e?.message || e);
 }
 
 if (isDevRuntime) console.log("[content] ContentLoader: Module loading complete");
@@ -194,7 +194,7 @@ export function getPromptByHeatLevel(heatLevel) {
       isCustomSelected: true,
     });
   } catch (error) {
-    console.error("getPromptByHeatLevel error:", error);
+    if (isDevRuntime) console.error("getPromptByHeatLevel error:", error);
     return normalizePrompt(null, {
       heatLevel: typeof heatLevel === "number" ? heatLevel : 1,
       isCustomSelected: true,
@@ -230,7 +230,7 @@ export function getPromptOfTheDay(sharedKey = "", userFilters = {}) {
     const index = getStableHash(seed) % filteredPrompts.length;
     return normalizePrompt(filteredPrompts[index], { dateKey, isDaily: true });
   } catch (error) {
-    console.error("getPromptOfTheDay error:", error);
+    if (isDevRuntime) console.error("getPromptOfTheDay error:", error);
     return normalizePrompt(null, { dateKey, isDaily: true, isFallback: true });
   }
 }
@@ -243,7 +243,7 @@ export function getRandomPrompt(userFilters = {}) {
     const index = Math.floor(Math.random() * filteredPrompts.length);
     return normalizePrompt(filteredPrompts[index], { isRandom: true });
   } catch (error) {
-    console.error("getRandomPrompt error:", error);
+    if (isDevRuntime) console.error("getRandomPrompt error:", error);
     return normalizePrompt(null, { isRandom: true, isFallback: true });
   }
 }

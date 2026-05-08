@@ -287,6 +287,7 @@ class RevenueCatService {
    */
   async purchasePackage(packageToPurchase) {
     try {
+      await this.init();
       this.ensureConfigured();
       const { customerInfo } = await Purchases.purchasePackage(packageToPurchase);
       
@@ -322,8 +323,12 @@ class RevenueCatService {
    */
   async restorePurchases() {
     try {
+      await this.init();
       this.ensureConfigured();
-      const customerInfo = await Purchases.restorePurchases();
+      const customerInfo = await withRevenueCatTimeout(
+        Purchases.restorePurchases(),
+        'RevenueCatService.restorePurchases'
+      );
       const isPremium = this.checkPremiumStatus(customerInfo);
       
       return {
@@ -345,6 +350,7 @@ class RevenueCatService {
    */
   async getCustomerInfo() {
     try {
+      await this.init();
       this.ensureConfigured();
       const customerInfo = await withRevenueCatTimeout(
         Purchases.getCustomerInfo(),
@@ -390,7 +396,12 @@ class RevenueCatService {
    */
   async getSubscriptionDetails() {
     try {
-      const customerInfo = await Purchases.getCustomerInfo();
+      await this.init();
+      this.ensureConfigured();
+      const customerInfo = await withRevenueCatTimeout(
+        Purchases.getCustomerInfo(),
+        'RevenueCatService.getSubscriptionDetails'
+      );
       const isPremium = this.checkPremiumStatus(customerInfo);
       
       if (!isPremium) {
@@ -431,6 +442,8 @@ class RevenueCatService {
    */
   async checkIntroEligibility(productIdentifiers) {
     try {
+      await this.init();
+      this.ensureConfigured();
       const eligibility = await Purchases.checkTrialOrIntroductoryPriceEligibility(
         productIdentifiers
       );

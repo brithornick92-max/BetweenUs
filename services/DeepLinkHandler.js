@@ -15,6 +15,7 @@
  *   betweenus://intimacy                → IntimacyPositions
  *   betweenus://journal                 → JournalHome
  *   betweenus://pair                    → ConnectPartner
+ *   betweenus://join/:code              → ConnectPartner with invite code
  *   betweenus://quiz                    → CouplesQuiz
  *   betweenus://auth-callback           → AuthCallback (existing)
  *   betweenus://widget                  → MainTabs (widget home tap)
@@ -27,7 +28,7 @@ let _navigationRef = null;
 // Set by AppContext/Tabs when day-2 tabs are mounted so deep links can guard accordingly
 let _showSecondaryTabs = false;
 
-const ID_REQUIRED_ROUTES = new Set(['prompt', 'date']);
+const ID_REQUIRED_ROUTES = new Set(['prompt', 'date', 'join']);
 const TYPE_ROUTE_FALLBACKS = {
   calendar_event: 'calendar',
   calendar_event_created: 'calendar',
@@ -157,6 +158,10 @@ const ROUTE_MAP = {
     screen: 'ConnectPartner',
     params: {},
   }),
+  'join': (params) => ({
+    screen: 'ConnectPartner',
+    params: { code: _sanitizeId(params.id) },
+  }),
   'connect-partner': () => ({
     screen: 'ConnectPartner',
     params: {},
@@ -214,9 +219,10 @@ const DeepLinkHandler = {
       const hostRoute = parsed.host || null;
       const pathParts = parsed.pathname.replace(/^\/+/, '').split('/').filter(Boolean);
       const route = hostRoute || pathParts[0];
+      const queryId = parsed.searchParams?.get('id') || (route === 'join' ? parsed.searchParams?.get('code') : null);
       const id = hostRoute
-        ? (pathParts[0] || parsed.searchParams?.get('id') || null)
-        : (pathParts[1] || parsed.searchParams?.get('id') || null);
+        ? (pathParts[0] || queryId || null)
+        : (pathParts[1] || queryId || null);
       const extraPathParts = hostRoute ? pathParts.slice(1) : pathParts.slice(2);
 
       const handler = ROUTE_MAP[route];

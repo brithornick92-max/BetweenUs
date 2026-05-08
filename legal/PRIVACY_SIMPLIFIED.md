@@ -4,6 +4,8 @@
 
 Your privacy matters. This is the short version of how Between Us handles data. The full Privacy Policy controls if anything here conflicts with it.
 
+Between Us is operated by Brittany Apps.
+
 ---
 
 ## How Your Data Is Protected
@@ -101,8 +103,9 @@ We provide privacy-rights disclosures for GDPR/UK GDPR and California CCPA/CPRA.
 
 ## Questions?
 
-**Privacy and data requests:** brittanyapps@outlook.com
-**General support:** brittanyapps@outlook.com
+**Operator:** Brittany Apps
+**Privacy and data requests:** hello@brittanyapps.com
+**General support:** hello@brittanyapps.com
 
 We aim to respond to data requests within 30 days. General support usually responds within 24-48 hours.
 

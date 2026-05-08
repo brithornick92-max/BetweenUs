@@ -1,14 +1,15 @@
 # Contact Information - Between Us
 
-**Primary Contact:** brittanyapps@outlook.com
+**Operator:** Brittany Apps
+**Primary Contact:** hello@brittanyapps.com
 
 ---
 
 ## All Inquiries
 
-For the initial launch, all inquiries should be directed to:
+All inquiries should be directed to:
 
-**Email:** brittanyapps@outlook.com
+**Email:** hello@brittanyapps.com
 
 This includes:
 - General support questions
@@ -36,40 +37,9 @@ This includes:
 
 ---
 
-## Future Email Structure
-
-As the app grows, we may implement dedicated email addresses:
-
-**Planned Structure:**
-- support@betweenus.app - General support
-- privacy@betweenus.app - Privacy inquiries
-- legal@betweenus.app - Legal questions
-- safety@betweenus.app - Safety concerns
-- feedback@betweenus.app - User feedback
-
-All will initially forward to: brittanyapps@outlook.com
-
----
-
-## Social Media (Planned)
-
-**Instagram:** @betweenus.app  
-**Twitter:** @betweenus_app  
-**Facebook:** /betweenusapp
-
-*Note: Social media accounts to be created before launch*
-
----
-
-## Mailing Address
-
-*To be added when business entity is established*
-
----
-
 ## Support Hours
 
-**Email Support:** Messages can be sent anytime (responses typically within 24-48 hours)  
+**Email Support:** Messages can be sent anytime (responses typically within 24-48 hours)
 **Timezone:** US Eastern (ET)
 
 ---
@@ -77,7 +47,7 @@ All will initially forward to: brittanyapps@outlook.com
 ## Emergency Contact
 
 For urgent safety concerns:
-**Email:** brittanyapps@outlook.com  
+**Email:** hello@brittanyapps.com
 **Subject Line:** URGENT - Safety Concern
 
 ---

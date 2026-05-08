@@ -144,4 +144,55 @@ describe('UsageEventsService', () => {
       expect(result.usedItemIds.prompts).toEqual(['prompt-1']);
     });
   });
+
+  describe('remote usage writes', () => {
+    afterEach(() => {
+      jest.dontMock('../../config/supabase');
+      jest.resetModules();
+    });
+
+    function loadWithSupabase({ authUserId = 'user-1', membership = { couple_id: 'couple-1' } } = {}) {
+      jest.resetModules();
+
+      const maybeSingle = jest.fn().mockResolvedValue({ data: membership, error: null });
+      const eq = jest.fn(() => ({ maybeSingle }));
+      const select = jest.fn(() => ({ eq }));
+      const insert = jest.fn().mockResolvedValue({ error: null });
+      const from = jest.fn((table) => {
+        if (table === 'couple_members') return { select };
+        if (table === 'usage_events') return { insert };
+        return {};
+      });
+      const getUser = jest.fn().mockResolvedValue({
+        data: { user: { id: authUserId } },
+        error: null,
+      });
+
+      jest.doMock('../../config/supabase', () => ({
+        supabase: {
+          auth: { getUser },
+          from,
+        },
+      }));
+
+      const service = require('../../services/UsageEventsService').default;
+      return { service, getUser, from, select, eq, maybeSingle, insert };
+    }
+
+    it('looks up the couple membership for the authenticated user', async () => {
+      const { service, eq } = loadWithSupabase();
+
+      await expect(service._getCoupleId('user-1')).resolves.toBe('couple-1');
+
+      expect(eq).toHaveBeenCalledWith('user_id', 'user-1');
+    });
+
+    it('does not write remote usage for a different user id', async () => {
+      const { service, insert } = loadWithSupabase({ authUserId: 'user-1' });
+
+      await expect(service._writeRemote('user-2', 'prompts', '2026-05-08')).resolves.toBe(false);
+
+      expect(insert).not.toHaveBeenCalled();
+    });
+  });
 });

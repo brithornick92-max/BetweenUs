@@ -27,7 +27,7 @@ import CloseScreenHeader, { CLOSE_HEADER_STYLES } from '../components/CloseScree
 import { selection } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
 import { FALLBACK_PRICES } from '../utils/premiumFeatures';
-import { SUPPORT_EMAIL, SUPPORT_RESPONSE_TIME } from '../config/constants';
+import { APP_OPERATOR, SUPPORT_EMAIL, SUPPORT_RESPONSE_TIME } from '../config/constants';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
@@ -100,7 +100,7 @@ const TermsScreen = ({ navigation, route }) => {
             </Text>
             <Text style={[styles.intro, { color: colors.text }]}>
               Welcome to Between Us. These Terms of Service ("Terms") govern your use of the Between Us mobile
-              application and related services (collectively, the "Service"). By using Between Us, you agree to these Terms.
+              application and related services operated by {APP_OPERATOR} (collectively, the "Service"). By using Between Us, you agree to these Terms.
             </Text>
           </Animated.View>
 
@@ -123,7 +123,7 @@ const TermsScreen = ({ navigation, route }) => {
                 <Text style={{ color: theme.crimson }}>2.</Text> Description of Service
               </Text>
               <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
-                Between Us is a couples app — where closeness deepens. It helps couples deepen their closeness and connection through:{'\n\n'}
+                Between Us is a couples app that supports communication, reflection, shared planning, and connection through:{'\n\n'}
                 • Daily conversation prompts across 5 heat levels{'\n'}
                 • Journaling and prompt responses{'\n'}
                 • Date night ideas and planning{'\n'}
@@ -141,9 +141,7 @@ const TermsScreen = ({ navigation, route }) => {
               </Text>
               <View style={[styles.importantNote, { backgroundColor: theme.crimson + '10', borderColor: theme.crimson + '30' }]}>
                 <Text style={[styles.paragraph, { color: colors.text, fontWeight: '700', marginBottom: 0 }]}>
-                  Important: Between Us is designed for thriving couples only. It is not appropriate
-                  for couples navigating serious concerns, trust breakdowns, or considering separation. If your relationship
-                  needs professional support, please seek qualified counseling or therapy. Between Us is not an emergency, crisis, medical, therapeutic, legal, or safety service.
+                  Important: Between Us is intended for adults in relationships who feel safe and respected. It does not diagnose, treat, or guarantee relationship improvement. If your relationship involves serious concerns, trust breakdowns, safety concerns, or separation decisions, seek qualified professional or emergency support. Between Us is not an emergency, crisis, medical, therapeutic, legal, or safety service.
                 </Text>
               </View>
             </View>
@@ -234,7 +232,7 @@ const TermsScreen = ({ navigation, route }) => {
                 <Text style={{ color: theme.crimson }}>6.</Text> Acceptable Use
               </Text>
               <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
-                You agree to use Between Us only for its intended purpose: deepening your connection and bond with your partner.{'\n\n'}
+                You agree to use Between Us only for its intended purpose: lawful communication, reflection, planning, and connection with your partner.{'\n\n'}
                 You may not:{'\n'}
                 • Use the Service for any illegal purpose{'\n'}
                 • Attempt to access other users' accounts or data{'\n'}
@@ -293,7 +291,7 @@ const TermsScreen = ({ navigation, route }) => {
               </Text>
               <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
                 Service Availability:{'\n'}
-                • We strive for high uptime but don't guarantee uninterrupted service{'\n'}
+                • We work to keep the Service available but don't guarantee uninterrupted service{'\n'}
                 • We may perform maintenance that temporarily affects availability{'\n'}
                 • We're not liable for service interruptions{'\n\n'}
                 Relationship Advice:{'\n'}
@@ -390,6 +388,7 @@ const TermsScreen = ({ navigation, route }) => {
               </Text>
               <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
                 If you have questions about these Terms:{'\n\n'}
+                Operator: {APP_OPERATOR}{'\n'}
                 Email: {SUPPORT_EMAIL}{'\n'}
                 Response time: {SUPPORT_RESPONSE_TIME}
               </Text>
@@ -398,7 +397,7 @@ const TermsScreen = ({ navigation, route }) => {
             <Text style={[styles.paragraph, { color: colors.textMuted || 'gray', marginTop: 40, fontStyle: 'italic', textAlign: 'center' }]}>
               By using Between Us, you acknowledge that you've read and understood these Terms, you agree to
               be bound by them, you're at least 18 years old, and you'll use the Service responsibly and legally.{'\n\n'}
-              Thank you for choosing Between Us to deepen your connection.
+              Thank you for choosing Between Us to support communication and connection.
             </Text>
 
             <View style={{ height: showActions ? 180 : 120 }} />

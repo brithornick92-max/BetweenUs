@@ -195,9 +195,7 @@ const isDev = __DEV__;
 function logError(context, err) {
   if (isDev) {
     console.error(`[${context}]`, err?.name, err?.message);
-    return;
   }
-  console.error(`[${context}] failed`);
 }
 
 function getInvalidDeepLinkReason(path) {
@@ -224,6 +222,7 @@ function normalizeDeepLinkPath(path) {
   const rest = parts.slice(1);
   const aliases = {
     pair: "connect-partner",
+    join: "connect-partner",
     "date-ideas": "dates",
     home: "",
     "saved-moments": "our-story",
@@ -231,6 +230,13 @@ function normalizeDeepLinkPath(path) {
 
   if (route === "widget") {
     return `${rest[0] === "prompt" ? "prompts" : ""}${suffix}`;
+  }
+
+  if (route === "join" && rest[0]) {
+    const codeParam = `code=${encodeURIComponent(rest[0])}`;
+    if (!suffix) return `connect-partner?${codeParam}`;
+    if (suffix.startsWith("?")) return `connect-partner${suffix}&${codeParam}`;
+    return `connect-partner?${codeParam}${suffix}`;
   }
 
   if (!route) return rawPath;

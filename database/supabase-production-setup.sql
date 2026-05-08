@@ -642,12 +642,16 @@ SECURITY INVOKER
 SET search_path = public
 AS $$
 BEGIN
+  IF input_user_id IS DISTINCT FROM auth.uid() THEN
+    RAISE EXCEPTION 'Access denied: usage can only be read for the current user';
+  END IF;
+
   IF NOT is_couple_member(input_couple_id, auth.uid()) THEN
     RAISE EXCEPTION 'Access denied: not a member of this couple';
   END IF;
   RETURN (
     SELECT count(*)::integer FROM usage_events
-    WHERE couple_id = input_couple_id AND user_id = input_user_id
+    WHERE couple_id = input_couple_id AND user_id = auth.uid()
       AND local_day_key = input_day_key
       AND (
         event_type = input_event_type
@@ -1173,8 +1177,13 @@ BEGIN
     END IF;
   END IF;
 
-  -- Clean up remaining FK references outside the couple
-  BEGIN DELETE FROM partner_link_codes WHERE created_by = auth.uid(); EXCEPTION WHEN undefined_table THEN NULL; END;
+  -- Clean up remaining FK references outside the couple.
+  BEGIN
+    DELETE FROM partner_link_codes
+      WHERE created_by = auth.uid()
+         OR used_by = auth.uid();
+  EXCEPTION WHEN undefined_table THEN NULL; END;
+  BEGIN DELETE FROM date_shortlist     WHERE user_id = auth.uid();   EXCEPTION WHEN undefined_table THEN NULL; END;
   BEGIN DELETE FROM usage_events       WHERE user_id = auth.uid();   EXCEPTION WHEN undefined_table THEN NULL; END;
   BEGIN DELETE FROM user_entitlements   WHERE user_id = auth.uid();   EXCEPTION WHEN undefined_table THEN NULL; END;
   BEGIN DELETE FROM push_tokens        WHERE user_id = auth.uid();   EXCEPTION WHEN undefined_table THEN NULL; END;
@@ -1805,14 +1814,14 @@ CREATE POLICY "Couple data update" ON couple_data
     EXISTS (SELECT 1 FROM couple_members cm WHERE cm.couple_id = couple_data.couple_id AND cm.user_id = (select auth.uid()))
     AND (
       created_by = (select auth.uid())
-      OR data_type IN ('couple_state', 'daily_prompt', 'daily_quiz', 'date_plan')
+      OR data_type IN ('couple_state', 'daily_prompt', 'daily_quiz', 'date_plan', 'whisper')
     )
   )
   WITH CHECK (
     EXISTS (SELECT 1 FROM couple_members cm WHERE cm.couple_id = couple_data.couple_id AND cm.user_id = (select auth.uid()))
     AND (
       created_by = (select auth.uid())
-      OR data_type IN ('couple_state', 'daily_prompt', 'daily_quiz', 'date_plan')
+      OR data_type IN ('couple_state', 'daily_prompt', 'daily_quiz', 'date_plan', 'whisper')
     )
   );
 
@@ -1940,8 +1949,12 @@ CREATE POLICY "Users can insert own usage events" ON usage_events
   FOR INSERT TO authenticated WITH CHECK ((select auth.uid()) = user_id AND is_couple_member(couple_id, (select auth.uid())));
 
 DROP POLICY IF EXISTS "Users can read couple usage events" ON usage_events;
-CREATE POLICY "Users can read couple usage events" ON usage_events
-  FOR SELECT TO authenticated USING (is_couple_member(couple_id, (select auth.uid())));
+DROP POLICY IF EXISTS "Users can read own usage events" ON usage_events;
+CREATE POLICY "Users can read own usage events" ON usage_events
+  FOR SELECT TO authenticated USING (
+    user_id = (select auth.uid())
+    AND is_couple_member(couple_id, (select auth.uid()))
+  );
 
 DROP POLICY IF EXISTS "Users can delete own usage events" ON usage_events;
 CREATE POLICY "Users can delete own usage events" ON usage_events

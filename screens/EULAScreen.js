@@ -19,7 +19,7 @@ import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import Icon from '../components/Icon';
 import { selection } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
-import { SUPPORT_EMAIL, SUPPORT_RESPONSE_TIME } from '../config/constants';
+import { APP_OPERATOR, SUPPORT_EMAIL, SUPPORT_RESPONSE_TIME } from '../config/constants';
 import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
 
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
@@ -63,7 +63,7 @@ const EULAScreen = ({ navigation }) => {
               Effective: April 29, 2026
             </Text>
             <Text style={[styles.intro, { color: colors.text }]}>
-              Between Us is licensed to you subject to the terms of the Licensed Application End User License
+              Between Us is operated by {APP_OPERATOR} and licensed to you subject to the terms of the Licensed Application End User License
               Agreement ("Standard EULA") set forth by Apple Inc., as modified by the supplemental
               terms below.
             </Text>
@@ -138,10 +138,11 @@ const EULAScreen = ({ navigation }) => {
 
               <Text style={[styles.subTitle, { color: colors.text }]}>6. Disclaimer</Text>
               <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
-                Between Us is designed for thriving couples only. It is not a substitute for professional
-                therapy, counseling, or medical advice. It is not appropriate for couples navigating trust
-                breakdowns, abuse, or considering separation. If your relationship needs professional
-                support, please seek qualified help.
+                Between Us supports communication and connection for adults who feel safe and respected
+                with each other. It is not a substitute for professional therapy, counseling, medical advice,
+                legal advice, crisis support, or safety planning. It does not diagnose, treat, or guarantee
+                relationship improvement. If your relationship involves trust breakdowns, abuse, safety
+                concerns, or separation decisions, seek qualified professional or emergency support.
               </Text>
 
               <Text style={[styles.subTitle, { color: colors.text }]}>7. Limitation of Liability</Text>
@@ -170,6 +171,7 @@ const EULAScreen = ({ navigation }) => {
               <Text style={[styles.subTitle, { color: colors.text }]}>10. Contact</Text>
               <Text style={[styles.paragraph, { color: colors.textMuted || 'gray', marginBottom: 20 }]}>
                 If you have questions about this EULA:{'\n\n'}
+                Operator: {APP_OPERATOR}{'\n'}
                 Email: {SUPPORT_EMAIL}{'\n'}
                 Response time: {SUPPORT_RESPONSE_TIME}
               </Text>

@@ -117,7 +117,7 @@ export default function AuthScreen() {
 
   const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
   const headerSubtitle = authVisible
-    ? isSignUp ? "Where closeness deepens" : "Welcome back"
+    ? isSignUp ? "Create your shared space" : "Welcome back"
     : "A private app for couples";
   const scrollContentStyle = authVisible
     ? styles.scrollContent
@@ -184,7 +184,7 @@ export default function AuthScreen() {
       impact(ImpactFeedbackStyle.Heavy);
       // Sanitize error: don't expose raw Supabase messages that may contain PII
       const raw = error?.message ?? '';
-      console.error('[AuthScreen] Sign in error:', raw);
+      if (__DEV__) console.error('[AuthScreen] Auth error:', raw);
       let friendly = 'Something went wrong. Please try again.';
       if (raw.includes('Supabase is not configured')) friendly = 'Server connection not configured. Please contact support.';
       else if (raw.includes('Invalid login') || raw.includes('Invalid password') || raw.includes('User not found') || raw.includes('Invalid credentials')) friendly = 'Incorrect email or password.';
@@ -192,7 +192,7 @@ export default function AuthScreen() {
       else if (raw.includes('rate limit') || raw.includes('too many')) friendly = 'Too many attempts. Please wait a moment and try again.';
       else if (raw.includes('network') || raw.includes('Network') || raw.includes('fetch')) friendly = 'Network error. Check your connection and try again.';
       else if (raw.includes('timed out')) friendly = 'Sign in timed out. Check your connection and try again.';
-      else if (raw.includes('Email not confirmed')) friendly = 'Please check your email and confirm your account first.';
+      else if (raw.includes('Email not confirmed') || raw.includes('Email confirmation required')) friendly = 'Please check your email and confirm your account before signing in.';
       Alert.alert("Error", friendly);
     } finally {
       setSubmitting(false);
@@ -563,7 +563,7 @@ export default function AuthScreen() {
                 {(loading || submitting) ? (
                   <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                     <ActivityIndicator size="small" color="#FFFFFF" />
-                    <Text style={styles.authButtonText}>Signing in...</Text>
+                    <Text style={styles.authButtonText}>{isSignUp ? "Creating account..." : "Signing in..."}</Text>
                   </View>
                 ) : (
                   <Text style={styles.authButtonText}>

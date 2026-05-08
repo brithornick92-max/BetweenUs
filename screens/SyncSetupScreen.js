@@ -1,5 +1,5 @@
 import { SPACING } from '../utils/theme';
-// screens/SyncSetupScreen.js — Cloud Sync
+// screens/SyncSetupScreen.js — Supabase account session recovery
 // Velvet Glass & Apple Editorial High-End Updates Integrated.
 // Palette: Deep Crimson, Obsidian, Liquid Silver (Strictly No Gold).
 
@@ -21,6 +21,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Icon from '../components/Icon';
 import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
+import { useAuth } from '../context/AuthContext';
 import { cloudSyncStorage } from '../utils/storage';
 import StorageRouter from '../services/storage/StorageRouter';
 import { SupabaseAuthService } from '../services/supabase/SupabaseAuthService';
@@ -30,6 +31,7 @@ const SYSTEM_FONT = Platform.select({ ios: "System", android: "Roboto" });
 
 export default function SyncSetupScreen({ navigation }) {
   const { colors, isDark } = useTheme();
+  const { signIn, signOutLocal, busy: authBusy } = useAuth();
   
   // ── High-End Color Logic (No Gold) ──────────────────────────────────────────
   const theme = useMemo(() => ({
@@ -45,11 +47,22 @@ export default function SyncSetupScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [authMode, setAuthMode] = useState('password'); // 'password' | 'magic'
-  const [isSignUp, setIsSignUp] = useState(false);
   const [sessionEmail, setSessionEmail] = useState(null);
-  const [syncEnabled, setSyncEnabled] = useState(false);
+  const [sessionConnected, setSessionConnected] = useState(false);
   const [loading, setLoading] = useState(false);
   const [supabaseAvailable, setSupabaseAvailable] = useState(true);
+  const isWorking = loading || authBusy;
+
+  const toFriendlyAuthError = (error, fallback = 'Unable to complete the request right now.') => {
+    const raw = String(error?.message || '');
+    if (raw.includes('Supabase is not configured')) return 'Server connection not configured. Please contact support.';
+    if (raw.includes('Invalid login') || raw.includes('Invalid password') || raw.includes('Invalid credentials')) return 'Incorrect email or password.';
+    if (raw.includes('rate limit') || raw.includes('too many')) return 'Too many attempts. Please wait a moment and try again.';
+    if (raw.includes('network') || raw.includes('Network') || raw.includes('fetch')) return 'Network error. Check your connection and try again.';
+    if (raw.includes('timed out')) return 'The request timed out. Check your connection and try again.';
+    if (raw.includes('Email not confirmed')) return 'Please check your email and confirm your account first.';
+    return fallback;
+  };
 
   const refreshSession = async () => {
     const session = await SupabaseAuthService.getSession().catch((error) => {
@@ -66,10 +79,9 @@ export default function SyncSetupScreen({ navigation }) {
   useEffect(() => {
     let active = true;
     const load = async () => {
-      const status = await cloudSyncStorage.getSyncStatus();
       const session = await refreshSession();
       if (!active) return;
-      setSyncEnabled(!!status?.enabled);
+      setSessionConnected(!!session);
       setSessionEmail(session?.user?.email || null);
     };
     load();
@@ -87,7 +99,7 @@ export default function SyncSetupScreen({ navigation }) {
 
   const handleSendMagicLink = async () => {
     if (!supabaseAvailable) {
-      Alert.alert('Sync Unavailable', "Sync isn’t enabled in this build.");
+      Alert.alert('Account Unavailable', "Account sign-in isn’t enabled in this build.");
       return;
     }
     if (!email || !email.includes('@')) {
@@ -97,11 +109,12 @@ export default function SyncSetupScreen({ navigation }) {
 
     try {
       setLoading(true);
-      await SupabaseAuthService.sendMagicLink(email.trim());
+      await SupabaseAuthService.sendMagicLink(email.trim().toLowerCase());
       impact(ImpactFeedbackStyle.Medium);
       Alert.alert('Check Your Inbox', 'We sent a secure link to your email.');
     } catch (error) {
-      Alert.alert('Request Failed', error?.message || 'Unable to send magic link.');
+      if (__DEV__) console.warn('[SyncSetup] magic link failed:', error?.message);
+      Alert.alert('Request Failed', toFriendlyAuthError(error, 'Unable to send a magic link right now.'));
     } finally {
       setLoading(false);
     }
@@ -127,29 +140,22 @@ export default function SyncSetupScreen({ navigation }) {
 
     try {
       setLoading(true);
-      let session;
-      if (isSignUp) {
-        session = await SupabaseAuthService.signUp(email.trim(), password);
-        if (!session) {
-          Alert.alert('Verify Email', 'Please check your email to confirm your account.');
-          setIsSignUp(false);
-          return;
-        }
-      } else {
-        session = await SupabaseAuthService.signInWithPassword(email.trim(), password);
-      }
-
+      await signIn(email.trim().toLowerCase(), password);
+      const session = await refreshSession();
       if (session) {
         await StorageRouter.setSupabaseSession(session);
         await StorageRouter.configureSync({
-          syncEnabled,
+          syncEnabled: true,
           supabaseSessionPresent: true,
         });
+        await cloudSyncStorage.setSyncStatus({ enabled: true, email: session.user?.email || null });
         setSessionEmail(session.user?.email || null);
+        setSessionConnected(true);
         impact(ImpactFeedbackStyle.Medium);
       }
     } catch (error) {
-      Alert.alert('Authentication Error', error?.message || 'Unable to sign in.');
+      if (__DEV__) console.warn('[SyncSetup] sign-in failed:', error?.message);
+      Alert.alert('Authentication Error', toFriendlyAuthError(error, 'Unable to sign in right now.'));
     } finally {
       setLoading(false);
     }
@@ -158,38 +164,28 @@ export default function SyncSetupScreen({ navigation }) {
   const handleEnableSync = async () => {
     const session = await refreshSession();
     if (!session) {
-      Alert.alert('Sign In Required', 'Please sign in to your account before enabling sync.');
+      Alert.alert('Sign In Required', 'Please sign in to restore your account session.');
       return;
     }
 
+    await StorageRouter.setSupabaseSession(session);
     await cloudSyncStorage.setSyncStatus({ enabled: true, email: session?.user?.email || null });
     await StorageRouter.configureSync({ syncEnabled: true, supabaseSessionPresent: true });
-    setSyncEnabled(true);
+    setSessionConnected(true);
     impact(ImpactFeedbackStyle.Heavy);
   };
 
-  const handleDisableSync = async () => {
-    await cloudSyncStorage.setSyncStatus({ enabled: false });
-    await StorageRouter.configureSync({ syncEnabled: false, supabaseSessionPresent: false });
-    setSyncEnabled(false);
-    impact(ImpactFeedbackStyle.Light);
-  };
-
   const handleSignOut = async () => {
-    try {
-      await SupabaseAuthService.signOut();
-    } catch (e) {
-      if (__DEV__) console.warn('[SyncSetup] signOut error (proceeding with local cleanup):', e?.message);
-    }
-    await handleDisableSync();
+    await signOutLocal();
+    setSessionConnected(false);
     setSessionEmail(null);
   };
 
   return (
     <EditorialScreenScaffold
       navigation={navigation}
-      headerTitle="Cloud Sync"
-      headerSubtitle="CLOUD BACKUP"
+      headerTitle="Account Session"
+      headerSubtitle="SUPABASE AUTH"
       keyboardAvoiding
       scroll={false}
     >
@@ -206,30 +202,34 @@ export default function SyncSetupScreen({ navigation }) {
             {/* Sync Status Card (Velvet Glass) */}
             <BlurView intensity={isDark ? 20 : 40} tint={isDark ? "dark" : "light"} style={styles.statusCard}>
               <View style={styles.statusHeader}>
-                <View style={[styles.statusIconCircle, { backgroundColor: syncEnabled ? '#D2121A20' : '#8E8E9320' }]}>
+                <View style={[styles.statusIconCircle, { backgroundColor: sessionConnected ? '#D2121A20' : '#8E8E9320' }]}>
                   <Icon 
-                    name={syncEnabled ? "cloud-done" : "cloud-offline"} 
+                    name={sessionConnected ? "cloud-done" : "cloud-offline"}
                     size={24} 
-                    color={syncEnabled ? theme.crimson : colors.textMuted} 
+                    color={sessionConnected ? theme.crimson : colors.textMuted}
                   />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.statusLabel, { color: colors.text }]}>
-                    {syncEnabled ? 'Supabase Sync Active' : 'Sign In Required'}
+                    {sessionConnected ? 'Supabase Session Active' : 'Sign In Required'}
                   </Text>
                   <Text style={[styles.statusSubtext, { color: colors.textMuted }]}>
-                    {sessionEmail ? `Linked to ${sessionEmail}` : 'Sign in to enable cloud backup'}
+                    {sessionEmail ? `Signed in as ${sessionEmail}` : 'Sign in to restore your account session'}
                   </Text>
                 </View>
                 <TouchableOpacity 
-                  onPress={syncEnabled ? handleDisableSync : handleEnableSync}
+                  onPress={handleEnableSync}
+                  disabled={sessionConnected || isWorking}
                   activeOpacity={0.8}
+                  accessibilityRole="button"
+                  accessibilityLabel={sessionConnected ? 'Account session active' : 'Reconnect account session'}
+                  accessibilityState={{ disabled: sessionConnected || isWorking }}
                 >
                   <LinearGradient
-                    colors={syncEnabled ? [theme.crimson, '#900C0F'] : ['#444', '#222']}
+                    colors={sessionConnected ? [theme.crimson, '#900C0F'] : ['#444', '#222']}
                     style={styles.statusToggle}
                   >
-                    <Text style={styles.statusToggleText}>{syncEnabled ? 'ON' : 'OFF'}</Text>
+                    <Text style={styles.statusToggleText}>{sessionConnected ? 'ACTIVE' : 'RECONNECT'}</Text>
                   </LinearGradient>
                 </TouchableOpacity>
               </View>
@@ -281,40 +281,34 @@ export default function SyncSetupScreen({ navigation }) {
               <TouchableOpacity 
                 style={styles.mainActionBtn} 
                 onPress={handleAuthAction}
-                disabled={loading}
+                disabled={isWorking}
+                accessibilityRole="button"
+                accessibilityLabel={authMode === 'magic' ? 'Send secure sign-in link' : 'Sign in'}
+                accessibilityState={{ disabled: isWorking, busy: isWorking }}
               >
                 <LinearGradient
                   colors={[theme.crimson, '#900C0F']}
                   style={styles.mainActionGrad}
                 >
-                  {loading ? (
+                  {isWorking ? (
                     <ActivityIndicator color="#FFF" />
                   ) : (
                     <Text style={styles.mainActionText}>
-                      {authMode === 'magic' ? 'Send Secure Link' : (isSignUp ? 'Create Account' : 'Sign In')}
+                      {authMode === 'magic' ? 'Send Secure Link' : 'Sign In'}
                     </Text>
                   )}
                 </LinearGradient>
               </TouchableOpacity>
 
-              {authMode === 'password' && !isSignUp && (
+              {authMode === 'password' && (
                 <TouchableOpacity
                   style={styles.textLink}
                   onPress={handleForgotPassword}
-                  disabled={loading}
+                  disabled={isWorking}
                 >
                   <Text style={[styles.textLinkTxt, styles.forgotText, { color: theme.crimson }]}>Email me a recovery code.</Text>
                 </TouchableOpacity>
               )}
-
-              <TouchableOpacity 
-                style={styles.textLink} 
-                onPress={() => setIsSignUp(!isSignUp)}
-              >
-                <Text style={[styles.textLinkTxt, { color: colors.textMuted }]}>
-                  {isSignUp ? 'Back to sign in' : 'New here? Create an account'}
-                </Text>
-              </TouchableOpacity>
             </View>
 
             {sessionEmail && (
@@ -328,10 +322,9 @@ export default function SyncSetupScreen({ navigation }) {
               </TouchableOpacity>
             )}
 
-            {/* Security Guarantee Footer */}
             <View style={styles.footerTeaser}>
               <Icon name="shield-checkmark" size={26} color={theme.crimson} />
-              <Text style={[styles.footerTitle, { color: colors.text }]}>Supabase-Backed Sync</Text>
+              <Text style={[styles.footerTitle, { color: colors.text }]}>Supabase-Backed Account</Text>
               <Text style={[styles.footerBody, { color: colors.textMuted }]}>
                 Your account and shared couple space are stored in Supabase with authentication, row-level access controls, and cache-only local continuity.
               </Text>

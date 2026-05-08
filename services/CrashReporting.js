@@ -29,7 +29,7 @@ const CrashReporting = {
     if (_initialized || !Sentry || !SENTRY_DSN) {
       if (__DEV__ && !Sentry) {
          
-        console.log('[CrashReporting] @sentry/react-native not installed — skipping');
+        if (__DEV__) console.log('[CrashReporting] @sentry/react-native not installed - skipping');
       }
       return;
     }

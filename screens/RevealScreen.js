@@ -9,6 +9,8 @@ import {
   TouchableOpacity,
   Platform,
   StatusBar,
+  ActivityIndicator,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -43,6 +45,7 @@ export default function RevealScreen({ route, navigation }) {
   const [isRevealed, setIsRevealed] = useState(!!userAnswer?.isRevealed);
   const [includeInKeepsake, setIncludeInKeepsake] = useState(!!userAnswer?.includeInKeepsake);
   const [isKeepsakeSaving, setIsKeepsakeSaving] = useState(false);
+  const [isRevealSaving, setIsRevealSaving] = useState(false);
 
   // Handle partner states
   const [partnerAnswer, setPartnerAnswer] = useState(() => initialPartnerAnswer || null);
@@ -101,8 +104,9 @@ export default function RevealScreen({ route, navigation }) {
   }, [isRevealed, pulseAnim, triggerRevealLogic, userAnswer?.isRevealed]);
 
   const handleReveal = async () => {
-    if (!prompt?.id) return;
+    if (!prompt?.id || isRevealSaving) return;
     selection();
+    setIsRevealSaving(true);
     
     try {
       // Mark as revealed in the active DataLayer.
@@ -110,9 +114,10 @@ export default function RevealScreen({ route, navigation }) {
       if (row?.partnerAnswer) {
         setPartnerAnswer(row.partnerAnswer);
       }
-      if (row?.id) {
-        await DataLayer.revealPromptAnswer(row.id);
+      if (!row?.id) {
+        throw new Error('No saved prompt answer was found for this reveal.');
       }
+      await DataLayer.revealPromptAnswer(row.id);
       // Also update promptStorage as a local display/cache fallback
       if (prompt.dateKey) {
         const existing = activePromptUserId
@@ -126,8 +131,14 @@ export default function RevealScreen({ route, navigation }) {
         });
       }
       triggerRevealLogic(true);
-    } catch {
-      triggerRevealLogic(true);
+    } catch (error) {
+      if (__DEV__) console.warn('[Reveal] Failed to open reveal:', error?.message);
+      Alert.alert(
+        "Reveal couldn't open",
+        "We couldn't update this reveal yet. Please check your connection and try again."
+      );
+    } finally {
+      setIsRevealSaving(false);
     }
   };
 
@@ -222,7 +233,19 @@ export default function RevealScreen({ route, navigation }) {
     }, [prompt?.dateKey, prompt?.id, refreshRevealState, state?.coupleId, user?.id, user?.uid])
   );
 
-  if (!prompt || !prompt.text) return null;
+  if (!prompt || !prompt.text) {
+    return (
+      <View style={[styles.container, { backgroundColor: t.background }]}>
+        <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
+        <SafeAreaView style={{ flex: 1 }}>
+          <View style={styles.loadingState}>
+            <ActivityIndicator size="small" color={t.primary} />
+            <Text style={[styles.loadingText, { color: t.subtext }]}>Closing reveal...</Text>
+          </View>
+        </SafeAreaView>
+      </View>
+    );
+  }
 
   const partnerName = getPartnerDisplayName(userProfile, state?.userProfile, 'your partner');
   const myName = getMyDisplayName(userProfile, state?.userProfile, 'You');
@@ -312,10 +335,7 @@ export default function RevealScreen({ route, navigation }) {
           
           <View style={styles.header}>
             <View style={[styles.headerPill, { backgroundColor: t.surfaceGlass, borderColor: t.border }]}>
-              <Text
-                style={[styles.headerSubtitle, { color: t.primary }]}
-                allowFontScaling={false}
-              >
+              <Text style={[styles.headerSubtitle, { color: t.primary }]}>
                 {revealCopy.eyebrow}
               </Text>
             </View>
@@ -339,10 +359,7 @@ export default function RevealScreen({ route, navigation }) {
               { backgroundColor: t.surfaceGlass, borderColor: t.border },
             ]}
           >
-            <Text
-              style={[styles.questionText, isCompactReveal && styles.questionTextCompact, { color: t.text }]}
-              allowFontScaling={false}
-            >
+            <Text style={[styles.questionText, isCompactReveal && styles.questionTextCompact, { color: t.text }]}>
               {prompt.text}
             </Text>
           </View>
@@ -359,17 +376,14 @@ export default function RevealScreen({ route, navigation }) {
                 </LinearGradient>
               </Animated.View>
 
-              <Text
-                style={[styles.lockedTitle, { color: t.text }]}
-                allowFontScaling={false}
-              >
+              <Text style={[styles.lockedTitle, { color: t.text }]}>
                 {revealCopy.title}
               </Text>
 
               <Button
-                title={revealCopy.primaryLabel}
+                title={isRevealSaving ? 'Opening reveal...' : revealCopy.primaryLabel}
                 onPress={handleReveal}
-                disabled={revealStage === 'waiting_for_partner'}
+                disabled={revealStage === 'waiting_for_partner' || isRevealSaving}
                 style={styles.revealAction}
               />
               
@@ -384,11 +398,11 @@ export default function RevealScreen({ route, navigation }) {
             >
               {/* My Reflection */}
               <View style={[styles.answerCard, styles.answerCardCompact]}>
-                <Text style={[styles.tagText, { color: t.subtext }]} allowFontScaling={false}>
+                <Text style={[styles.tagText, { color: t.subtext }]}>
                   {myName} said
                 </Text>
                 <View style={[styles.bubble, styles.bubbleCompact, { backgroundColor: isDark ? '#1C1C1E' : '#FFFFFF', borderColor: t.border }]}>
-                  <Text style={[styles.bubbleText, { color: t.text }]} allowFontScaling={false}>
+                  <Text style={[styles.bubbleText, { color: t.text }]}>
                     {userAnswer?.answer || "Your answer is saved."}
                   </Text>
                 </View>
@@ -396,7 +410,7 @@ export default function RevealScreen({ route, navigation }) {
 
               {/* Partner Reflection */}
               <View style={[styles.answerCard, styles.answerCardCompact]}>
-                <Text style={[styles.tagText, { color: t.accent }]} allowFontScaling={false}>
+                <Text style={[styles.tagText, { color: t.accent }]}>
                   {partnerName} said
                 </Text>
                 {hasPartnerAnswer ? (
@@ -404,17 +418,14 @@ export default function RevealScreen({ route, navigation }) {
                     colors={isDark ? [t.accent + "15", '#1C1C1E'] : [t.accent + "10", '#FFFFFF']}
                     style={[styles.bubble, styles.bubbleCompact, { borderColor: t.border }]}
                   >
-                    <Text style={[styles.bubbleText, { color: t.text }]} allowFontScaling={false}>
+                    <Text style={[styles.bubbleText, { color: t.text }]}>
                       {partnerAnswer}
                     </Text>
                   </LinearGradient>
                 ) : (
                   <View style={[styles.bubble, { backgroundColor: t.surfaceSecondary, borderColor: t.border, alignItems: 'center', paddingVertical: 40 }]}>
                     <Icon name="pulse-outline" size={36} color={t.accent + '80'} style={{ marginBottom: 16 }} />
-                    <Text
-                      style={[styles.bubbleText, { color: t.subtext, textAlign: 'center' }]}
-                      allowFontScaling={false}
-                    >
+                    <Text style={[styles.bubbleText, { color: t.subtext, textAlign: 'center' }]}>
                       {partnerName} hasn't shared their thoughts yet.
                     </Text>
                   </View>
@@ -441,8 +452,10 @@ export default function RevealScreen({ route, navigation }) {
                   });
                 }}
                 style={styles.secondaryAction}
+                accessibilityRole="button"
+                accessibilityLabel={revealCopy.secondaryLabel}
               >
-                <Text style={[styles.secondaryActionText, { color: t.primary }]} allowFontScaling={false}>
+                <Text style={[styles.secondaryActionText, { color: t.primary }]}>
                   {revealCopy.secondaryLabel}
                 </Text>
               </TouchableOpacity>
@@ -459,6 +472,19 @@ export default function RevealScreen({ route, navigation }) {
 // ------------------------------------------------------------------
 const styles = StyleSheet.create({
   container: { flex: 1 },
+  loadingState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    paddingHorizontal: 32,
+  },
+  loadingText: {
+    fontSize: 14,
+    lineHeight: 20,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
   scrollContent: { 
     flexGrow: 1,
     paddingHorizontal: SPACING.xl,

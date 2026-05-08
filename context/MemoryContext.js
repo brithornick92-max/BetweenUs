@@ -130,7 +130,7 @@ export function MemoryProvider({ children }) {
           count > 0 ? memories[count - 1].created_at || memories[count - 1].date : null
         );
       } catch (error) {
-        console.error('Failed to load memories:', error);
+        if (__DEV__) console.error('Failed to load memories:', error);
         dispatch({ type: ACTIONS.SET_LOADING, payload: { loading: false } });
       }
     };
@@ -224,7 +224,7 @@ export function MemoryProvider({ children }) {
         dispatch({ type: ACTIONS.SYNC_COMPLETE });
         return { success: true };
       } catch (err) {
-        console.warn('[MemoryContext] sync failed:', err?.message);
+        if (__DEV__) console.warn('[MemoryContext] sync failed:', err?.message);
         return { success: false, error: err?.message };
       }
     },

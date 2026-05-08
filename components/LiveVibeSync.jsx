@@ -299,7 +299,7 @@ export default function LiveVibeSync({
                       : 'Could not reach your partner right now. Try again in a moment.';
 
         if (__DEV__) {
-          console.warn('[LiveVibeSync] result.sent=false error:', e, 'code:', code);
+          if (__DEV__) console.warn('[LiveVibeSync] result.sent=false error:', e, 'code:', code);
         }
 
         setStatus({
@@ -431,7 +431,15 @@ export default function LiveVibeSync({
             ]}
           />
 
-          <Pressable onPress={handleSend} disabled={isSending} style={styles.buttonPressable}>
+          <Pressable
+            onPress={handleSend}
+            disabled={isSending}
+            style={styles.buttonPressable}
+            accessibilityRole="button"
+            accessibilityLabel={`Send a ${activeVibe.label} heartbeat to ${partnerLabel}`}
+            accessibilityHint="Sends the selected vibe signal through the shared connection."
+            accessibilityState={{ disabled: isSending, busy: isSending }}
+          >
             <Animated.View
               style={[
                 styles.pulseButton,

@@ -136,7 +136,7 @@ export const SubscriptionProvider = ({ children }) => {
           lastStorageSyncRef.current = { timestamp: Date.now(), config };
         }
       } catch (error) {
-        console.error("Failed to configure storage sync:", error);
+        if (__DEV__) console.error("Failed to configure storage sync:", error);
       }
     };
 
@@ -176,7 +176,7 @@ export const SubscriptionProvider = ({ children }) => {
         latestPurchaseDate: entitlement.latestPurchaseDate,
       });
     } catch (error) {
-      console.error("Failed to update subscription details:", error);
+      if (__DEV__) console.error("Failed to update subscription details:", error);
     }
   }, []);
 
@@ -231,7 +231,7 @@ export const SubscriptionProvider = ({ children }) => {
 
       if (__DEV__) console.log("OK: Subscription status checked:", resolvedPremium ? "Premium" : "Free");
     } catch (error) {
-      console.error("Error: Failed to check subscription status:", error);
+      if (__DEV__) console.error("Error: Failed to check subscription status:", error);
       setIsPremium(false);
       notifyPremiumListeners(effectiveIsPremium);
       if (!DEV_FORCE_PREMIUM) {
@@ -252,7 +252,7 @@ export const SubscriptionProvider = ({ children }) => {
         if (__DEV__) console.log("OK: Offerings loaded:", offeringsData.packages?.length || 0, "packages");
       }
     } catch (error) {
-      console.error("Error: Failed to load offerings:", error);
+      if (__DEV__) console.error("Error: Failed to load offerings:", error);
       // Keep app in free mode without crashing paywall consumers
       setOfferings({ current: null, packages: [], nonFatal: true, reason: 'load_failed' });
     }
@@ -334,7 +334,7 @@ export const SubscriptionProvider = ({ children }) => {
 
         listenerRef.current = typeof remove === 'function' ? remove : null;
       } catch (error) {
-        console.error("Error: Failed to initialize subscription:", error);
+        if (__DEV__) console.error("Error: Failed to initialize subscription:", error);
         setIsPremium(false);
         notifyPremiumListeners(effectiveIsPremium);
         if (!DEV_FORCE_PREMIUM) {
@@ -376,7 +376,7 @@ export const SubscriptionProvider = ({ children }) => {
       }
       return result;
     } catch (error) {
-      console.error("Error: Purchase failed:", error);
+      if (__DEV__) console.error("Error: Purchase failed:", error);
       return { success: false, error: error.message };
     }
   };
@@ -390,7 +390,7 @@ export const SubscriptionProvider = ({ children }) => {
       }
       return result;
     } catch (error) {
-      console.error("Error: Restore failed:", error);
+      if (__DEV__) console.error("Error: Restore failed:", error);
       return { success: false, error: error.message };
     }
   };

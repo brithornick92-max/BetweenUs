@@ -2,7 +2,7 @@
 
 **Last Updated: April 29, 2026**
 
-At Between Us, your privacy matters. This Privacy Policy explains what we collect, how we use it, how we protect it, and the choices you have when you use the Between Us mobile app and related services.
+Between Us is operated by Brittany Apps. This Privacy Policy explains what we collect, how we use it, how we protect it, and the choices you have when you use the Between Us mobile app and related services.
 
 ---
 
@@ -274,10 +274,12 @@ We may update this policy from time to time. Material changes may be communicate
 ## 11. Contact Us
 
 **Privacy questions and data requests**
-Email: brittanyapps@outlook.com
+Operator: Brittany Apps
+Email: hello@brittanyapps.com
 
 **Support**
-Email: brittanyapps@outlook.com
+Operator: Brittany Apps
+Email: hello@brittanyapps.com
 
 For data requests, include the email address associated with your account and the type of request. We aim to respond to data requests within 30 days.
 

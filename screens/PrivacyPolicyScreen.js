@@ -18,7 +18,7 @@ import FilmGrain from '../components/FilmGrain';
 import CloseScreenHeader, { CLOSE_HEADER_STYLES } from '../components/CloseScreenHeader';
 import { selection } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
-import { SUPPORT_EMAIL, DATA_REQUEST_RESPONSE_TIME } from '../config/constants';
+import { APP_OPERATOR, SUPPORT_EMAIL, DATA_REQUEST_RESPONSE_TIME } from '../config/constants';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 const SYSTEM_FONT = Platform.select({ ios: 'System', android: 'Roboto' });
@@ -76,8 +76,8 @@ const PrivacyPolicyScreen = ({ navigation }) => {
               Last Updated: April 29, 2026
             </Text>
             <Text style={[styles.intro, { color: colors.text }]}>
-              Your privacy is critically important to us. This Privacy Policy explains how we collect, use,
-              protect, and share your information when you use Between Us.
+              Between Us is operated by {APP_OPERATOR}. This Privacy Policy explains how we collect, use,
+              protect, and share your information when you use the app.
             </Text>
           </Animated.View>
 
@@ -272,7 +272,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
               <Text style={{ color: theme.crimson }}>12.</Text> Security
             </Text>
             <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
-              We implement industry-standard security measures:{'\n\n'}
+              We use layered security measures for synced content:{'\n\n'}
               • Account authentication and row-level access controls for synced content{'\n'}
               • Secure data transmission (HTTPS/TLS){'\n'}
               • Provider-side security controls{'\n'}
@@ -320,6 +320,7 @@ const PrivacyPolicyScreen = ({ navigation }) => {
             </Text>
             <Text style={[styles.paragraph, { color: colors.textMuted || 'gray' }]}>
               If you have questions about this Privacy Policy or want to exercise your rights:{'\n\n'}
+              Operator: {APP_OPERATOR}{'\n'}
               Email: {SUPPORT_EMAIL}{'\n'}
               Response time: {DATA_REQUEST_RESPONSE_TIME} for data requests{'\n\n'}
               For data deletion requests, please use the "Delete Account" option in Settings.
@@ -355,9 +356,9 @@ const PrivacyPolicyScreen = ({ navigation }) => {
               <View style={styles.summaryGrid}>
                 <View style={styles.summaryColumn}>
                   <Text style={[styles.summaryColTitle, { color: colors.text }]}>What we do</Text>
-                  <View style={styles.summaryRow}><Icon name="checkmark-circle" size={16} color="#34C759" /><Text style={[styles.summaryItem, { color: colors.textMuted || 'gray' }]}>Protect synced content</Text></View>
+                  <View style={styles.summaryRow}><Icon name="checkmark-circle" size={16} color="#34C759" /><Text style={[styles.summaryItem, { color: colors.textMuted || 'gray' }]}>Use access controls</Text></View>
                   <View style={styles.summaryRow}><Icon name="checkmark-circle" size={16} color="#34C759" /><Text style={[styles.summaryItem, { color: colors.textMuted || 'gray' }]}>Use device controls</Text></View>
-                  <View style={styles.summaryRow}><Icon name="checkmark-circle" size={16} color="#34C759" /><Text style={[styles.summaryItem, { color: colors.textMuted || 'gray' }]}>Give you full control</Text></View>
+                  <View style={styles.summaryRow}><Icon name="checkmark-circle" size={16} color="#34C759" /><Text style={[styles.summaryItem, { color: colors.textMuted || 'gray' }]}>Offer data controls</Text></View>
                 </View>
 
                 <View style={styles.summaryColumn}>

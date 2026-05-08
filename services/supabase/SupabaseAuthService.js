@@ -15,11 +15,15 @@ function withTimeout(promise, ms = AUTH_TIMEOUT_MS) {
 }
 
 export const SupabaseAuthService = {
-  async signUp(email, password) {
+  async signUp(email, password, metadata = {}) {
     if (!email) throw new Error("Email is required");
     if (!password || password.length < 8) throw new Error("Password must be at least 8 characters");
     const supabase = getSupabaseOrThrow();
-    const { data, error } = await withTimeout(supabase.auth.signUp({ email, password }));
+    const signUpPayload = { email, password };
+    if (metadata && Object.keys(metadata).length > 0) {
+      signUpPayload.options = { data: metadata };
+    }
+    const { data, error } = await withTimeout(supabase.auth.signUp(signUpPayload));
     if (error) throw error;
     return data?.session || null;
   },

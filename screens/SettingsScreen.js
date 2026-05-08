@@ -148,6 +148,8 @@ const EditorialToggleRow = ({ icon, title, subtitle, value, onValueChange, t, is
         onValueChange={onValueChange}
         trackColor={{ false: t.border, true: iconColor || t.primary }}
         ios_backgroundColor={t.border}
+        accessibilityLabel={title}
+        accessibilityState={{ checked: value }}
       />
     </View>
     {!isLast && <View style={[styles.rowDivider, { backgroundColor: t.borderGlass }]} />}
@@ -291,7 +293,7 @@ export default function SettingsScreen({ navigation }) {
         try {
           await signOutLocal();
         } catch (error) {
-          console.error('[SettingsScreen] signOutLocal error:', error);
+          if (__DEV__) console.error('[SettingsScreen] signOutLocal error:', error);
           Alert.alert('Error', 'Failed to sign out. Please try again.');
         }
       }},
@@ -603,6 +605,13 @@ export default function SettingsScreen({ navigation }) {
 
           {/* ═══ SUPPORT & SECURITY ═══ */}
           <EditorialSection title="Safety & Support" t={t} delay={800}>
+            <EditorialRow
+              icon="lock-closed-outline"
+              title="Privacy & Security"
+              subtitle="App lock, sessions, export, and deletion"
+              onPress={() => navigation.navigate('PrivacySecuritySettings')}
+              t={t}
+            />
             <EditorialRow 
               icon="shield-checkmark-outline" 
               title="Privacy Policy" 
@@ -676,6 +685,9 @@ export default function SettingsScreen({ navigation }) {
               }}
               activeOpacity={0.7}
               delayLongPress={800}
+              accessibilityRole="button"
+              accessibilityLabel={`Version ${appVersion}`}
+              accessibilityHint="Long press to copy your RevenueCat user ID."
             >
               <Text style={[styles.footerVersion, { color: t.subtext }]}>Version {appVersion}</Text>
             </TouchableOpacity>
@@ -699,7 +711,11 @@ export default function SettingsScreen({ navigation }) {
             <View style={[styles.datePickerContainer, { backgroundColor: t.surface }]}>
               <View style={[styles.datePickerHeader, { borderBottomColor: t.borderGlass }]}>
                 <Text style={[styles.datePickerTitle, { color: t.subtext }]}>Anniversary</Text>
-                <TouchableOpacity onPress={handleDatePickerDismiss}>
+                <TouchableOpacity
+                  onPress={handleDatePickerDismiss}
+                  accessibilityRole="button"
+                  accessibilityLabel="Done selecting anniversary"
+                >
                   <Text style={[styles.datePickerDone, { color: t.primary }]}>Done</Text>
                 </TouchableOpacity>
               </View>
@@ -733,6 +749,9 @@ export default function SettingsScreen({ navigation }) {
                 style={[styles.modalBtn, { backgroundColor: t.surfaceSecondary }, isUnlinking && styles.actionBtnDisabled]}
                 onPress={() => setShowUnlinkConfirm(false)}
                 disabled={isUnlinking}
+                accessibilityRole="button"
+                accessibilityLabel="Cancel unlink partner"
+                accessibilityState={{ disabled: isUnlinking }}
               >
                 <Text style={{ color: t.text, fontFamily: SYSTEM_FONT, fontWeight: '600' }}>Cancel</Text>
               </TouchableOpacity>
@@ -740,6 +759,9 @@ export default function SettingsScreen({ navigation }) {
                 style={[styles.modalBtn, styles.btnDestructive, isUnlinking && styles.actionBtnDisabled]}
                 onPress={handleUnlink}
                 disabled={isUnlinking}
+                accessibilityRole="button"
+                accessibilityLabel="Unlink partner"
+                accessibilityState={{ disabled: isUnlinking, busy: isUnlinking }}
               >
                 <Text style={{ color: '#FFFFFF', fontFamily: SYSTEM_FONT, fontWeight: '700' }}>
                   {isUnlinking ? 'Unlinking...' : 'Unlink'}
@@ -750,6 +772,9 @@ export default function SettingsScreen({ navigation }) {
               style={[styles.reconnectBtn, { backgroundColor: t.primary }, isUnlinking && styles.actionBtnDisabled]}
               onPress={handleUnlinkAndReconnect}
               disabled={isUnlinking}
+              accessibilityRole="button"
+              accessibilityLabel="Unlink and invite new partner"
+              accessibilityState={{ disabled: isUnlinking, busy: isUnlinking }}
             >
               <Icon name="link-outline" size={16} color="#FFFFFF" />
               <Text style={styles.reconnectBtnText}>

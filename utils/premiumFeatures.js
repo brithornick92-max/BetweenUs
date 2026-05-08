@@ -128,7 +128,7 @@ export class PremiumGatekeeper {
       try {
         callback(paywallContent);
       } catch (error) {
-        console.error('Paywall callback error:', error);
+        if (__DEV__) console.error('Paywall callback error:', error);
       }
     });
     

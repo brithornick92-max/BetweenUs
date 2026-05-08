@@ -226,12 +226,29 @@ describe('RevenueCatService', () => {
       expect(result.success).toBe(true);
       expect(result.isPremium).toBe(true);
     });
+
+    it('initializes before purchase if startup init has not run', async () => {
+      const pkg = { identifier: '$rc_monthly' };
+      const result = await RevenueCatService.purchasePackage(pkg);
+
+      expect(mockConfigure).toHaveBeenCalled();
+      expect(mockPurchasePackage).toHaveBeenCalledWith(pkg);
+      expect(result.success).toBe(true);
+    });
   });
 
   describe('restorePurchases', () => {
     it('restores and checks premium', async () => {
       await RevenueCatService.init();
       const result = await RevenueCatService.restorePurchases();
+      expect(mockRestorePurchases).toHaveBeenCalled();
+      expect(result.success).toBe(true);
+    });
+
+    it('initializes before restore if startup init has not run', async () => {
+      const result = await RevenueCatService.restorePurchases();
+
+      expect(mockConfigure).toHaveBeenCalled();
       expect(mockRestorePurchases).toHaveBeenCalled();
       expect(result.success).toBe(true);
     });

@@ -40,6 +40,20 @@ describe('DeepLinkHandler.handleUrl', () => {
     expect(navigate).toHaveBeenCalledWith('ConnectPartner', {});
   });
 
+  it('routes invite join URLs to the partner connection screen with the code', () => {
+    const handled = DeepLinkHandler.handleUrl('betweenus://join/7K4P9M9X');
+
+    expect(handled).toBe(true);
+    expect(navigate).toHaveBeenCalledWith('ConnectPartner', { code: '7K4P9M9X' });
+  });
+
+  it('routes invite join URLs with a code query parameter', () => {
+    const handled = DeepLinkHandler.handleUrl('betweenus://join?code=7K4P9M9X');
+
+    expect(handled).toBe(true);
+    expect(navigate).toHaveBeenCalledWith('ConnectPartner', { code: '7K4P9M9X' });
+  });
+
   it('routes quiz URLs to Daily Quiz', () => {
     const handled = DeepLinkHandler.handleUrl('betweenus://quiz');
 

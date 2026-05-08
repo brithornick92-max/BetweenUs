@@ -121,12 +121,15 @@ async function deleteAfterPlay({ whisper, coupleId, localUri }) {
 
   const { error: metaError } = await supabase
     .from(TABLES.COUPLE_DATA)
-    .update({ value: { ...whisper, played: true } })
+    .update({
+      value: { ...whisper, played: true },
+      updated_at: new Date().toISOString(),
+    })
     .eq('couple_id', coupleId)
     .eq('key', whisper.whisper_id);
 
   if (metaError) {
-    console.warn(`[WhisperService] Failed to mark whisper as played: ${metaError.message}`);
+    if (__DEV__) console.warn(`[WhisperService] Failed to mark whisper as played: ${metaError.message}`);
     return;
   }
 

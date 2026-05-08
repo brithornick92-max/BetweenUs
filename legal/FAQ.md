@@ -2,6 +2,8 @@
 
 **Last Updated: April 29, 2026**
 
+Between Us is operated by Brittany Apps. Support, privacy, legal, data, safety, and feedback questions can be sent to hello@brittanyapps.com.
+
 ---
 
 ## Getting Started
@@ -10,7 +12,7 @@
 
 Between Us is a private couples app for daily prompts, shared reveals, journals, date planning, Our Story Wall/Keepsake media, memories, signals, and recaps.
 
-Between Us is for thriving couples only. It is not a therapy app, relationship repair tool, crisis service, or substitute for professional support.
+Between Us is for adults in relationships who feel safe and respected and want a private space for communication, reflection, planning, and connection. It is not a therapy app, relationship repair tool, crisis service, safety service, or substitute for professional support.
 
 ### Who is Between Us for?
 
@@ -270,7 +272,7 @@ Prompts are designed to be inclusive and respectful, but not every prompt will f
 
 ### Can I suggest new prompts?
 
-Yes. Send suggestions to brittanyapps@outlook.com.
+Yes. Send suggestions to Brittany Apps at hello@brittanyapps.com.
 
 ### Do prompts repeat?
 
@@ -320,17 +322,18 @@ No. Between Us is currently a mobile app.
 
 ### How do I contact support?
 
-**Email:** brittanyapps@outlook.com  
+**Email:** hello@brittanyapps.com
+**Operator:** Brittany Apps
 **Typical response time:** 24-48 hours
 
 ---
 
 ## Still Have Questions?
 
-**Support:** brittanyapps@outlook.com  
-**Feedback:** brittanyapps@outlook.com  
-**Privacy:** brittanyapps@outlook.com  
-**Press:** brittanyapps@outlook.com
+**Support:** hello@brittanyapps.com
+**Feedback:** hello@brittanyapps.com
+**Privacy:** hello@brittanyapps.com
+**Press:** hello@brittanyapps.com
 
 ---
 

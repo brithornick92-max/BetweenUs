@@ -10,6 +10,7 @@ export const EXPORT_SECTIONS = [
   { key: 'loveNotes', label: 'Love Notes', method: 'getLoveNotes', args: { limit: EXPORT_LIMIT } },
   { key: 'calendarEvents', label: 'Calendar', method: 'getCalendarEvents', args: { limit: EXPORT_LIMIT } },
   { key: 'myDates', label: 'Dates', method: 'getDatePlans', args: { limit: EXPORT_LIMIT } },
+  { key: 'dateShortlist', label: 'Saved Dates', method: 'getDateShortlist', args: {}, includeUserId: true },
 ];
 
 const INTERNAL_EXPORT_KEYS = new Set([
@@ -39,7 +40,7 @@ export const sanitizeExportRows = (rows) => (Array.isArray(rows) ? rows : []).ma
   return clean;
 });
 
-export async function gatherExportData(dataLayer, { onPartialError } = {}) {
+export async function gatherExportData(dataLayer, { onPartialError, userId = null } = {}) {
   const loadErrors = [];
   const sectionEntries = await Promise.all(EXPORT_SECTIONS.map(async (section) => {
     const loader = dataLayer?.[section.method];
@@ -49,7 +50,10 @@ export async function gatherExportData(dataLayer, { onPartialError } = {}) {
     }
 
     try {
-      const rows = await loader.call(dataLayer, section.args);
+      const args = section.includeUserId
+        ? { ...section.args, userId }
+        : section.args;
+      const rows = await loader.call(dataLayer, args);
       return [section.key, sanitizeExportRows(rows)];
     } catch (_error) {
       loadErrors.push(section.label);

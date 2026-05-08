@@ -15,6 +15,7 @@ import {
   Platform,
   StatusBar,
   Dimensions,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Icon from '../components/Icon';
@@ -215,7 +216,32 @@ export default function VibeSignalScreen({ navigation }) {
   }, [entitlementsLoading, isPremiumEffective, navigation, showPaywall]);
 
   if (entitlementsLoading || !isPremiumEffective) {
-    return null;
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: t.background }]}>
+        <StatusBar barStyle={isDark ? 'light-content' : 'dark-content'} />
+        <LinearGradient
+          colors={isDark ? [t.background, '#120206', '#0A0003', t.background] : [t.background, '#F2F2F7', t.background]}
+          style={StyleSheet.absoluteFillObject}
+          start={{ x: 0.5, y: 0 }}
+          end={{ x: 0.5, y: 1 }}
+        />
+        <CloseScreenHeader
+          title="Vibe Signal"
+          subtitle={entitlementsLoading ? "CHECKING ACCESS" : "OPENING PREMIUM"}
+          titleColor={t.text}
+          subtitleColor={t.primary}
+          closeColor={t.text}
+          closeIcon="close"
+          onClose={() => navigation.goBack()}
+        />
+        <View style={styles.guardState}>
+          <ActivityIndicator size="small" color={t.primary} />
+          <Text style={[styles.guardText, { color: t.subtext }]}>
+            {entitlementsLoading ? 'Checking premium access...' : 'Opening premium options...'}
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
   }
 
   // ── Main Screen ───────────────────────────────────────────────────
@@ -362,6 +388,19 @@ export default function VibeSignalScreen({ navigation }) {
 const createStyles = (t, isDark) => StyleSheet.create({
   container:     { flex: 1 },
   scrollContent: { paddingBottom: 120 },
+  guardState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    paddingHorizontal: 32,
+  },
+  guardText: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 14,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
 
   // Header
   header: CLOSE_HEADER_STYLES.header,

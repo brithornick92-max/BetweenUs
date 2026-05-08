@@ -1,7 +1,7 @@
 /**
  * ExportDataScreen — Privacy-first data portability
  * Sexy Red Intimacy & Apple Editorial Updates Integrated.
- * Allows users to export all journal entries and shared data in a premium UI.
+ * Allows users to export supported account and relationship data.
  */
 
 import React, { useState, useMemo } from 'react';
@@ -54,6 +54,7 @@ const ExportDataScreen = ({ navigation }) => {
   const { user, userProfile } = useAuth();
   const { state: memoryState } = useMemoryContext();
   const memories = memoryState?.memories;
+  const exportUserId = user?.uid || user?.id || userProfile?.uid || userProfile?.id || userProfile?.user_id || null;
 
   // ─── Sexy Red x Apple Editorial Theme Map ───
   const t = useMemo(() => ({
@@ -82,6 +83,7 @@ const ExportDataScreen = ({ navigation }) => {
       const includeAccount = !!options.includeAccountDetails;
 
       const allData = await gatherExportData(DataLayer, {
+        userId: exportUserId,
         onPartialError: (loadErrors) => {
           Alert.alert(
             'Partial Export',
@@ -165,9 +167,9 @@ const ExportDataScreen = ({ navigation }) => {
         <View style={[styles.card, { backgroundColor: t.surface, borderColor: t.border }]}>
           <Text style={[styles.cardTitle, { color: t.text }]}>Archive Contents</Text>
           <View style={styles.list}>
-            <FeatureRow icon="book-outline" text="All Journal Entries" color={t.primary} textColor={t.text} />
-            <FeatureRow icon="chatbubbles-outline" text="Reflection, Prompt Answers & Love Notes" color={t.primary} textColor={t.text} />
-            <FeatureRow icon="calendar-outline" text="Check-ins, Vibes, Calendar & Date Plans" color={t.primary} textColor={t.text} />
+            <FeatureRow icon="book-outline" text="Supported Journal Entries" color={t.primary} textColor={t.text} />
+            <FeatureRow icon="chatbubbles-outline" text="Supported Reflections, Prompt Answers & Love Notes" color={t.primary} textColor={t.text} />
+            <FeatureRow icon="calendar-outline" text="Check-ins, Vibes, Calendar, Date Plans & Saved Dates" color={t.primary} textColor={t.text} />
             <FeatureRow icon="person-outline" text="Optional Account Metadata" color={t.primary} textColor={t.text} />
           </View>
         </View>
@@ -177,7 +179,7 @@ const ExportDataScreen = ({ navigation }) => {
           <Text style={[styles.cardTitle, { color: t.text }]}>Export Format</Text>
           <Text style={[styles.cardText, { color: t.subtext }]}>
             Your archive is exported as a JSON file — human-readable and openable in any text editor.
-            Each section is clearly labeled and includes all entries in full.
+            Each supported section is clearly labeled in a structured format.
           </Text>
         </View>
 
@@ -198,7 +200,7 @@ const ExportDataScreen = ({ navigation }) => {
           <Text style={[styles.statLabel, { color: t.subtext }]}>Captured Memories</Text>
         </View>
         <Text style={[styles.cardText, { color: t.subtext, textAlign: 'center', marginBottom: 32, paddingHorizontal: 16 }]}>
-          Journal entries, prompt responses, memories, love notes, check-ins, vibes, calendar events, and date plans will also be included.
+          Journal entries, prompt responses, memories, love notes, check-ins, vibes, calendar events, date plans, and saved date IDs will also be included.
         </Text>
 
         {/* Export Button */}
@@ -206,6 +208,9 @@ const ExportDataScreen = ({ navigation }) => {
           style={[styles.exportButton, { backgroundColor: t.primary }]}
           onPress={() => setShowConfirm(true)}
           disabled={isExporting}
+          accessibilityRole="button"
+          accessibilityLabel="Generate data archive"
+          accessibilityState={{ disabled: isExporting, busy: isExporting }}
         >
           {isExporting ? (
             <ActivityIndicator color="#FFFFFF" />
@@ -219,8 +224,7 @@ const ExportDataScreen = ({ navigation }) => {
 
         {/* GDPR/CCPA Info */}
         <Text style={[styles.legalText, { color: t.subtext }]}>
-          Archive generated in compliance with GDPR and CCPA data portability standards.
-          You have the right to receive your personal data in a structured, commonly used format.
+          Archive designed to support data portability requests by providing supported app data in a structured format.
         </Text>
       
 
@@ -240,11 +244,18 @@ const ExportDataScreen = ({ navigation }) => {
                 value={includeAccountDetails}
                 onValueChange={setIncludeAccountDetails}
                 trackColor={{ true: t.primary }}
+                accessibilityLabel="Include account metadata"
+                accessibilityState={{ checked: includeAccountDetails }}
               />
             </View>
 
             <View style={styles.modalActions}>
-              <TouchableOpacity onPress={() => setShowConfirm(false)} style={styles.cancelBtn}>
+              <TouchableOpacity
+                onPress={() => setShowConfirm(false)}
+                style={styles.cancelBtn}
+                accessibilityRole="button"
+                accessibilityLabel="Cancel export"
+              >
                 <Text style={[styles.cancelText, { color: t.subtext }]}>Cancel</Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -253,6 +264,8 @@ const ExportDataScreen = ({ navigation }) => {
                   exportData({ includeAccountDetails });
                 }}
                 style={[styles.confirmBtn, { backgroundColor: t.primary }]}
+                accessibilityRole="button"
+                accessibilityLabel="Export data archive"
               >
                 <Text style={styles.confirmText}>Export</Text>
               </TouchableOpacity>

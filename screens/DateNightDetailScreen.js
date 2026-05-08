@@ -11,7 +11,8 @@ import {
   TouchableOpacity,
   Platform,
   Dimensions,
-  StatusBar
+  StatusBar,
+  ActivityIndicator
 } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from "expo-linear-gradient";
@@ -465,7 +466,27 @@ export default function DateNightDetailScreen({ route, navigation }) {
     navigation.navigate("MainTabs", { screen: "Calendar", params: { prefill } });
   };
 
-  if (!date) return null;
+  if (!date) {
+    return (
+      <SafeAreaView style={[styles.container, { backgroundColor: t.background }]} edges={['top']}>
+        <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
+        <GlowOrb color={t.primary} size={450} top={-100} left={SCREEN_WIDTH - 250} opacity={0.14} />
+        <CloseScreenHeader
+          title="Date"
+          subtitle="LOADING PLAN"
+          titleColor={t.text}
+          subtitleColor={t.primary}
+          closeColor={t.text}
+          closeIcon="close-outline"
+          onClose={() => navigation.goBack()}
+        />
+        <View style={styles.loadingState}>
+          <ActivityIndicator size="small" color={t.primary} />
+          <Text style={[styles.loadingText, { color: t.subtext }]}>Loading date idea...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.container, { backgroundColor: t.background }]} edges={['top']}>
@@ -517,7 +538,12 @@ export default function DateNightDetailScreen({ route, navigation }) {
 
         {/* Primary Editorial Action */}
         <ReAnimated.View entering={FadeInDown.delay(200)} style={styles.centerAction}>
-          <TouchableOpacity onPress={handleSchedule} activeOpacity={0.9}>
+          <TouchableOpacity
+            onPress={handleSchedule}
+            activeOpacity={0.9}
+            accessibilityRole="button"
+            accessibilityLabel="Schedule this date"
+          >
             <LinearGradient colors={[t.primary, t.primaryMuted || '#8E0D2C']} style={styles.scheduleBtn}>
               <Icon name="calendar-outline" size={22} color="#FFF" />
               <Text style={styles.scheduleBtnText}>Schedule Moment</Text>
@@ -615,7 +641,13 @@ export default function DateNightDetailScreen({ route, navigation }) {
           <BlurView intensity={isDark ? 30 : 50} tint={isDark ? "dark" : "light"} style={[styles.timerModule, { borderColor: t.border }]}>
             <Text style={[styles.moduleLabel, { color: t.subtext }]}>PRESENCE TIMER</Text>
             <Text style={[styles.timerValue, { color: t.text }]}>{formatTime(timeElapsed)}</Text>
-            <TouchableOpacity onPress={toggleTimer} style={[styles.timerToggle, { backgroundColor: timerActive ? t.surfaceSecondary : t.primary }]}>
+            <TouchableOpacity
+              onPress={toggleTimer}
+              style={[styles.timerToggle, { backgroundColor: timerActive ? t.surfaceSecondary : t.primary }]}
+              accessibilityRole="button"
+              accessibilityLabel={timerActive ? "Pause presence timer" : "Start presence timer"}
+              accessibilityState={{ selected: timerActive }}
+            >
               <Icon name={timerActive ? "pause-outline" : "play-outline"} size={32} color={timerActive ? dateTone.highlight : "#FFF"} />
             </TouchableOpacity>
           </BlurView>
@@ -676,6 +708,9 @@ export default function DateNightDetailScreen({ route, navigation }) {
                 key={index}
                 onPress={() => { selection(); setCurrentStep(index); }}
                 activeOpacity={0.8}
+                accessibilityRole="button"
+                accessibilityLabel={`Date guide step ${index + 1}: ${step}`}
+                accessibilityState={{ selected: isActive }}
                 style={[
                   styles.stepRow,
                   { backgroundColor: isActive ? t.surfaceSecondary : t.surface, borderColor: isActive ? t.primary : t.border },
@@ -748,12 +783,14 @@ export default function DateNightDetailScreen({ route, navigation }) {
             title={currentStep === steps.length - 1 ? "Finish Experience" : "Next Step"}
             onPress={() => {
               if (currentStep === steps.length - 1) {
-                notification(NotificationFeedbackType.Success);
                 logDateComplete()
-                  .catch(() => {})
-                  .finally(() => {
-                    Alert.alert("Date Complete!", "A new memory has been shared.");
+                  .then(() => {
+                    notification(NotificationFeedbackType.Success);
+                    Alert.alert("Date Complete", "This date was saved to your history.");
                     navigation.goBack();
+                  })
+                  .catch(() => {
+                    Alert.alert("Could not finish date", "Please check your connection and try again.");
                   });
               } else {
                 impact(ImpactFeedbackStyle.Light);
@@ -773,6 +810,19 @@ export default function DateNightDetailScreen({ route, navigation }) {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   scrollContent: { paddingBottom: 40 },
+  loadingState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 12,
+    paddingHorizontal: 32,
+  },
+  loadingText: {
+    fontFamily: SYSTEM_FONT,
+    fontSize: 14,
+    fontWeight: '700',
+    textAlign: 'center',
+  },
 
   // Hero Section
   heroHeader: {

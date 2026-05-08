@@ -124,7 +124,7 @@ export class AnniversaryThemeGenerator {
                themeDate.getFullYear() !== today.getFullYear(); // Not the same year
       });
     } catch (error) {
-      console.error('Failed to get today\'s anniversary themes:', error);
+      if (__DEV__) console.error('Failed to get today\'s anniversary themes:', error);
       return [];
     }
   }
@@ -149,7 +149,7 @@ export class AnniversaryThemeGenerator {
         return thisYearTheme >= today && thisYearTheme <= nextWeek;
       });
     } catch (error) {
-      console.error('Failed to get upcoming anniversary themes:', error);
+      if (__DEV__) console.error('Failed to get upcoming anniversary themes:', error);
       return [];
     }
   }
@@ -176,7 +176,7 @@ export class AnniversaryThemeGenerator {
       
       return theme;
     } catch (error) {
-      console.error('Failed to create anniversary theme:', error);
+      if (__DEV__) console.error('Failed to create anniversary theme:', error);
       return null;
     }
   }
@@ -202,7 +202,7 @@ export class AnniversaryThemeGenerator {
       await storage.set(STORAGE_KEYS.ANNIVERSARY_THEMES, themes);
       return themes[themeIndex];
     } catch (error) {
-      console.error('Failed to update anniversary theme:', error);
+      if (__DEV__) console.error('Failed to update anniversary theme:', error);
       return null;
     }
   }
@@ -218,7 +218,7 @@ export class AnniversaryThemeGenerator {
       await storage.set(STORAGE_KEYS.ANNIVERSARY_THEMES, filteredThemes);
       return true;
     } catch (error) {
-      console.error('Failed to delete anniversary theme:', error);
+      if (__DEV__) console.error('Failed to delete anniversary theme:', error);
       return false;
     }
   }
@@ -238,7 +238,7 @@ export class AnniversaryThemeGenerator {
         upcomingAnniversaries: (await this.getUpcomingAnniversaryThemes()).length,
       };
     } catch (error) {
-      console.error('Failed to get anniversary stats:', error);
+      if (__DEV__) console.error('Failed to get anniversary stats:', error);
       return {
         totalThemes: 0,
         themesUsed: 0,

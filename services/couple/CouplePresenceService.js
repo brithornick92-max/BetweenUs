@@ -41,7 +41,7 @@ export async function clearLocalCoupleState({
 
   cacheClearResults.forEach((result) => {
     if (result.status === 'rejected') {
-      console.warn('[CouplePresence] Failed to clear local couple cache:', result.reason);
+      if (__DEV__) console.warn('[CouplePresence] Failed to clear local couple cache:', result.reason);
     }
   });
 
@@ -49,14 +49,14 @@ export async function clearLocalCoupleState({
     try {
       await storageRouter.updateUserDocument(userId, { coupleId: null });
     } catch (e) {
-      console.warn('[CouplePresence] Failed to update user doc:', e);
+      if (__DEV__) console.warn('[CouplePresence] Failed to update user doc:', e);
     }
   }
 
   try {
     await onProfileCleared?.({ coupleId: null });
   } catch (e) {
-    console.warn('[CouplePresence] Failed to clear profile couple state:', e);
+    if (__DEV__) console.warn('[CouplePresence] Failed to clear profile couple state:', e);
   }
   return true;
 }
@@ -125,7 +125,7 @@ export async function getVerifiedCoupleState({
           const recheckCoupleId = await getRemoteCoupleId({ dependencies, timeoutMs: 8000 });
           confirmedMissing = !recheckCoupleId;
         } catch (e) {
-          console.warn('[CouplePresence] Remote miss double-check failed:', e);
+          if (__DEV__) console.warn('[CouplePresence] Remote miss double-check failed:', e);
           confirmedMissing = false;
         }
 

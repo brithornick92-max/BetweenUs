@@ -12,11 +12,11 @@ import {
 } from 'react-native';
 import { useTheme } from '../context/ThemeContext';
 import { useAuth } from '../context/AuthContext';
-import { useEntitlements } from '../context/EntitlementsContext';
 import { impact, ImpactFeedbackStyle } from '../utils/haptics';
 import Icon from '../components/Icon';
 import { SPACING, withAlpha } from '../utils/theme';
 import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
+import { SUPPORT_EMAIL } from '../config/constants';
 
 /**
  * Delete Account Screen
@@ -26,7 +26,6 @@ import EditorialScreenScaffold from '../components/EditorialScreenScaffold';
 export default function DeleteAccountScreen({ navigation }) {
   const { colors, isDark } = useTheme();
   const { deleteUserAccount, signOutLocal } = useAuth();
-  const { isPremiumEffective: isPremium } = useEntitlements();
   
   const [confirmText, setConfirmText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
@@ -44,6 +43,9 @@ export default function DeleteAccountScreen({ navigation }) {
   }), [colors]);
 
   const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
+  const subscriptionSettingsLabel = Platform.OS === 'ios'
+    ? 'Manage App Store subscription'
+    : 'Manage Google Play subscription';
 
   const handleTextChange = (text) => {
     setConfirmText(text);
@@ -82,7 +84,7 @@ export default function DeleteAccountScreen({ navigation }) {
               if (__DEV__) console.error('Delete account error:', error);
               Alert.alert(
                 'Error',
-                'Failed to delete account. Please try again or contact support.',
+                `Failed to delete account. Please try again or contact support at ${SUPPORT_EMAIL}.`,
                 [{ text: 'OK' }]
               );
             } finally {
@@ -92,6 +94,21 @@ export default function DeleteAccountScreen({ navigation }) {
         },
       ]
     );
+  };
+
+  const openSubscriptionSettings = async () => {
+    const url = Platform.OS === 'ios'
+      ? 'https://apps.apple.com/account/subscriptions'
+      : 'https://play.google.com/store/account/subscriptions';
+
+    try {
+      await Linking.openURL(url);
+    } catch (_error) {
+      Alert.alert(
+        'Subscription Settings',
+        `Open your ${Platform.OS === 'ios' ? 'Apple' : 'Google Play'} subscription settings to manage billing.`
+      );
+    }
   };
 
   return (
@@ -131,6 +148,8 @@ export default function DeleteAccountScreen({ navigation }) {
               style={[styles.actionRow, { backgroundColor: t.surfaceSecondary }]}
               activeOpacity={0.7}
               onPress={() => navigation.navigate('ExportData')}
+              accessibilityRole="button"
+              accessibilityLabel="Export my data"
             >
               <View style={styles.actionInfo}>
                 <Text style={[styles.actionTitle, { color: t.text }]}>Export My Data</Text>
@@ -157,6 +176,8 @@ export default function DeleteAccountScreen({ navigation }) {
                   }},
                 ]);
               }}
+              accessibilityRole="button"
+              accessibilityLabel="Sign out temporarily"
             >
               <View style={styles.actionInfo}>
                 <Text style={[styles.actionTitle, { color: t.text }]}>Sign out temporarily</Text>
@@ -164,24 +185,18 @@ export default function DeleteAccountScreen({ navigation }) {
               <Icon name="chevron-forward" size={20} color={t.border} />
             </TouchableOpacity>
 
-            {isPremium && (
-              <TouchableOpacity
-                style={[styles.actionRow, { backgroundColor: t.surfaceSecondary, marginBottom: 8 }]}
-                activeOpacity={0.7}
-                onPress={() => {
-                  if (Platform.OS === 'ios') {
-                    Linking.openURL('https://apps.apple.com/account/subscriptions');
-                  } else {
-                    Linking.openURL('https://play.google.com/store/account/subscriptions');
-                  }
-                }}
-              >
-                <View style={styles.actionInfo}>
-                  <Text style={[styles.actionTitle, { color: t.text }]}>Cancel subscription</Text>
-                </View>
-                <Icon name="chevron-forward" size={20} color={t.border} />
-              </TouchableOpacity>
-            )}
+            <TouchableOpacity
+              style={[styles.actionRow, { backgroundColor: t.surfaceSecondary, marginBottom: 8 }]}
+              activeOpacity={0.7}
+              onPress={openSubscriptionSettings}
+              accessibilityRole="button"
+              accessibilityLabel={subscriptionSettingsLabel}
+            >
+              <View style={styles.actionInfo}>
+                <Text style={[styles.actionTitle, { color: t.text }]}>{subscriptionSettingsLabel}</Text>
+              </View>
+              <Icon name="chevron-forward" size={20} color={t.border} />
+            </TouchableOpacity>
             
             <TouchableOpacity
               style={[styles.actionRow, { backgroundColor: t.surfaceSecondary }]}
@@ -196,6 +211,8 @@ export default function DeleteAccountScreen({ navigation }) {
                   ]
                 );
               }}
+              accessibilityRole="button"
+              accessibilityLabel="Unlink from partner"
             >
               <View style={styles.actionInfo}>
                 <Text style={[styles.actionTitle, { color: t.text }]}>Unlink from partner</Text>
@@ -239,6 +256,9 @@ export default function DeleteAccountScreen({ navigation }) {
             activeOpacity={0.8}
             onPress={() => navigation.goBack()}
             disabled={isDeleting}
+            accessibilityRole="button"
+            accessibilityLabel="Cancel and keep my account"
+            accessibilityState={{ disabled: isDeleting }}
           >
             <Text style={styles.btnPrimaryText}>
               Cancel, Keep My Account
@@ -257,6 +277,12 @@ export default function DeleteAccountScreen({ navigation }) {
             activeOpacity={0.7}
             onPress={handleDeleteAccount}
             disabled={isDeleting || confirmText.trim().toLowerCase() !== 'delete'}
+            accessibilityRole="button"
+            accessibilityLabel="Delete my account"
+            accessibilityState={{
+              disabled: isDeleting || confirmText.trim().toLowerCase() !== 'delete',
+              busy: isDeleting,
+            }}
           >
             {isDeleting ? (
                 <ActivityIndicator color={t.danger} />
@@ -270,6 +296,7 @@ export default function DeleteAccountScreen({ navigation }) {
 
           <Text style={[styles.legalText, { color: t.subtext }]}>
             Account deletion is permanent once completed. Active account data is removed according to the deletion flow and Privacy Policy. Backup copies and limited records may persist where needed for legal, tax, billing, security, fraud-prevention, or dispute purposes.
+            {'\n\n'}Questions about deletion can be sent to {SUPPORT_EMAIL}.
           </Text>
 
     </EditorialScreenScaffold>

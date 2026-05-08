@@ -156,7 +156,7 @@ class CloudEngine {
       value,
       data_type: dataType,
       created_by: createdBy,
-      is_private: false,
+      is_private: !!isPrivate,
     });
     if (error) throw error;
     return true;
@@ -167,7 +167,7 @@ class CloudEngine {
     const supabase = getSupabaseOrThrow();
     const { error } = await supabase
       .from(TABLES.COUPLE_DATA)
-      .update({ value, is_private: false, updated_at: new Date().toISOString() })
+      .update({ value, updated_at: new Date().toISOString() })
       .eq('couple_id', coupleId)
       .eq('key', key);
     if (error) throw error;

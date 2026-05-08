@@ -57,11 +57,17 @@ class UsageEventsService {
     return canonical === eventType ? [eventType] : [canonical, eventType];
   }
 
-  async _getCoupleId() {
+  async _getCoupleId(userId = null) {
     if (!supabase) return null;
+
+    const { data: authData, error: authError } = await supabase.auth.getUser();
+    if (authError || !authData?.user?.id) return null;
+    if (userId && authData.user.id !== userId) return null;
+
     const { data } = await supabase
       .from('couple_members')
       .select('couple_id')
+      .eq('user_id', authData.user.id)
       .maybeSingle();
     return data?.couple_id || null;
   }
@@ -86,7 +92,9 @@ class UsageEventsService {
 
   async _writeRemote(userId, eventType, periodKey, metadata = {}) {
     if (!supabase || !userId || String(userId).startsWith('user_')) return false;
-    const coupleId = await this._getCoupleId().catch(() => null);
+    const coupleId = await this._getCoupleId(userId).catch(() => null);
+    if (!coupleId) return false;
+
     const { error } = await supabase
       .from('usage_events')
       .insert({

@@ -2,7 +2,7 @@
 
 **Last Updated: April 29, 2026**
 
-Welcome to Between Us. These Terms of Service ("Terms") govern your use of the Between Us mobile application and related services (collectively, the "Service"). By creating an account or using Between Us, you agree to these Terms and our Privacy Policy.
+Welcome to Between Us. These Terms of Service ("Terms") govern your use of the Between Us mobile application and related services operated by Brittany Apps (collectively, the "Service"). By creating an account or using Between Us, you agree to these Terms and our Privacy Policy.
 
 ---
 
@@ -274,8 +274,9 @@ We are not liable for delays or failures caused by circumstances beyond our reas
 
 If you have questions about these Terms:
 
-**Email:** brittanyapps@outlook.com  
-**Support:** brittanyapps@outlook.com
+**Operator:** Brittany Apps
+**Email:** hello@brittanyapps.com
+**Support:** hello@brittanyapps.com
 
 ---
 

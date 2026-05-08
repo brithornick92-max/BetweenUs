@@ -23,7 +23,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Icon from '../components/Icon';
 import { impact, selection, ImpactFeedbackStyle } from '../utils/haptics';
 import { useTheme } from '../context/ThemeContext';
-import { SUPPORT_EMAIL } from '../config/constants';
+import { APP_OPERATOR, SUPPORT_EMAIL } from '../config/constants';
 import GlowOrb from '../components/GlowOrb';
 import FilmGrain from '../components/FilmGrain';
 import CloseScreenHeader, { CLOSE_HEADER_STYLES } from '../components/CloseScreenHeader';
@@ -42,7 +42,7 @@ const FAQ_DATA = [
       },
       {
         q: 'Who is Between Us for?',
-        a: 'Between Us is for thriving couples only. If your relationship is already thriving and you want to make it even richer, this app was made for you.\n\nBetween Us is not a therapy app or relationship repair tool.',
+        a: 'Between Us is for adults in relationships who feel safe and respected and want a private space for communication, reflection, planning, and connection.\n\nBetween Us is not a therapy app, relationship repair tool, crisis service, or safety service. It does not diagnose, treat, or guarantee relationship improvement.',
       },
       {
         q: 'How much does it cost?',
@@ -184,7 +184,7 @@ const FAQ_DATA = [
     questions: [
       {
         q: 'Is Between Us a substitute for therapy?',
-        a: 'No. Between Us is a private space for thriving couples only — not therapy, counseling, or a relationship repair tool.\n\nIf your relationship needs professional support, please reach out to a licensed therapist.',
+        a: 'No. Between Us is a private space for communication and connection. It is not therapy, counseling, relationship repair, crisis support, medical advice, legal advice, or safety planning.\n\nIf your relationship needs professional support, please reach out to a qualified counselor, therapist, attorney, emergency service, or local support organization.',
       },
       {
         q: 'When should we NOT use Between Us?',
@@ -192,7 +192,7 @@ const FAQ_DATA = [
       },
       {
         q: 'Is Between Us right for every couple?',
-        a: 'Between Us is designed specifically for thriving couples — it deepens what\'s already beautiful. It is not a relationship repair tool and is not designed for couples working through serious concerns.\n\nIf your relationship is already thriving and you want to go deeper, Between Us was made for you.',
+        a: 'Between Us is not right for every situation. It supports communication and connection for adults who feel safe and respected with each other. It is not a relationship repair tool and is not designed for couples working through serious concerns.\n\nIf your relationship needs professional support, please reach out to a qualified counselor, therapist, attorney, emergency service, or local support organization.',
       },
       {
         q: 'Where can I find help if I\'m in an unsafe situation?',
@@ -225,7 +225,7 @@ export default function FAQScreen({ navigation }) {
 
   const handleContactSupport = () => {
     impact(ImpactFeedbackStyle.Medium);
-    Alert.alert('Concierge Support', `Email: ${SUPPORT_EMAIL}\nTypical response: 24-48 hours`);
+    Alert.alert(`${APP_OPERATOR} Support`, `Email: ${SUPPORT_EMAIL}\nTypical response: 24-48 hours`);
   };
 
   return (
@@ -262,7 +262,7 @@ export default function FAQScreen({ navigation }) {
           <Animated.View entering={FadeIn.duration(800)} style={styles.introSection}>
             <Text style={[styles.introDate, { color: colors.textMuted }]}>Updated April 29, 2026</Text>
             <Text style={[styles.introText, { color: colors.textMuted }]}>
-              Explore how to make the most of your shared sanctuary. If you need further guidance, our concierge team is available.
+              Explore common account, privacy, billing, and safety questions. For more help, contact Brittany Apps support.
             </Text>
           </Animated.View>
 
@@ -321,7 +321,7 @@ export default function FAQScreen({ navigation }) {
                 <Icon name="mail" size={28} color={theme.crimson} />
               </View>
               <Text style={[styles.supportTitle, { color: colors.text }]}>Still have questions?</Text>
-              <Text style={[styles.supportSub, { color: colors.textMuted }]}>Our concierge team usually responds within 24-48 hours.</Text>
+              <Text style={[styles.supportSub, { color: colors.textMuted }]}>Brittany Apps support usually responds within 24-48 hours.</Text>
 
               <TouchableOpacity
                 style={styles.supportButton}
@@ -332,7 +332,7 @@ export default function FAQScreen({ navigation }) {
                   colors={[theme.crimson, '#900C0F']}
                   style={styles.supportButtonGrad}
                 >
-                  <Text style={styles.supportButtonText}>Contact Concierge</Text>
+                  <Text style={styles.supportButtonText}>Contact Support</Text>
                 </LinearGradient>
               </TouchableOpacity>
 

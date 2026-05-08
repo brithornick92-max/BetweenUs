@@ -89,6 +89,30 @@ async function persistAppUserProfile(profile) {
   await storage.set(STORAGE_KEYS.USER_PROFILE, normalizedProfile);
 }
 
+function getOnboardingCompletedFromProfile(profile) {
+  if (typeof profile?.preferences?.onboardingCompleted === 'boolean') {
+    return profile.preferences.onboardingCompleted;
+  }
+  if (typeof profile?.onboardingCompleted === 'boolean') {
+    return profile.onboardingCompleted;
+  }
+  return null;
+}
+
+async function persistOnboardingRequirement(profile, fallbackPending = false) {
+  const onboardingCompleted = getOnboardingCompletedFromProfile(profile);
+  const pending = typeof onboardingCompleted === 'boolean'
+    ? !onboardingCompleted
+    : !!fallbackPending;
+
+  await storage.set(STORAGE_KEYS.PENDING_ONBOARDING, pending);
+  if (typeof onboardingCompleted === 'boolean') {
+    await storage.set(STORAGE_KEYS.ONBOARDING_COMPLETED, onboardingCompleted);
+  }
+
+  return pending;
+}
+
 async function applyCloudPreferenceState(remoteProfile) {
   const remotePrefs = remoteProfile?.preferences && typeof remoteProfile.preferences === 'object'
     ? remoteProfile.preferences
@@ -225,9 +249,10 @@ export const AuthProvider = ({ children }) => {
           await persistAppUserProfile(profile);
 
           try {
-            const pendingOnboarding = await storage.get(STORAGE_KEYS.PENDING_ONBOARDING, false);
+            const cachedPendingOnboarding = await storage.get(STORAGE_KEYS.PENDING_ONBOARDING, false);
+            const pendingOnboarding = await persistOnboardingRequirement(profile, cachedPendingOnboarding);
             if (!active) return;
-            setRequiresOnboarding(!!pendingOnboarding);
+            setRequiresOnboarding(pendingOnboarding);
           } catch (_) {
             if (!active) return;
             setRequiresOnboarding(false);
@@ -328,8 +353,10 @@ export const AuthProvider = ({ children }) => {
 
                 await applyCloudPreferenceState(remoteProfile);
 
-                if (typeof remoteProfile?.preferences?.onboardingCompleted === 'boolean' && active) {
-                  setRequiresOnboarding(!remoteProfile.preferences.onboardingCompleted);
+                if (active) {
+                  const cachedPendingOnboarding = await storage.get(STORAGE_KEYS.PENDING_ONBOARDING, false);
+                  const pendingOnboarding = await persistOnboardingRequirement(mergedProfile, cachedPendingOnboarding);
+                  setRequiresOnboarding(pendingOnboarding);
                 }
               } catch (e) {
                 if (__DEV__) console.warn('[AuthContext] getProfile failed (non-fatal):', e?.message);
@@ -436,21 +463,34 @@ export const AuthProvider = ({ children }) => {
       // 1. ALWAYS sign up via Supabase first to ensure email is the global source of truth
       // and we get the canonical UUID immediately.
       let supabaseSession = null;
+      let signInAfterSignUpError = null;
       try {
-        supabaseSession = await SupabaseAuthService.signUp(email, password);
+        supabaseSession = await SupabaseAuthService.signUp(email, password, {
+          display_name: displayName,
+          full_name: displayName,
+        });
         // If confirmation is required, signUp returns null session
         if (!supabaseSession) {
-          supabaseSession = await SupabaseAuthService.signInWithPassword(email, password).catch(() => null);
+          supabaseSession = await SupabaseAuthService.signInWithPassword(email, password).catch((error) => {
+            signInAfterSignUpError = error;
+            return null;
+          });
         }
       } catch (err) {
         if (String(err?.message || '').includes('User already registered')) {
-          supabaseSession = await SupabaseAuthService.signInWithPassword(email, password).catch(() => null);
+          supabaseSession = await SupabaseAuthService.signInWithPassword(email, password).catch((error) => {
+            signInAfterSignUpError = error;
+            return null;
+          });
         } else {
           throw err;
         }
       }
 
       if (!supabaseSession?.user?.id) {
+        if (String(signInAfterSignUpError?.message || '').includes('Email not confirmed')) {
+          throw new Error('Email confirmation required. Please check your email and confirm your account before signing in.');
+        }
         throw new Error('Could not create cloud account. Please check your connection.');
       }
 
@@ -466,6 +506,18 @@ export const AuthProvider = ({ children }) => {
         displayName,
         emailVerified: !!(supabaseSession.user?.email_confirmed_at || supabaseSession.user?.confirmed_at)
       });
+
+      const createdProfile = await StorageRouter.updateUserDocument(canonicalUid, {
+        email,
+        displayName,
+        display_name: displayName,
+        onboardingCompleted: false,
+        preferences: {
+          onboardingCompleted: false,
+        },
+      });
+      setUserProfile(createdProfile);
+      await persistAppUserProfile(createdProfile);
 
       const syncStatus = await cloudSyncStorage.getSyncStatus();
       await cloudSyncStorage.setSyncStatus({
@@ -513,9 +565,15 @@ export const AuthProvider = ({ children }) => {
         setUser(signedInUser.user);
       }
 
-      if (__DEV__) console.log('[AuthContext] Setting onboarding flags...');
-      await storage.set(STORAGE_KEYS.PENDING_ONBOARDING, false);
-      setRequiresOnboarding(false);
+      if (__DEV__) console.log('[AuthContext] Resolving onboarding flags...');
+      const profile = await StorageRouter.getUserDocument(session.user.id).catch(() => null);
+      if (profile) {
+        setUserProfile(profile);
+        await persistAppUserProfile(profile);
+      }
+      const cachedPendingOnboarding = await storage.get(STORAGE_KEYS.PENDING_ONBOARDING, false);
+      const pendingOnboarding = await persistOnboardingRequirement(profile, cachedPendingOnboarding);
+      setRequiresOnboarding(pendingOnboarding);
 
       if (__DEV__) console.log('[AuthContext] Sign in complete!');
 
@@ -633,20 +691,10 @@ export const AuthProvider = ({ children }) => {
         if (__DEV__) console.warn('[AuthContext] Push token cleanup failed during delete:', pushErr?.message);
       }
 
-      // 2. Delete cloud data (profile, couple membership, couple data)
-      //    Non-fatal — the RPC will also handle this, but doing it
-      //    explicitly first gives us cleaner error isolation.
-      try {
-        if (CloudEngine.sessionPresent) {
-          await CloudEngine.deleteUserData();
-        }
-      } catch (cloudErr) {
-        if (__DEV__) console.warn('Cloud data cleanup (non-fatal):', cloudErr?.message);
-      }
-
-      // 3. Delete the Supabase auth user via RPC
-      //    This is the critical step — removes auth.users row which
-      //    cascades to profiles and invalidates all sessions.
+      // 2. Delete the Supabase account through the RPC.
+      //    The RPC must run before any client-side remote cleanup so it still
+      //    has the couple membership context needed for storage cleanup,
+      //    ownership reassignment, and auth-user deletion.
       try {
         await SupabaseAuthService.deleteAccount();
       } catch (rpcErr) {
@@ -658,17 +706,17 @@ export const AuthProvider = ({ children }) => {
       }
       await SupabaseAuthService.clearStoredCredentials();
 
-      // 4. Clean up cache and in-memory state
+      // 3. Clean up cache and in-memory state
       await ConnectionMemory.clear();
       await AnalyticsService.clearLocalCache();
 
-      // 5. Delete cached user document
+      // 4. Delete cached user document
       await StorageRouter.deleteUserDocument(user.uid);
 
-      // 6. Clear all remaining device cache
+      // 5. Clear all remaining device cache
       await clearLocalCache();
 
-      // 8. Update React state — triggers navigation to auth screen
+      // 6. Update React state — triggers navigation to auth screen
       setUser(null);
       setUserProfile(null);
 

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { 
+import {
   View, 
   StyleSheet, 
   Alert, 
@@ -9,12 +9,13 @@ import {
   Animated,
   StatusBar
 } from 'react-native';
-import RevenueCatUI, { CUSTOMER_CENTER_ACTION } from 'react-native-purchases-ui';
+import RevenueCatUI from 'react-native-purchases-ui';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSubscription } from '../context/SubscriptionContext';
 import { useTheme } from '../context/ThemeContext';
 import { useEntitlements } from '../context/EntitlementsContext';
 import AnalyticsService from '../services/AnalyticsService';
+import RevenueCatService from '../services/RevenueCatService';
 import { impact, notification, ImpactFeedbackStyle, NotificationFeedbackType } from '../utils/haptics';
 import { SPACING } from '../utils/theme';
 
@@ -65,31 +66,19 @@ export default function CustomerCenter({ onDismiss, navigation }) {
   }, [fadeAnim, slideAnim]);
 
   useEffect(() => {
-    let removeListener = null;
+    let active = true;
 
-    const presentAndListen = async () => {
+    const presentCustomerCenter = async () => {
       try {
-        // Present RevenueCat's Customer Center
-        await RevenueCatUI.presentCustomerCenter();
+        await RevenueCatService.init();
+        RevenueCatService.ensureConfigured();
 
-        // Set up event listener for customer center actions
-        removeListener = RevenueCatUI.addCustomerCenterListener((event) => {
-          if (__DEV__) console.log('Customer Center Event:', event);
-
-          switch (event.action) {
-            case CUSTOMER_CENTER_ACTION.CANCELLED:
-              if (__DEV__) console.log('User cancelled subscription');
+        await RevenueCatUI.presentCustomerCenter({
+          callbacks: {
+            onShowingManageSubscriptions: () => {
               impact(ImpactFeedbackStyle.Medium);
-              Alert.alert(
-                'Subscription Cancelled',
-                'Your subscription has been cancelled. You\'ll continue to have access until the end of your billing period.',
-                [{ text: 'OK' }]
-              );
-              checkSubscriptionStatus();
-              break;
-
-            case CUSTOMER_CENTER_ACTION.RESTORED:
-              if (__DEV__) console.log('Purchases restored');
+            },
+            onRestoreCompleted: () => {
               AnalyticsService.trackPurchase('restore_completed', { source: 'customerCenter' });
               notification(NotificationFeedbackType.Success);
               Alert.alert(
@@ -98,15 +87,15 @@ export default function CustomerCenter({ onDismiss, navigation }) {
                 [{ text: 'OK' }]
               );
               checkSubscriptionStatus();
-              break;
-
-            case CUSTOMER_CENTER_ACTION.REFUND_REQUEST_STARTED:
-              if (__DEV__) console.log('Refund request started');
+            },
+            onRestoreFailed: () => {
+              notification(NotificationFeedbackType.Error);
+              Alert.alert('Restore Failed', 'Please try again in a moment.');
+            },
+            onRefundRequestStarted: () => {
               impact(ImpactFeedbackStyle.Light);
-              break;
-
-            case CUSTOMER_CENTER_ACTION.REFUND_REQUEST_COMPLETED:
-              if (__DEV__) console.log('Refund request completed');
+            },
+            onRefundRequestCompleted: () => {
               notification(NotificationFeedbackType.Success);
               Alert.alert(
                 'Refund Requested',
@@ -114,27 +103,30 @@ export default function CustomerCenter({ onDismiss, navigation }) {
                 [{ text: 'OK' }]
               );
               checkSubscriptionStatus();
-              break;
-
-            default:
-              if (__DEV__) console.log('Unknown customer center action:', event.action);
-          }
+            },
+          },
         });
+
+        if (active) dismiss();
       } catch (error) {
         if (__DEV__) console.error('Failed to present customer center:', error);
         notification(NotificationFeedbackType.Error);
+        const diagnostics = RevenueCatService.getDiagnostics?.();
+        const message = diagnostics?.configIssue?.reason === 'missing_api_key'
+          ? 'Subscription management is unavailable because this build is missing RevenueCat configuration.'
+          : 'Failed to load subscription management. Please try again.';
         Alert.alert(
-          'Error',
-          'Failed to load subscription management. Please try again.',
+          'Subscription Management Unavailable',
+          message,
           [{ text: 'OK', onPress: () => dismiss() }]
         );
       }
     };
 
-    presentAndListen();
+    presentCustomerCenter();
 
     return () => {
-      if (removeListener) removeListener();
+      active = false;
     };
   }, [checkSubscriptionStatus, dismiss]);
 

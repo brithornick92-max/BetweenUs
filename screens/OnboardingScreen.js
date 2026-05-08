@@ -362,7 +362,7 @@ export default function OnboardingScreen({ navigation }) {
   };
 
   const handleShare = async () => {
-    const shareMessage = `${myName || "I"} made a private space for us on Between Us. Join me so we can answer, reveal, and save our moments together:\n\nInvite Code: ${inviteCode}\n\nhttps://betweenus.app/join/${inviteCode}`;
+    const shareMessage = `${myName || "I"} made a private space for us on Between Us. Join me so we can answer, reveal, and save our moments together:\n\nInvite Code: ${inviteCode}\nOpen in Between Us: betweenus://join/${inviteCode}`;
     
     try {
       await Share.share({

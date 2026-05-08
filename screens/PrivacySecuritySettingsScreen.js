@@ -234,6 +234,8 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
         trackColor={{ false: theme.glassBorder, true: theme.crimson + '80' }}
         thumbColor={value ? theme.crimson : (isDark ? '#E5E5E7' : '#FFFFFF')}
         ios_backgroundColor={theme.glassBorder}
+        accessibilityLabel={title}
+        accessibilityState={{ checked: value, disabled }}
       />
     </View>
   );
@@ -267,7 +269,7 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
               <Icon name="shield-checkmark" size={42} color={theme.crimson} />
             </View>
             <Text style={[styles.intro, { color: colors.textMuted }]}>
-              Control how your personal information is protected and who has access to your sanctuary.
+              Manage app lock, sessions, export, and deletion controls for your account.
             </Text>
           </Animated.View>
 
@@ -302,6 +304,7 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
                       activeOpacity={0.85}
                       accessibilityRole="button"
                       accessibilityState={{ selected: appLockMode === APP_LOCK_MODES.DEVICE }}
+                      accessibilityLabel={`Use passcode or ${biometricType || 'biometrics'} for Vault Lock`}
                     >
                       <Icon name="keypad-outline" size={18} color={appLockMode === APP_LOCK_MODES.DEVICE ? theme.crimson : colors.textMuted || 'gray'} />
                       <Text style={[styles.modeButtonText, { color: colors.text }]}>Passcode or {biometricType || 'Biometrics'}</Text>
@@ -317,6 +320,7 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
                       disabled={!biometricsAvailable}
                       accessibilityRole="button"
                       accessibilityState={{ selected: appLockMode === APP_LOCK_MODES.BIOMETRIC, disabled: !biometricsAvailable }}
+                      accessibilityLabel={`Use ${biometricType || 'biometrics'} only for Vault Lock`}
                     >
                       <Icon name={biometricType === 'Face ID' ? 'face-recognition' : 'fingerprint'} size={18} color={appLockMode === APP_LOCK_MODES.BIOMETRIC ? theme.crimson : colors.textMuted || 'gray'} />
                       <Text style={[styles.modeButtonText, { color: colors.text }]}>{biometricType || 'Biometrics'} Only</Text>
@@ -367,6 +371,9 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
                 }}
                 disabled={busy}
                 activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityLabel="Sign out this device"
+                accessibilityState={{ disabled: busy }}
               >
                 <View style={styles.actionInfo}>
                   <Text style={[styles.actionTitle, { color: colors.text }]}>Sign Out (This Device)</Text>
@@ -400,6 +407,9 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
                 }}
                 disabled={busy}
                 activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityLabel="Revoke all sessions"
+                accessibilityState={{ disabled: busy }}
               >
                 <View style={styles.actionInfo}>
                   <Text style={[styles.actionTitle, { color: theme.crimson }]}>Revoke All Sessions</Text>
@@ -444,10 +454,12 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
                 style={[styles.actionRow, { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.glassBorder }]}
                 onPress={() => navigation.navigate('ExportData')}
                 activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityLabel="Export my data"
               >
                 <View style={styles.actionInfo}>
                   <Text style={[styles.actionTitle, { color: colors.text }]}>Export My Data</Text>
-                  <Text style={[styles.actionDescription, { color: colors.textMuted || 'gray' }]}>Download all your journal entries</Text>
+                  <Text style={[styles.actionDescription, { color: colors.textMuted || 'gray' }]}>Export supported account data</Text>
                 </View>
                 <Icon name="download-outline" size={20} color={colors.textMuted || 'gray'} />
               </TouchableOpacity>
@@ -456,6 +468,8 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
                 style={styles.actionRow}
                 onPress={() => navigation.navigate('DeleteAccount')}
                 activeOpacity={0.7}
+                accessibilityRole="button"
+                accessibilityLabel="Delete account"
               >
                 <View style={styles.actionInfo}>
                   <Text style={[styles.actionTitle, { color: theme.crimson }]}>Delete Account</Text>
@@ -477,6 +491,9 @@ const PrivacySecuritySettingsScreen = ({ navigation }) => {
           onPress={handleSave}
           disabled={isSaving}
           activeOpacity={0.9}
+          accessibilityRole="button"
+          accessibilityLabel="Save privacy configuration"
+          accessibilityState={{ disabled: isSaving, busy: isSaving }}
         >
           <LinearGradient colors={[theme.crimson, '#900C0F']} style={styles.saveBtnGrad}>
             {isSaving ? (

@@ -198,6 +198,8 @@ function PremiumCalendar({ selectedDate, onDateSelect, events, relationshipStart
             onPress={() => navigateMonth(-1)}
             style={[styles.navButton, { backgroundColor: colors.surfaceSecondary }]}
             activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel="Previous month"
           >
             <Icon name="chevron-back" size={20} color={colors.text} />
           </TouchableOpacity>
@@ -205,6 +207,8 @@ function PremiumCalendar({ selectedDate, onDateSelect, events, relationshipStart
             onPress={() => navigateMonth(1)}
             style={[styles.navButton, { backgroundColor: colors.surfaceSecondary }]}
             activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel="Next month"
           >
             <Icon name="chevron-forward" size={20} color={colors.text} />
           </TouchableOpacity>
@@ -761,6 +765,8 @@ export default function CalendarScreen({ navigation, route }) {
           onPress={openCreateModal}
           style={[styles.fab, { backgroundColor: t.primary }]}
           activeOpacity={0.9}
+          accessibilityRole="button"
+          accessibilityLabel="Create calendar event"
         >
           <Icon name="add-outline" size={32} color="#FFF" />
         </TouchableOpacity>
@@ -776,7 +782,13 @@ export default function CalendarScreen({ navigation, route }) {
                 {/* Modal header */}
                 <View style={styles.modalHeader}>
                   <Text style={[styles.modalTitle, { color: t.text }]}>{editingEvent ? 'Edit Event' : 'New Event'}</Text>
-                  <TouchableOpacity onPress={closeModal} style={styles.closeButton}>
+                  <TouchableOpacity
+                    onPress={closeModal}
+                    style={styles.closeButton}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    accessibilityRole="button"
+                    accessibilityLabel="Close event editor"
+                  >
                     <Icon name="close-outline" size={24} color={t.text} />
                   </TouchableOpacity>
                 </View>
@@ -792,6 +804,7 @@ export default function CalendarScreen({ navigation, route }) {
                       placeholderTextColor={t.subtext}
                       value={form.title}
                       onChangeText={v => setForm(p => ({ ...p, title: v }))}
+                      accessibilityLabel="Event title"
                     />
                   </View>
 
@@ -822,6 +835,7 @@ export default function CalendarScreen({ navigation, route }) {
                             }}
                             accessibilityRole="button"
                             accessibilityState={{ selected: isActive }}
+                            accessibilityLabel={`${type.label} event type`}
                           >
                             <Icon
                               name={type.icon}
@@ -874,6 +888,7 @@ export default function CalendarScreen({ navigation, route }) {
                       placeholderTextColor={t.subtext}
                       value={form.location}
                       onChangeText={v => setForm(p => ({ ...p, location: v }))}
+                      accessibilityLabel="Event location"
                     />
                   </View>
 
@@ -885,6 +900,8 @@ export default function CalendarScreen({ navigation, route }) {
                         value={form.notify}
                         onValueChange={v => setForm(p => ({ ...p, notify: v }))}
                         trackColor={{ false: t.border, true: t.primary }}
+                        accessibilityLabel="Event alert"
+                        accessibilityState={{ checked: form.notify }}
                       />
                     </View>
                     {form.notify && (
@@ -900,6 +917,9 @@ export default function CalendarScreen({ navigation, route }) {
                                 isActive && { backgroundColor: t.primary, borderColor: t.primary },
                               ]}
                               onPress={() => setForm(p => ({ ...p, notifyMins: opt.mins }))}
+                              accessibilityRole="button"
+                              accessibilityLabel={`${opt.label} reminder`}
+                              accessibilityState={{ selected: isActive }}
                             >
                               <Text style={[styles.reminderChipText, { color: isActive ? '#FFF' : t.text }]}>
                                 {opt.label}
@@ -917,6 +937,9 @@ export default function CalendarScreen({ navigation, route }) {
                     onPress={handleSave}
                     activeOpacity={0.8}
                     disabled={isSaving}
+                    accessibilityRole="button"
+                    accessibilityLabel={editingEvent ? "Update event" : "Save event to timeline"}
+                    accessibilityState={{ disabled: isSaving, busy: isSaving }}
                   >
                     <Text style={styles.primaryBtnText}>{isSaving ? 'SAVING…' : (editingEvent ? 'UPDATE EVENT' : 'SAVE TO TIMELINE')}</Text>
                   </TouchableOpacity>
@@ -927,6 +950,9 @@ export default function CalendarScreen({ navigation, route }) {
                       onPress={() => handleDelete(editingEvent)}
                       activeOpacity={0.75}
                       disabled={isSaving}
+                      accessibilityRole="button"
+                      accessibilityLabel="Delete event"
+                      accessibilityState={{ disabled: isSaving }}
                     >
                       <Icon name="trash-outline" size={18} color="#D2121A" />
                       <Text style={styles.deleteEventBtnText}>DELETE EVENT</Text>

@@ -30,6 +30,8 @@ function Button({
   fullWidth = false,
   style,
   haptic = true,
+  accessibilityLabel,
+  accessibilityHint,
 }) {
   const { colors, isDark } = useTheme();
   const scaleAnim = useRef(new Animated.Value(1)).current;
@@ -159,6 +161,8 @@ function Button({
               { color: textColor },
             ]}
             numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.78}
           >
             {title}
           </Text>
@@ -190,7 +194,9 @@ function Button({
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         style={[styles.buttonBase, variantStyle, disabledStyle]}
         accessibilityRole="button"
-        accessibilityLabel={title}
+        accessibilityLabel={accessibilityLabel || title}
+        accessibilityHint={accessibilityHint}
+        accessibilityState={{ disabled: isDisabled, busy: loading }}
       >
         {renderContent()}
       </TouchableOpacity>
@@ -227,7 +233,7 @@ const styles = StyleSheet.create({
     fontFamily: systemFont,
     fontWeight: "800",
     textAlign: "center",
-    letterSpacing: -0.4,
+    letterSpacing: 0,
     textTransform: "uppercase",
   },
   text_sm: { fontSize: 13 },

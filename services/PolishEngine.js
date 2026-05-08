@@ -549,7 +549,7 @@ export const OfflineGrace = {
       });
       await this._writeQueue(queue);
     } catch (e) {
-      console.warn('[PolishEngine] Queue write failed:', e?.message);
+      if (__DEV__) console.warn('[PolishEngine] Queue write failed:', e?.message);
     }
   },
 
@@ -571,7 +571,7 @@ export const OfflineGrace = {
       const cleaned = updated.filter(item => !item.synced || item.createdAt > cutoff);
       await this._writeQueue(cleaned);
     } catch (e) {
-      console.warn('[PolishEngine] Queue cleanup failed:', e?.message);
+      if (__DEV__) console.warn('[PolishEngine] Queue cleanup failed:', e?.message);
     }
   },
 
@@ -581,7 +581,7 @@ export const OfflineGrace = {
       const pending = queue.filter(item => !item.synced);
       await this._writeQueue(pending);
     } catch (e) {
-      console.warn('[PolishEngine] Clear synced failed:', e?.message);
+      if (__DEV__) console.warn('[PolishEngine] Clear synced failed:', e?.message);
     }
   },
 

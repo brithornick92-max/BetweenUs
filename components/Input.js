@@ -118,6 +118,10 @@ export default function Input({
   blur = true,
   autoCorrect = false,
   keyboardAppearance,
+  accessibilityLabel,
+  accessibilityHint,
+  rightIconAccessibilityLabel,
+  rightIconAccessibilityHint,
 }) {
   const { colors, isDark } = useTheme();
 
@@ -228,7 +232,8 @@ export default function Input({
           autoFocus={autoFocus}
           selectionColor={t.primary}
           keyboardAppearance={keyboardAppearance ?? (isDark ? "dark" : "light")}
-          accessibilityLabel={label || placeholder}
+          accessibilityLabel={accessibilityLabel || label || placeholder}
+          accessibilityHint={accessibilityHint}
           style={[
             styles.input,
             multiline && styles.inputMultiline,
@@ -245,6 +250,11 @@ export default function Input({
             style={styles.rightIcon}
             disabled={!onRightIconPress}
             activeOpacity={0.7}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            accessibilityRole="button"
+            accessibilityLabel={rightIconAccessibilityLabel || `${label || placeholder || "Input"} action`}
+            accessibilityHint={rightIconAccessibilityHint}
+            accessibilityState={{ disabled: !onRightIconPress }}
           >
             {React.cloneElement(rightIcon, { 
               color: t.subtext,

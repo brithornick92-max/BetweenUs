@@ -55,6 +55,7 @@ describe('backend security policy contracts', () => {
     const productionSql = readRepoFile('database/supabase-production-setup.sql');
     const migrationSql = readRepoFile('supabase/migrations/20260429001000_cleanup_storage_on_account_delete.sql');
     const storageDeleteFixSql = readRepoFile('supabase/migrations/20260506220000_allow_storage_cleanup_helper_delete.sql');
+    const accountDeletionSql = readRepoFile('supabase/migrations/20260508100000_harden_account_deletion_ownership.sql');
 
     for (const sql of [productionSql, migrationSql, storageDeleteFixSql]) {
       expect(sql).toContain('cleanup_couple_storage_objects');
@@ -69,8 +70,23 @@ describe('backend security policy contracts', () => {
 
     expect(productionSql).toContain('PERFORM cleanup_couple_storage_objects(_couple_id, auth.uid())');
     expect(productionSql).toContain('PERFORM cleanup_couple_storage_objects(the_couple_id, NULL)');
+    expect(productionSql).toContain('OR used_by = auth.uid()');
+    expect(productionSql).toContain('DELETE FROM date_shortlist');
 
     expect(migrationSql).toContain('PERFORM public.cleanup_couple_storage_objects(_couple_id, auth.uid())');
+    expect(accountDeletionSql).toContain('OR used_by = auth.uid()');
+    expect(accountDeletionSql).toContain('DELETE FROM public.date_shortlist');
+    expect(accountDeletionSql).toMatch(/REVOKE ALL ON FUNCTION public\.delete_own_account\(\) FROM PUBLIC, anon/);
+  });
+
+  test('client account deletion delegates remote data removal to the Supabase RPC', () => {
+    const authContext = readRepoFile('context/AuthContext.js');
+    const deleteStart = authContext.indexOf('const deleteUserAccount = async () => {');
+    const deleteEnd = authContext.indexOf('const value = useMemo', deleteStart);
+    const deleteFlow = authContext.slice(deleteStart, deleteEnd);
+
+    expect(deleteFlow).toContain('SupabaseAuthService.deleteAccount()');
+    expect(deleteFlow).not.toContain('CloudEngine.deleteUserData()');
   });
 
   test('Supabase auth session uses SecureStore before AsyncStorage fallback', () => {
@@ -131,12 +147,30 @@ describe('backend security policy contracts', () => {
   test('shared couple_data rows can be updated by either member without mutable identities', () => {
     const productionSql = readRepoFile('database/supabase-production-setup.sql');
     const migrationSql = readRepoFile('supabase/migrations/20260506130000_supabase_audit_hardening.sql');
+    const whisperPolicySql = readRepoFile('supabase/migrations/20260508090000_tighten_usage_and_whisper_policies.sql');
 
     for (const sql of [productionSql, migrationSql]) {
       expect(sql).toContain('guard_couple_data_immutable_fields');
       expect(sql).toContain("'daily_prompt'");
       expect(sql).toContain("'daily_quiz'");
-      expect(sql).toContain("data_type IN ('couple_state', 'daily_prompt', 'daily_quiz', 'date_plan')");
+    }
+
+    expect(migrationSql).toContain("data_type IN ('couple_state', 'daily_prompt', 'daily_quiz', 'date_plan')");
+
+    for (const sql of [productionSql, whisperPolicySql]) {
+      expect(sql).toContain("data_type IN ('couple_state', 'daily_prompt', 'daily_quiz', 'date_plan', 'whisper')");
+    }
+  });
+
+  test('usage events stay scoped to the authenticated user', () => {
+    const productionSql = readRepoFile('database/supabase-production-setup.sql');
+    const migrationSql = readRepoFile('supabase/migrations/20260508090000_tighten_usage_and_whisper_policies.sql');
+
+    for (const sql of [productionSql, migrationSql]) {
+      expect(sql).toContain('input_user_id IS DISTINCT FROM auth.uid()');
+      expect(sql).toContain('CREATE POLICY "Users can read own usage events"');
+      expect(sql).toContain('user_id = (select auth.uid())');
+      expect(sql).not.toContain('CREATE POLICY "Users can read couple usage events"');
     }
   });
 

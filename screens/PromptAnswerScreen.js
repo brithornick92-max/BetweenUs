@@ -404,7 +404,20 @@ export default function PromptAnswerScreen({ route, navigation }) {
     }
   };
 
-  if (!prompt) return null;
+  if (!prompt) {
+    return (
+      <EditorialScreenScaffold
+        navigation={navigation}
+        headerTitle="Answer"
+        contentContainerStyle={styles.loadingContent}
+      >
+        <View style={[styles.loadingCard, { backgroundColor: t.surfaceGlass, borderColor: t.border }]}>
+          <ActivityIndicator size="small" color={t.primary} />
+          <Text style={[styles.loadingText, { color: t.subtext }]}>Loading prompt...</Text>
+        </View>
+      </EditorialScreenScaffold>
+    );
+  }
 
   return (
     <EditorialScreenScaffold
@@ -424,6 +437,9 @@ export default function PromptAnswerScreen({ route, navigation }) {
             },
           ]}
           activeOpacity={0.75}
+          accessibilityRole="button"
+          accessibilityLabel={saveButtonLabel}
+          accessibilityState={{ disabled: !canSave, busy: isSaving }}
         >
           {isSaving ? (
             <ActivityIndicator size="small" color={t.primary} />
@@ -479,6 +495,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
             style={[styles.textInput, { color: t.text }]}
             maxLength={MAX_LEN}
             textAlignVertical="top"
+            accessibilityLabel="Prompt answer"
           />
         </View>
       </Animated.View>
@@ -555,6 +572,24 @@ const createStyles = (t, isDark) =>
       paddingTop: 0,
       paddingBottom: 80,
       gap: 18,
+    },
+    loadingContent: {
+      paddingHorizontal: SPACING.screen,
+      paddingTop: SPACING.xl,
+      paddingBottom: 80,
+    },
+    loadingCard: {
+      minHeight: 140,
+      borderRadius: 18,
+      borderWidth: StyleSheet.hairlineWidth,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 12,
+    },
+    loadingText: {
+      fontFamily: SYSTEM_FONT,
+      fontSize: 14,
+      fontWeight: '700',
     },
     promptCard: {
       borderRadius: 18,

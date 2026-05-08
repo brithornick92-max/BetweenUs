@@ -23,6 +23,7 @@ import { getPromptById } from '../../utils/contentLoader';
 import { getDailyContentDateKey } from '../../utils/dailyContentDate';
 import { loveNoteStorage, storage, STORAGE_KEYS } from '../../utils/storage';
 import { bytesFromBase64 } from '../../utils/base64Bytes';
+import { getDateShortlist as fetchDateShortlist } from '../supabase/dateShortlistService';
 
 // ─── Module state ────────────────────────────────────────────────────────────
 
@@ -425,7 +426,7 @@ async function cdUpdate(id, valuePatch) {
 
   const { data: updatedRows, error } = await sb
     .from(TABLES.COUPLE_DATA)
-    .update({ value: merged, is_private: false, updated_at: now() })
+    .update({ value: merged, updated_at: now() })
     .eq('id', id)
     .select('*')
     .limit(1);
@@ -511,7 +512,7 @@ async function cdQuery(dataType, { limit = 100, offset = 0, filter } = {}) {
     if (error) {
       if (isOfflineCapableError(error)) {
         if (__DEV__) {
-          console.warn(`[SupabaseDataLayer] cdQuery(${dataType}) using cache fallback:`, error?.message);
+          if (__DEV__) console.warn(`[SupabaseDataLayer] cdQuery(${dataType}) using cache fallback:`, error?.message);
         }
 
         return CACHE_FALLBACK;
@@ -2401,7 +2402,7 @@ const SupabaseDataLayer = {
 
     if (error) {
       if (__DEV__) {
-        console.warn('[SupabaseDataLayer] getCalendarEvents using cache fallback:', error?.message);
+        if (__DEV__) console.warn('[SupabaseDataLayer] getCalendarEvents using cache fallback:', error?.message);
       }
 
       const cached = await loadCache(CACHE_SCOPES.calendar);
@@ -2660,6 +2661,10 @@ const SupabaseDataLayer = {
     return cached.slice(0, limit);
   },
 
+  async getDateShortlist({ userId } = {}) {
+    return fetchDateShortlist(userId || _userId);
+  },
+
   async deleteDatePlan(id) {
     const removeLocally = async () => {
       await enqueueOfflineMutation({
@@ -2841,7 +2846,7 @@ const SupabaseDataLayer = {
           });
 
           if (__DEV__) {
-            console.warn('[SupabaseDataLayer] Queue flush failed:', error?.message);
+            if (__DEV__) console.warn('[SupabaseDataLayer] Queue flush failed:', error?.message);
           }
 
           if (isOfflineCapableError(error)) {
