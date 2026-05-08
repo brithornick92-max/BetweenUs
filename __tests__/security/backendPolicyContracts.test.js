@@ -79,6 +79,46 @@ describe('backend security policy contracts', () => {
     expect(accountDeletionSql).toMatch(/REVOKE ALL ON FUNCTION public\.delete_own_account\(\) FROM PUBLIC, anon/);
   });
 
+  test('prompt answers expose status but hide private text until server reveal', () => {
+    const productionSql = readRepoFile('database/supabase-production-setup.sql');
+    const migrationSql = readRepoFile('supabase/migrations/20260508110000_prompt_privacy_pairing_hardening.sql');
+    const dataLayer = readRepoFile('services/data/SupabaseDataLayer.js');
+    const revealScreen = readRepoFile('screens/RevealScreen.js');
+
+    for (const sql of [productionSql, migrationSql]) {
+      expect(sql).toContain('prompt_answer_status');
+      expect(sql).toContain('CREATE OR REPLACE FUNCTION');
+      expect(sql).toContain('enforce_prompt_answer_privacy');
+      expect(sql).toContain('sync_prompt_answer_status');
+      expect(sql).toContain('CREATE OR REPLACE FUNCTION');
+      expect(sql).toContain('reveal_prompt_answer');
+      expect(sql).toContain('Partner has not answered yet');
+      expect(sql).toContain("current_setting('app.allow_prompt_answer_reveal', true) = 'true'");
+      expect(sql).toContain("NEW.is_private := true");
+    }
+
+    expect(dataLayer).toContain("dataType === 'prompt_answer' ? true");
+    expect(dataLayer).toContain("sb.rpc('reveal_prompt_answer'");
+    expect(dataLayer).toContain('partnerHasAnswered');
+    expect(revealScreen).toContain('DataLayer.revealPromptAnswer');
+  });
+
+  test('couple reset does not silently replace active couples or leak attachment ownership', () => {
+    const productionSql = readRepoFile('database/supabase-production-setup.sql');
+    const migrationSql = readRepoFile('supabase/migrations/20260508110000_prompt_privacy_pairing_hardening.sql');
+    const dataLayer = readRepoFile('services/data/SupabaseDataLayer.js');
+
+    for (const sql of [productionSql, migrationSql]) {
+      expect(sql).toContain('Leave your current couple before creating a new invite.');
+      expect(sql).toMatch(/DELETE FROM (public\.)?date_shortlist WHERE user_id = ANY\(affected_member_ids\)/);
+      expect(sql).toContain('get_partner_profile_summary');
+      expect(sql).toContain("(storage.foldername(name))[2] = (select auth.uid())::text");
+    }
+
+    expect(dataLayer).toContain('attachments RLS policy requires path: {couple_id}/{user_id}/{file}');
+    expect(dataLayer).toContain('`${coupleId}/${_userId}/${fileId}.${ext}`');
+  });
+
   test('client account deletion delegates remote data removal to the Supabase RPC', () => {
     const authContext = readRepoFile('context/AuthContext.js');
     const deleteStart = authContext.indexOf('const deleteUserAccount = async () => {');

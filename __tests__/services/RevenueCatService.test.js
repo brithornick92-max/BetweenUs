@@ -72,6 +72,17 @@ jest.mock('react-native-purchases', () => ({
   LOG_LEVEL: { WARN: 2, DEBUG: 4, VERBOSE: 5 },
 }));
 
+jest.mock('expo-constants', () => ({
+  __esModule: true,
+  default: {
+    expoConfig: {
+      extra: {
+        appVariant: 'production',
+      },
+    },
+  },
+}));
+
 // Set env vars for API keys
 process.env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY = 'test_ios_key';
 process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY = 'test_android_key';
@@ -90,10 +101,37 @@ describe('RevenueCatService', () => {
     RevenueCatService.currentUserId = null;
     RevenueCatService._offeringsUnavailable = false;
     RevenueCatService._offeringsUnavailableWarned = false;
+    RevenueCatService._configIssue = null;
     Platform.OS = 'ios';
+    process.env.APP_VARIANT = 'production';
+    delete process.env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY_PREVIEW;
+    delete process.env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY_DEVELOPMENT;
+    delete process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY_PREVIEW;
+    delete process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY_DEVELOPMENT;
   });
 
   describe('init', () => {
+    it('uses variant-specific API keys when the app variant is not production', async () => {
+      process.env.APP_VARIANT = 'preview';
+      process.env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY_PREVIEW = 'preview_ios_key';
+
+      await RevenueCatService.init();
+
+      expect(mockConfigure).toHaveBeenCalledWith(
+        expect.objectContaining({ apiKey: 'preview_ios_key' })
+      );
+    });
+
+    it('does not fall back to the production API key for non-production variants', async () => {
+      process.env.APP_VARIANT = 'development';
+
+      await RevenueCatService.init();
+
+      expect(mockConfigure).not.toHaveBeenCalled();
+      expect(RevenueCatService._configured).toBe(false);
+      expect(RevenueCatService.getDiagnostics().missingKeyName).toBe('EXPO_PUBLIC_REVENUECAT_IOS_API_KEY_DEVELOPMENT');
+    });
+
     it('configures Purchases SDK', async () => {
       await RevenueCatService.init();
       expect(mockSetLogLevel).toHaveBeenCalled();

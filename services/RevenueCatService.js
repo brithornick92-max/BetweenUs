@@ -1,10 +1,52 @@
 import { Platform } from 'react-native';
+import Constants from 'expo-constants';
 import Purchases, { LOG_LEVEL } from 'react-native-purchases';
 import CrashReporting from './CrashReporting';
 
 // OK: Matches RevenueCat dashboard entitlement identifier exactly
 const ENTITLEMENT_ID = 'Between Us Pro';
 const REVENUECAT_TIMEOUT_MS = 5000;
+
+const normalizeVariant = (value) => {
+  const normalized = String(value || 'production').toLowerCase();
+  return ['production', 'preview', 'development'].includes(normalized) ? normalized : 'production';
+};
+
+const getConfiguredVariant = () => normalizeVariant(
+  process.env.APP_VARIANT
+  || Constants?.expoConfig?.extra?.appVariant
+  || Constants?.manifest2?.extra?.expoClient?.extra?.appVariant
+);
+
+const getRevenueCatKeyForPlatform = (platform, variant) => {
+  if (platform === 'android') {
+    const androidKeys = {
+      production: process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY,
+      preview: process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY_PREVIEW,
+      development: process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY_DEVELOPMENT,
+    };
+    return androidKeys[variant] || null;
+  }
+
+  const iosKeys = {
+    production: process.env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY,
+    preview: process.env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY_PREVIEW,
+    development: process.env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY_DEVELOPMENT,
+  };
+  return iosKeys[variant] || null;
+};
+
+const getRevenueCatKeyNameForPlatform = (platform, variant) => {
+  if (platform === 'android') {
+    if (variant === 'preview') return 'EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY_PREVIEW';
+    if (variant === 'development') return 'EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY_DEVELOPMENT';
+    return 'EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY';
+  }
+
+  if (variant === 'preview') return 'EXPO_PUBLIC_REVENUECAT_IOS_API_KEY_PREVIEW';
+  if (variant === 'development') return 'EXPO_PUBLIC_REVENUECAT_IOS_API_KEY_DEVELOPMENT';
+  return 'EXPO_PUBLIC_REVENUECAT_IOS_API_KEY';
+};
 
 const createTimeoutError = (operation, timeoutMs) => {
   const error = new Error(`${operation} timed out after ${timeoutMs}ms`);
@@ -65,16 +107,16 @@ class RevenueCatService {
   }
 
   getApiKey() {
-    const key = Platform.OS === 'android'
-      ? process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY
-      : process.env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY;
-    return key || null;
+    return getRevenueCatKeyForPlatform(Platform.OS, getConfiguredVariant());
   }
 
   getMissingKeyName() {
-    return Platform.OS === 'android'
-      ? 'EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY'
-      : 'EXPO_PUBLIC_REVENUECAT_IOS_API_KEY';
+    const variant = getConfiguredVariant();
+    const variantKey = getRevenueCatKeyForPlatform(Platform.OS, variant);
+    if (variantKey) {
+      return getRevenueCatKeyNameForPlatform(Platform.OS, variant);
+    }
+    return getRevenueCatKeyNameForPlatform(Platform.OS, variant);
   }
 
   getDiagnostics() {
@@ -83,6 +125,7 @@ class RevenueCatService {
       offeringsUnavailable: this._offeringsUnavailable,
       configIssue: this._configIssue,
       missingKeyName: this.getMissingKeyName(),
+      appVariant: getConfiguredVariant(),
       hasApiKey: !!this.getApiKey(),
     };
   }

@@ -27,7 +27,12 @@ import { getMyDisplayName, getPartnerDisplayName } from '../utils/profileNames';
 import Button from "../components/Button";
 
 export default function RevealScreen({ route, navigation }) {
-  const { prompt, userAnswer, partnerAnswer: initialPartnerAnswer } = route?.params || {};
+  const {
+    prompt,
+    userAnswer,
+    partnerAnswer: initialPartnerAnswer,
+    partnerHasAnswered: initialPartnerHasAnswered,
+  } = route?.params || {};
   const { state } = useAppContext();
   const { user, userProfile } = useAuth();
   const { colors, isDark } = useTheme();
@@ -49,7 +54,7 @@ export default function RevealScreen({ route, navigation }) {
 
   // Handle partner states
   const [partnerAnswer, setPartnerAnswer] = useState(() => initialPartnerAnswer || null);
-  const hasPartnerAnswer = !!partnerAnswer;
+  const [partnerHasAnswered, setPartnerHasAnswered] = useState(() => !!(initialPartnerHasAnswered || initialPartnerAnswer));
 
   // High-End Animation Refs
   const revealAnim = useRef(new Animated.Value(0)).current;
@@ -109,15 +114,23 @@ export default function RevealScreen({ route, navigation }) {
     setIsRevealSaving(true);
     
     try {
-      // Mark as revealed in the active DataLayer.
+      // Mark as revealed in the active DataLayer. The RPC verifies that both
+      // partners have answered before either answer becomes readable.
       const row = await DataLayer.getPromptAnswerForToday(prompt.id, prompt.dateKey);
-      if (row?.partnerAnswer) {
-        setPartnerAnswer(row.partnerAnswer);
-      }
+      setPartnerHasAnswered(!!(row?.partnerHasAnswered || row?.partnerAnswer));
       if (!row?.id) {
         throw new Error('No saved prompt answer was found for this reveal.');
       }
-      await DataLayer.revealPromptAnswer(row.id);
+      const revealedRow = await DataLayer.revealPromptAnswer(row.id);
+      const refreshedRow = revealedRow?.partnerAnswer
+        ? revealedRow
+        : await DataLayer.getPromptAnswerForToday(prompt.id, prompt.dateKey);
+      if (refreshedRow?.partnerAnswer) {
+        setPartnerAnswer(refreshedRow.partnerAnswer);
+      } else {
+        throw new Error('Partner answer was not available after reveal.');
+      }
+      setPartnerHasAnswered(true);
       // Also update promptStorage as a local display/cache fallback
       if (prompt.dateKey) {
         const existing = activePromptUserId
@@ -135,7 +148,9 @@ export default function RevealScreen({ route, navigation }) {
       if (__DEV__) console.warn('[Reveal] Failed to open reveal:', error?.message);
       Alert.alert(
         "Reveal couldn't open",
-        "We couldn't update this reveal yet. Please check your connection and try again."
+        String(error?.message || '').toLowerCase().includes('partner')
+          ? 'Your partner still needs to answer before this reveal can open.'
+          : "We couldn't update this reveal yet. Please check your connection and try again."
       );
     } finally {
       setIsRevealSaving(false);
@@ -145,6 +160,7 @@ export default function RevealScreen({ route, navigation }) {
   useEffect(() => {
     if (initialPartnerAnswer) {
       setPartnerAnswer(initialPartnerAnswer);
+      setPartnerHasAnswered(true);
     }
   }, [initialPartnerAnswer]);
 
@@ -155,6 +171,7 @@ export default function RevealScreen({ route, navigation }) {
 
     if (row) {
       setPartnerAnswer(row.partnerAnswer || null);
+      setPartnerHasAnswered(!!(row.partnerHasAnswered || row.partnerAnswer));
       setIncludeInKeepsake(!!row.includeInKeepsake);
     }
 
@@ -196,7 +213,7 @@ export default function RevealScreen({ route, navigation }) {
                 const row = payload.new || payload.old;
                 const currentUserId = user?.uid || user?.id;
 
-                if (row?.data_type !== 'prompt_answer') return;
+                if (!['prompt_answer', 'prompt_answer_status'].includes(row?.data_type)) return;
                 if (currentUserId && row?.created_by === currentUserId) return;
                 if (row?.value?.promptId !== prompt.id || row?.value?.dateKey !== prompt.dateKey) return;
 
@@ -251,7 +268,7 @@ export default function RevealScreen({ route, navigation }) {
   const myName = getMyDisplayName(userProfile, state?.userProfile, 'You');
   const revealStage = isRevealed
     ? 'revealed'
-    : hasPartnerAnswer
+    : partnerHasAnswered
       ? 'ready_to_reveal'
       : 'waiting_for_partner';
   const revealCopy = {
@@ -413,7 +430,7 @@ export default function RevealScreen({ route, navigation }) {
                 <Text style={[styles.tagText, { color: t.accent }]}>
                   {partnerName} said
                 </Text>
-                {hasPartnerAnswer ? (
+                {partnerAnswer ? (
                   <LinearGradient
                     colors={isDark ? [t.accent + "15", '#1C1C1E'] : [t.accent + "10", '#FFFFFF']}
                     style={[styles.bubble, styles.bubbleCompact, { borderColor: t.border }]}

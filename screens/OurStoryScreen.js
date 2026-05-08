@@ -841,11 +841,12 @@ function buildPromptKeepsakeItems(rows = [], myName = 'You', partnerName = 'Part
       const ownRow = groupRows.find((row) => row.isOwn !== false && isPromptKeepsakeSelected(row))
         || groupRows.find((row) => row.isOwn !== false)
         || groupRows[0];
-      const rowWithPartnerAnswer = groupRows.find((row) => row.partnerAnswer);
+      const rowWithPartnerAnswer = groupRows.find((row) => row.is_revealed && row.partnerAnswer);
       const partnerRow = groupRows.find((row) => row.isOwn === false && getPromptRowAnswer(row));
       const baseRow = rowWithPartnerAnswer || ownRow;
       const answer = getPromptRowAnswer(ownRow) || getPromptRowAnswer(baseRow);
-      const partnerAnswer = baseRow?.partnerAnswer || getPromptRowAnswer(partnerRow);
+      const isRevealed = !!(baseRow?.is_revealed || ownRow?.is_revealed);
+      const partnerAnswer = isRevealed ? (baseRow?.partnerAnswer || getPromptRowAnswer(partnerRow)) : null;
 
       return buildPromptItem({
         ...baseRow,
@@ -853,7 +854,7 @@ function buildPromptKeepsakeItems(rows = [], myName = 'You', partnerName = 'Part
         user_id: ownRow?.user_id || baseRow?.user_id,
         answer,
         partnerAnswer,
-        is_revealed: !!(baseRow?.is_revealed || ownRow?.is_revealed || (answer && partnerAnswer)),
+        is_revealed: isRevealed,
         isOwn: ownRow?.isOwn !== false,
         includeInKeepsake: true,
       }, null, myName, partnerName);

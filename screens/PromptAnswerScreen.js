@@ -206,7 +206,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
         setExistingAnswer(row);
         setAnswer(row.answer);
         setIncludeInKeepsake(!!row.includeInKeepsake);
-        if (isTodayBetweenUsPrompt(prompt) && row?.partnerAnswer) {
+        if (isTodayBetweenUsPrompt(prompt) && (row?.partnerHasAnswered || row?.partnerAnswer)) {
           const revealParams = {
             prompt: {
               id: prompt.id,
@@ -220,6 +220,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
               isRevealed: !!(row.isRevealed || row.is_revealed),
             },
             partnerAnswer: row.partnerAnswer,
+            partnerHasAnswered: !!(row.partnerHasAnswered || row.partnerAnswer),
             bothAnswered: true,
           };
 
@@ -364,7 +365,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
 
       notification(NotificationFeedbackType.Success);
 
-      if (!answerIsLocked && syncedAnswer?.partnerAnswer) {
+      if (!answerIsLocked && (syncedAnswer?.partnerHasAnswered || syncedAnswer?.partnerAnswer)) {
         const revealParams = {
           prompt: {
             id: prompt.id,
@@ -378,6 +379,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
             isRevealed: !!(syncedAnswer.isRevealed || syncedAnswer.is_revealed),
           },
           partnerAnswer: syncedAnswer.partnerAnswer,
+          partnerHasAnswered: !!(syncedAnswer.partnerHasAnswered || syncedAnswer.partnerAnswer),
           bothAnswered: true,
         };
 

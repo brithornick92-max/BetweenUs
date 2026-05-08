@@ -69,22 +69,11 @@ const CoupleService = {
         throw new Error('You are already in a couple');
       }
 
-      // Solo couple (no partner joined yet) — clean it up so a new invite can be generated
-      const { error: cleanCoupleError } = await supabase
-        .from('couple_members')
-        .delete()
-        .eq('user_id', user.id);
-
-      if (cleanCoupleError) throw cleanCoupleError;
-
-      // Also remove any outstanding partner_link_codes from this user
-      const { error: cleanCodesError } = await supabase
-        .from('partner_link_codes')
-        .delete()
-        .eq('created_by', user.id)
-        .is('used_at', null);
-
-      if (cleanCodesError) throw cleanCodesError;
+      const { data: leaveResult, error: leaveError } = await supabase.rpc('leave_couple');
+      if (leaveError) throw leaveError;
+      if (leaveResult?.success === false) {
+        throw new Error(leaveResult?.error || 'Could not reset the existing invite space');
+      }
     }
 
     const { code, codeHash } = await generateHashedLinkCode();
@@ -220,6 +209,13 @@ const CoupleService = {
 
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return null;
+
+    const { data: rpcProfile, error: rpcError } = await supabase
+      .rpc('get_partner_profile_summary');
+
+    if (!rpcError && rpcProfile) {
+      return rpcProfile;
+    }
 
     // Get my couple
     const { data: myMembership } = await supabase

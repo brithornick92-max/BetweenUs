@@ -6,6 +6,7 @@ import { useEntitlements } from './EntitlementsContext';
 import { updateWidgetPartnerName } from '../services/widgetData';
 import { NicknameEngine } from '../services/PolishEngine';
 import { getVerifiedCoupleState, unlinkCouple } from '../services/couple/CouplePresenceService';
+import CoupleService from '../services/supabase/CoupleService';
 import { APP_LOCK_MODES, normalizeAppLockMode } from '../utils/appLockAuth';
 
 const initialState = {
@@ -200,8 +201,7 @@ export function AppProvider({ children }) {
         legacyPartnerLabel,
         coupleId,
         appLockEnabled,
-        privacySettings,
-        lastPartnerActivity
+        privacySettings
         ] = await Promise.all([
           storage.get(STORAGE_KEYS.ONBOARDING_COMPLETED, false),
           storage.get(STORAGE_KEYS.USER_PROFILE, {}),
@@ -209,19 +209,11 @@ export function AppProvider({ children }) {
           storage.get(STORAGE_KEYS.COUPLE_ID, null),
           settingsStorage.getAppLockEnabled(),
           settingsStorage.getPrivacySettings(),
-          storage.get(STORAGE_KEYS.LAST_PARTNER_ACTIVITY, null),
         ]);
 
       let hydratedUserProfile = userProfile && typeof userProfile === 'object' ? { ...userProfile } : {};
-      let resolvedCoupleId = coupleId || null;
-
-      // OK: IMMEDIATELY unblock the UI with local data
-      const now = Date.now();
-      let effectivePartnerActivity = lastPartnerActivity;
-      if (resolvedCoupleId && !lastPartnerActivity) {
-        await storage.set(STORAGE_KEYS.LAST_PARTNER_ACTIVITY, now);
-        effectivePartnerActivity = now;
-      }
+      const cachedCoupleId = coupleId || null;
+      const resolvedCoupleId = null;
 
       syncState({
         userId,
@@ -232,7 +224,7 @@ export function AppProvider({ children }) {
         appLockMode: privacySettings?.appLockMode || (privacySettings?.biometricsEnabled ? APP_LOCK_MODES.BIOMETRIC : APP_LOCK_MODES.DEVICE),
         appLockAutoLockTime: privacySettings?.autoLockTime ?? 5,
         hidePreview: privacySettings?.hidePreview ?? false,
-        lastPartnerActivity: effectivePartnerActivity,
+        lastPartnerActivity: null,
       });
 
       // OK: Do expensive migrations/verifications in background after UI is shown
@@ -284,21 +276,22 @@ export function AppProvider({ children }) {
 
       // OK: Verify couple state in background (non-blocking)
       let supabaseUserId = null;
-      if (resolvedCoupleId) {
+      if (cachedCoupleId) {
         (async () => {
           try {
             const verifiedCoupleState = await getVerifiedCoupleState({
-              currentCoupleId: resolvedCoupleId,
+              currentCoupleId: cachedCoupleId,
               userId,
               requireRemoteCheck: true,
             });
-            if (verifiedCoupleState.coupleId !== resolvedCoupleId) {
-              // Couple state changed, update
-              if (verifiedCoupleState.coupleId) {
-                dispatch({ type: ACTIONS.JOIN_COUPLE, payload: { coupleId: verifiedCoupleState.coupleId } });
-              } else {
-                dispatch({ type: ACTIONS.LEAVE_COUPLE });
+            if (verifiedCoupleState.coupleId) {
+              dispatch({ type: ACTIONS.JOIN_COUPLE, payload: { coupleId: verifiedCoupleState.coupleId } });
+              const partnerProfile = await CoupleService.getPartnerProfile().catch(() => null);
+              if (partnerProfile) {
+                dispatch({ type: ACTIONS.UPDATE_PROFILE, payload: { partnerProfile } });
               }
+            } else {
+              dispatch({ type: ACTIONS.LEAVE_COUPLE });
             }
           } catch (e) {
             if (__DEV__) console.warn('[AppContext] Couple verification failed:', e?.message);

@@ -742,7 +742,7 @@ export default function SettingsScreen({ navigation }) {
           <ReAnimated.View entering={FadeInDown} style={[styles.modalCard, { backgroundColor: t.surface }]}>
             <Text style={[styles.modalTitle, { color: t.text }]}>Unlink Partner?</Text>
             <Text style={[styles.modalBody, { color: t.subtext }]}>
-              This will stop shared syncing between you and your partner. Content created after unlinking will belong only to the account that creates it.
+              This disconnects both accounts, removes this connection's shared prompts, keepsakes, media, saved dates, and invites, and cannot be undone.
             </Text>
             <View style={styles.modalActions}>
               <TouchableOpacity

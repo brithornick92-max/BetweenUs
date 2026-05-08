@@ -106,8 +106,14 @@ export default function ConnectPartnerScreen({ navigation, route }) {
         setMyCode(result.code);
       }
     } catch (err) {
-      if (err?.message !== 'You are already in a couple' && __DEV__) {
-        if (__DEV__) console.warn('Code gen failed:', err?.message);
+      const message = String(err?.message || '');
+      if (activeRef.current && (message === 'You are already in a couple' || message.includes('Leave your current couple'))) {
+        setJoinStatus('You are already connected. Disconnect before creating a new invite.');
+      } else if (activeRef.current) {
+        setJoinStatus("We couldn't create an invite. Please try again.");
+      }
+      if (message !== 'You are already in a couple' && __DEV__) {
+        if (__DEV__) console.warn('Code gen failed:', message);
       }
     } finally {
       if (activeRef.current) setCodeLoading(false);

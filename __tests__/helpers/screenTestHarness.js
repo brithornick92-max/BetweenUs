@@ -10,6 +10,8 @@ const mockDeleteMemory = jest.fn();
 const mockSavePromptAnswer = jest.fn();
 const mockGetPromptAnswers = jest.fn();
 const mockGetSharedPromptAnswers = jest.fn();
+const mockGetPromptAnswerForToday = jest.fn();
+const mockRevealPromptAnswer = jest.fn();
 const mockDeletePromptAnswer = jest.fn();
 const mockGetSharedDailyQuizQuestionSelection = jest.fn();
 const mockSaveSharedDailyQuizQuestionSelection = jest.fn();
@@ -217,6 +219,8 @@ jest.mock('../../services/localfirst', () => ({
     savePromptAnswer: (...args) => mockSavePromptAnswer(...args),
     getPromptAnswers: (...args) => mockGetPromptAnswers(...args),
     getSharedPromptAnswers: (...args) => mockGetSharedPromptAnswers(...args),
+    getPromptAnswerForToday: (...args) => mockGetPromptAnswerForToday(...args),
+    revealPromptAnswer: (...args) => mockRevealPromptAnswer(...args),
     deletePromptAnswer: (...args) => mockDeletePromptAnswer(...args),
     needsReconnect: (...args) => mockNeedsReconnect(...args),
     deleteJournalEntry: jest.fn(),
@@ -314,6 +318,8 @@ function resetScreenHarnessMocks() {
   mockSavePromptAnswer.mockResolvedValue(undefined);
   mockGetPromptAnswers.mockResolvedValue([]);
   mockGetSharedPromptAnswers.mockResolvedValue([]);
+  mockGetPromptAnswerForToday.mockResolvedValue(null);
+  mockRevealPromptAnswer.mockResolvedValue(null);
   mockDeletePromptAnswer.mockResolvedValue(undefined);
   mockGetSharedDailyQuizQuestionSelection.mockResolvedValue(null);
   mockSaveSharedDailyQuizQuestionSelection.mockResolvedValue(true);
@@ -366,6 +372,8 @@ module.exports = {
   mockSavePromptAnswer,
   mockGetPromptAnswers,
   mockGetSharedPromptAnswers,
+  mockGetPromptAnswerForToday,
+  mockRevealPromptAnswer,
   mockDeletePromptAnswer,
   mockGetSharedDailyQuizQuestionSelection,
   mockSaveSharedDailyQuizQuestionSelection,

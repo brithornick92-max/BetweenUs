@@ -349,7 +349,7 @@ describe('SupabaseDataLayer memory snapshots', () => {
 
     expect(mockStorageUpload).toHaveBeenNthCalledWith(
       1,
-      'couple-1/mem-test-id-123.mp4',
+      'couple-1/user-1/mem-test-id-123.mp4',
       expect.any(Uint8Array),
       expect.objectContaining({
         contentType: 'video/mp4',
@@ -358,7 +358,7 @@ describe('SupabaseDataLayer memory snapshots', () => {
     );
     expect(mockStorageUpload).toHaveBeenNthCalledWith(
       2,
-      'couple-1/mem-test-id-123.mp4',
+      'couple-1/user-1/mem-test-id-123.mp4',
       expect.any(Uint8Array),
       expect.objectContaining({
         contentType: 'application/octet-stream',
@@ -368,14 +368,14 @@ describe('SupabaseDataLayer memory snapshots', () => {
     expect(mockInsert).toHaveBeenCalledWith(expect.objectContaining({
       data_type: 'memory',
       value: expect.objectContaining({
-        mediaPath: 'couple-1/mem-test-id-123.mp4',
+        mediaPath: 'couple-1/user-1/mem-test-id-123.mp4',
         mediaBucket: 'attachments',
         mimeType: 'video/mp4',
         notifyPartner: false,
       }),
     }));
     expect(saved).toEqual(expect.objectContaining({
-      media_ref: 'couple-1/mem-test-id-123.mp4',
+      media_ref: 'couple-1/user-1/mem-test-id-123.mp4',
       mime_type: 'video/mp4',
       mediaUri: 'https://example.com/signed-media-url',
     }));

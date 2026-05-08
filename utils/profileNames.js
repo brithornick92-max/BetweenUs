@@ -20,7 +20,13 @@ export function getMyDisplayName(primaryProfile, fallbackProfile, defaultName = 
 export function getPartnerDisplayName(primaryProfile, fallbackProfile, defaultName = 'Partner') {
   const partnerName =
     normalizeName(primaryProfile?.partnerNames?.partnerName) ||
-    normalizeName(fallbackProfile?.partnerNames?.partnerName);
+    normalizeName(fallbackProfile?.partnerNames?.partnerName) ||
+    normalizeName(primaryProfile?.partnerProfile?.display_name) ||
+    normalizeName(primaryProfile?.partnerProfile?.displayName) ||
+    normalizeName(primaryProfile?.partnerProfile?.name) ||
+    normalizeName(fallbackProfile?.partnerProfile?.display_name) ||
+    normalizeName(fallbackProfile?.partnerProfile?.displayName) ||
+    normalizeName(fallbackProfile?.partnerProfile?.name);
 
   if (!partnerName || partnerName === 'A') {
     return defaultName;

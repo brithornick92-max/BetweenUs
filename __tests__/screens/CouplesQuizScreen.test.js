@@ -10,6 +10,7 @@ const {
   mockGetSharedDailyQuizQuestionSelection,
   mockGetPromptAnswers,
   mockGetSharedPromptAnswers,
+  mockRevealPromptAnswer,
   mockAlert,
   mockStorageGet,
   mockSavePromptAnswer,
@@ -346,8 +347,16 @@ describe('CouplesQuizScreen', () => {
         date_key: dateKey,
         answer: 'They would choose coffee and a walk.',
         partnerAnswer: 'You would choose dinner and dancing.',
+        partnerHasAnswered: true,
+        is_revealed: true,
       },
     ]));
+    mockRevealPromptAnswer.mockResolvedValue({
+      id: 'answer-1',
+      partnerAnswer: 'You would choose dinner and dancing.',
+      partnerHasAnswered: true,
+      is_revealed: true,
+    });
 
     const navigation = createNavigation();
     tree = await renderScreen(CouplesQuizScreen, { navigation });

@@ -200,6 +200,39 @@ describe('OurStory Keepsake entry building', () => {
     ]);
   });
 
+  it('does not infer a prompt reveal from partner status or hidden partner content', async () => {
+    const entries = await buildKeepsakeEntriesFromSources({
+      currentUserId: 'user-1',
+      keepsakeSettingsRaw: {
+        prompts: true,
+        memories: false,
+        dates: false,
+        positions: false,
+      },
+      sharedPrompts: [
+        {
+          id: 'my-prompt-1',
+          user_id: 'user-1',
+          prompt_id: 'h1_001',
+          answer: 'My private answer',
+          partnerAnswer: null,
+          partnerHasAnswered: true,
+          date_key: '2026-04-28',
+          created_at: '2026-04-28T12:00:00.000Z',
+          is_revealed: false,
+          includeInKeepsake: true,
+        },
+      ],
+      personalPrompts: [],
+    });
+
+    expect(entries).toHaveLength(1);
+    expect(entries[0].answers).toEqual([
+      { name: 'You', text: 'My private answer' },
+    ]);
+    expect(entries[0].eyebrow).toBe('Sealed prompt');
+  });
+
   it('builds dates tried and positions tried directly from memory rows', async () => {
     const entries = await buildKeepsakeEntriesFromSources({
       keepsakeSettingsRaw: {

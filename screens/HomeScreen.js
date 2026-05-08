@@ -81,11 +81,11 @@ const loadAllBundledPrompts = () => {
   return [];
 };
 
-function deriveRitualState({ isLinked, myAnswer, partnerAnswer, isRevealed }) {
+function deriveRitualState({ isLinked, myAnswer, partnerHasAnswered, isRevealed }) {
   if (isRevealed) return 'revealed';
-  if (myAnswer && partnerAnswer) return 'both_answered_ready';
+  if (myAnswer && partnerHasAnswered) return 'both_answered_ready';
   if (myAnswer) return isLinked ? 'answered_waiting' : 'solo_answered';
-  if (isLinked && partnerAnswer) return 'partner_answered';
+  if (isLinked && partnerHasAnswered) return 'partner_answered';
   if (isLinked) return 'linked_unanswered';
   return 'solo_unanswered';
 }
@@ -149,6 +149,7 @@ export default function HomeScreen({ navigation }) {
 
   const [myAnswer, setMyAnswer] = useState('');
   const [partnerAnswer, setPartnerAnswer] = useState('');
+  const [partnerHasAnswered, setPartnerHasAnswered] = useState(false);
   const [isRevealed, setIsRevealed] = useState(false);
   const [includePromptInKeepsake, setIncludePromptInKeepsake] = useState(false);
   const [inlineText, setInlineText] = useState('');
@@ -326,6 +327,7 @@ export default function HomeScreen({ navigation }) {
   useEffect(() => {
     setMyAnswer('');
     setPartnerAnswer('');
+    setPartnerHasAnswered(false);
     setIsRevealed(false);
     setIncludePromptInKeepsake(false);
     setInlineText('');
@@ -344,6 +346,7 @@ export default function HomeScreen({ navigation }) {
         if (row?.answer) {
           setMyAnswer(row.answer);
           setPartnerAnswer(row?.partnerAnswer || '');
+          setPartnerHasAnswered(!!(row?.partnerHasAnswered || row?.partnerAnswer));
           setIsRevealed(!!(row?.isRevealed || row?.is_revealed));
           setIncludePromptInKeepsake(!!row?.includeInKeepsake);
           return;
@@ -356,6 +359,7 @@ export default function HomeScreen({ navigation }) {
 
         setMyAnswer(saved?.content || saved?.answer || '');
         setPartnerAnswer(row?.partnerAnswer || '');
+        setPartnerHasAnswered(!!(row?.partnerHasAnswered || row?.partnerAnswer));
         setIsRevealed(!!saved?.isRevealed);
         setIncludePromptInKeepsake(!!saved?.includeInKeepsake);
       } catch (e) {
@@ -382,6 +386,7 @@ export default function HomeScreen({ navigation }) {
           if (row?.answer) {
             setMyAnswer(row.answer);
             setPartnerAnswer(row?.partnerAnswer || '');
+            setPartnerHasAnswered(!!(row?.partnerHasAnswered || row?.partnerAnswer));
             setIsRevealed(!!(row?.isRevealed || row?.is_revealed));
             setIncludePromptInKeepsake(!!row?.includeInKeepsake);
             return;
@@ -394,6 +399,7 @@ export default function HomeScreen({ navigation }) {
 
           setMyAnswer(saved?.content || saved?.answer || '');
           setPartnerAnswer(row?.partnerAnswer || '');
+          setPartnerHasAnswered(!!(row?.partnerHasAnswered || row?.partnerAnswer));
           setIsRevealed(!!saved?.isRevealed);
           setIncludePromptInKeepsake(!!saved?.includeInKeepsake);
         } catch (e) {
@@ -528,7 +534,7 @@ export default function HomeScreen({ navigation }) {
     }, [partnerLabel, isPremium])
   );
 
-  // ── Real-time: refresh partnerAnswer when partner submits a prompt answer ──
+  // ── Real-time: refresh partner status when partner submits or reveals ──
   useFocusEffect(
     useCallback(() => {
       if (!promptReady || !coupleId) return undefined;
@@ -556,7 +562,7 @@ export default function HomeScreen({ navigation }) {
                 const row = payload.new || payload.old;
                 const currentUserId = user?.uid || user?.id;
 
-                if (row?.data_type !== 'prompt_answer') return;
+                if (!['prompt_answer', 'prompt_answer_status'].includes(row?.data_type)) return;
                 if (currentUserId && row?.created_by === currentUserId) return;
                 if (row?.value?.promptId !== prompt.id || row?.value?.dateKey !== todayKey) return;
 
@@ -564,6 +570,7 @@ export default function HomeScreen({ navigation }) {
                   .then((row) => {
                     if (cancelled) return;
                     setPartnerAnswer(row?.partnerAnswer || '');
+                    setPartnerHasAnswered(!!(row?.partnerHasAnswered || row?.partnerAnswer));
                     setIsRevealed(!!(row?.isRevealed || row?.is_revealed));
                     setIncludePromptInKeepsake(!!row?.includeInKeepsake);
                   })
@@ -600,13 +607,13 @@ export default function HomeScreen({ navigation }) {
     }, [coupleId, prompt?.id, promptReady, todayKey, user?.id, user?.uid])
   );
 
-  const bothAnswered = !!myAnswer.trim() && !!partnerAnswer.trim();
+  const bothAnswered = !!myAnswer.trim() && partnerHasAnswered;
   const ritualState = useMemo(() => deriveRitualState({
     isLinked,
     myAnswer: myAnswer.trim(),
-    partnerAnswer: partnerAnswer.trim(),
+    partnerHasAnswered,
     isRevealed,
-  }), [isLinked, myAnswer, partnerAnswer, isRevealed]);
+  }), [isLinked, myAnswer, partnerHasAnswered, isRevealed]);
 
   const ritualCopy = useMemo(() => ({
     solo_unanswered: {
@@ -707,6 +714,7 @@ export default function HomeScreen({ navigation }) {
       }
 
       let nextPartnerAnswer = partnerAnswer;
+      let nextPartnerHasAnswered = partnerHasAnswered;
       let nextRevealed = false;
 
       try {
@@ -720,6 +728,7 @@ export default function HomeScreen({ navigation }) {
 
         const refreshedRow = await DataLayer.getPromptAnswerForToday(prompt.id, todayKey);
         nextPartnerAnswer = refreshedRow?.partnerAnswer || '';
+        nextPartnerHasAnswered = !!(refreshedRow?.partnerHasAnswered || refreshedRow?.partnerAnswer);
         nextRevealed = !!(refreshedRow?.isRevealed || refreshedRow?.is_revealed);
       } catch (dataLayerError) {
         if (__DEV__) console.warn('[Home] DataLayer prompt save failed:', dataLayerError?.message);
@@ -754,6 +763,7 @@ export default function HomeScreen({ navigation }) {
       notification(NotificationFeedbackType.Success);
       setMyAnswer(finalText);
       setPartnerAnswer(nextPartnerAnswer);
+      setPartnerHasAnswered(nextPartnerHasAnswered);
       setIsRevealed(nextRevealed);
       setInlineText('');
 
@@ -800,6 +810,7 @@ export default function HomeScreen({ navigation }) {
     isPremium,
     myAnswer,
     partnerAnswer,
+    partnerHasAnswered,
     showPaywall,
     loadUsageStatus,
     todayKey,
@@ -868,12 +879,14 @@ export default function HomeScreen({ navigation }) {
       prompt: { id: prompt.id, text: prompt.text, dateKey: todayKey },
       userAnswer: { answer: myAnswer, isRevealed, includeInKeepsake: includePromptInKeepsake },
       partnerAnswer: partnerAnswer || null,
+      partnerHasAnswered,
       bothAnswered,
     });
   }, [
     promptReady,
     myAnswer,
     partnerAnswer,
+    partnerHasAnswered,
     bothAnswered,
     isRevealed,
     prompt,

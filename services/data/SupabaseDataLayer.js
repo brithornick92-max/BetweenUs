@@ -157,6 +157,15 @@ function getPromptRowDateKey(row) {
   return row?.value?.dateKey || row?.date_key || row?.dateKey || null;
 }
 
+function getPromptStatusAnsweredAt(row) {
+  return row?.value?.answeredAt || row?.answered_at || row?.created_at || null;
+}
+
+function isPromptRowRevealed(row) {
+  const value = row?.value || row || {};
+  return !!(value.isRevealed || value.is_revealed || row?.is_revealed);
+}
+
 async function getOfflineQueue() {
   return storage.get(offlineQueueKey(_userId), []);
 }
@@ -336,8 +345,9 @@ async function runCloudOperation({ perform, onSuccess, onOffline, fallbackOnAnyE
  * `id` becomes both the PK and the `key` so it can be used as a stable
  * client-side identifier and for ON CONFLICT upserts.
  */
-async function cdInsert(dataType, id, value) {
+async function cdInsert(dataType, id, value, { isPrivate = false } = {}) {
   const sb = getSupabaseOrNull();
+  const rowIsPrivate = dataType === 'prompt_answer' ? true : !!isPrivate;
 
   if (!sb) throw new Error('Supabase is not configured');
   if (!_coupleId) throw new Error('Not paired — couple_id is required for shared data');
@@ -351,7 +361,7 @@ async function cdInsert(dataType, id, value) {
       value,
       data_type: dataType,
       created_by: _userId,
-      is_private: false,
+      is_private: rowIsPrivate,
       created_at: now(),
       updated_at: now(),
     })
@@ -366,8 +376,9 @@ async function cdInsert(dataType, id, value) {
 /**
  * Upsert a row into couple_data by id (PK).
  */
-async function cdUpsert(dataType, id, value) {
+async function cdUpsert(dataType, id, value, { isPrivate = false } = {}) {
   const sb = getSupabaseOrNull();
+  const rowIsPrivate = dataType === 'prompt_answer' ? true : !!isPrivate;
 
   if (!sb) throw new Error('Supabase is not configured');
   if (!_coupleId) throw new Error('Not paired — couple_id is required for shared data');
@@ -381,7 +392,7 @@ async function cdUpsert(dataType, id, value) {
       value,
       data_type: dataType,
       created_by: _userId,
-      is_private: false,
+      is_private: rowIsPrivate,
       updated_at: now(),
     }, { onConflict: 'id' })
     .select('*')
@@ -607,9 +618,9 @@ async function uploadMedia({ localUri, mimeType, coupleId, throwOnError = false 
   const fileId = randomUUID();
 
   // couple-media RLS policy requires path: couples/{couple_id}/{file}
-  // attachments RLS policy requires path: {couple_id}/{file}
+  // attachments RLS policy requires path: {couple_id}/{user_id}/{file}
   const storagePath = isVideo
-    ? `${coupleId}/${fileId}.${ext}`
+    ? `${coupleId}/${_userId}/${fileId}.${ext}`
     : `couples/${coupleId}/${fileId}.${ext}`;
 
   try {
@@ -820,13 +831,14 @@ async function mapJournalRow(row) {
   };
 }
 
-async function mapPromptRow(row, partnerRow = null) {
+async function mapPromptRow(row, partnerRow = null, partnerStatus = null) {
   if (!row) return null;
 
   const v = row.value || {};
   const pv = partnerRow?.value || null;
   const promptHeat = getPromptById(v.promptId)?.heat;
   const isRevealed = !!(v.isRevealed || pv?.isRevealed);
+  const partnerHasAnswered = !!(partnerRow || partnerStatus);
 
   return {
     id: row.id,
@@ -835,7 +847,9 @@ async function mapPromptRow(row, partnerRow = null) {
     prompt_id: v.promptId,
     date_key: v.dateKey,
     answer: v.answer || null,
-    partnerAnswer: pv?.answer || v.partnerAnswer || null,
+    partnerAnswer: isRevealed ? (pv?.answer || v.partnerAnswer || null) : null,
+    partnerHasAnswered,
+    partner_answered_at: getPromptStatusAnsweredAt(partnerStatus) || partnerRow?.created_at || null,
     heat_level: typeof promptHeat === 'number' ? promptHeat : (v.heatLevel ?? 1),
     is_revealed: isRevealed,
     reveal_at: v.revealAt || pv?.revealAt || null,
@@ -845,26 +859,30 @@ async function mapPromptRow(row, partnerRow = null) {
   };
 }
 
-function mapPartnerOnlyPromptRow(partnerRow) {
-  if (!partnerRow) return null;
+function mapPartnerOnlyPromptRow(partnerRow, partnerStatus = null) {
+  if (!partnerRow && !partnerStatus) return null;
 
-  const v = partnerRow.value || {};
+  const source = partnerRow || partnerStatus;
+  const v = source.value || {};
   const promptHeat = getPromptById(v.promptId)?.heat;
+  const isRevealed = isPromptRowRevealed(partnerRow);
 
   return {
     id: null,
     user_id: _userId,
-    couple_id: partnerRow.couple_id,
+    couple_id: source.couple_id,
     prompt_id: v.promptId,
     date_key: v.dateKey,
     answer: null,
-    partnerAnswer: v.answer || null,
+    partnerAnswer: isRevealed ? (v.answer || null) : null,
+    partnerHasAnswered: true,
+    partner_answered_at: getPromptStatusAnsweredAt(partnerStatus) || partnerRow?.created_at || null,
     heat_level: typeof promptHeat === 'number' ? promptHeat : (v.heatLevel ?? 1),
-    is_revealed: !!v.isRevealed,
+    is_revealed: isRevealed,
     reveal_at: v.revealAt || null,
     includeInKeepsake: false,
-    created_at: partnerRow.created_at,
-    updated_at: partnerRow.updated_at,
+    created_at: source.created_at,
+    updated_at: source.updated_at,
   };
 }
 
@@ -989,7 +1007,9 @@ function makeOfflinePromptRow(id, value, base = {}) {
     prompt_id: value.promptId,
     date_key: value.dateKey,
     answer: value.answer || null,
-    partnerAnswer: base.partnerAnswer || null,
+    partnerAnswer: base.is_revealed ? (base.partnerAnswer || null) : null,
+    partnerHasAnswered: !!(base.partnerHasAnswered || base.partnerAnswer),
+    partner_answered_at: base.partner_answered_at || null,
     heat_level: typeof promptHeat === 'number' ? promptHeat : (value.heatLevel ?? 1),
     is_revealed: !!value.isRevealed,
     reveal_at: value.revealAt || null,
@@ -1435,11 +1455,17 @@ const SupabaseDataLayer = {
   async _getCachedPromptAnswer(promptId, dk, userId) {
     const cached = await loadCache(CACHE_SCOPES.prompts);
 
-    return cached.find((entry) =>
+    const row = cached.find((entry) =>
       entry?.prompt_id === promptId
       && entry?.date_key === dk
       && entry?.user_id === userId
     ) || null;
+
+    if (!row || row?.is_revealed) return row;
+    return {
+      ...row,
+      partnerAnswer: null,
+    };
   },
 
   async _getCachedCheckInByDate(dk) {
@@ -1483,9 +1509,17 @@ const SupabaseDataLayer = {
     const id = existing?.id || cachedExisting?.id || makeId('ans');
 
     return runCloudOperation({
-      perform: async () => (existing ? cdUpdate(existing.id, value) : cdInsert('prompt_answer', id, value)),
+      perform: async () => (existing ? cdUpdate(existing.id, value) : cdInsert('prompt_answer', id, value, { isPrivate: true })),
       onSuccess: async (remoteRow) => {
-        const mapped = await mapPromptRow(remoteRow);
+        const [partnerRow, partnerStatus] = await Promise.all([
+          this._findPartnerPromptAnswer(promptId, dk),
+          this._findPartnerPromptStatus(promptId, dk),
+        ]);
+        const mapped = await mapPromptRow(
+          remoteRow,
+          isCacheFallback(partnerRow) ? null : partnerRow,
+          isCacheFallback(partnerStatus) ? null : partnerStatus
+        );
         await upsertCacheRow(CACHE_SCOPES.prompts, mapped);
         return mapped;
       },
@@ -1515,41 +1549,49 @@ const SupabaseDataLayer = {
   },
 
   async revealPromptAnswer(id) {
-    const patch = { isRevealed: true, revealAt: now() };
-
     return runCloudOperation({
       perform: async () => {
+        const sb = getSupabaseOrNull();
+
+        if (!sb) throw new Error('Supabase is not configured');
         if (!_coupleId) throw new Error('Not paired — couple_id is required for shared data');
-        return cdUpdate(id, patch);
-      },
-      onSuccess: async (row) => {
-        const mapped = await mapPromptRow(row);
-        await upsertCacheRow(CACHE_SCOPES.prompts, mapped);
-        return mapped;
-      },
-      onOffline: async () => {
-        const cached = await loadCache(CACHE_SCOPES.prompts);
-        const existing = cached.find((row) => row?.id === id) || {};
 
-        const mapped = makeOfflinePromptRow(id, {
-          promptId: existing.prompt_id,
-          dateKey: existing.date_key,
-          answer: existing.answer,
-          heatLevel: existing.heat_level,
-          ...patch,
-        }, existing);
-
-        await enqueueOfflineMutation({
-          entity: 'prompt_answer',
-          action: 'update',
-          id,
-          payload: patch,
+        const { data: rpcData, error: rpcError } = await sb.rpc('reveal_prompt_answer', {
+          input_answer_id: id,
         });
 
+        if (rpcError) throw rpcError;
+        if (rpcData?.success === false) {
+          throw new Error(rpcData?.error || 'Prompt reveal is not available yet.');
+        }
+
+        const { data: row, error: rowError } = await sb
+          .from(TABLES.COUPLE_DATA)
+          .select('*')
+          .eq('id', id)
+          .maybeSingle();
+
+        if (rowError) throw rowError;
+        if (!row) throw new Error('Prompt answer could not be loaded after reveal.');
+
+        const promptId = row.value?.promptId;
+        const dateKey = row.value?.dateKey;
+        const [partnerRow, partnerStatus] = await Promise.all([
+          this._findPartnerPromptAnswer(promptId, dateKey),
+          this._findPartnerPromptStatus(promptId, dateKey),
+        ]);
+
+        return { row, partnerRow, partnerStatus };
+      },
+      onSuccess: async ({ row, partnerRow, partnerStatus }) => {
+        const mapped = await mapPromptRow(
+          row,
+          isCacheFallback(partnerRow) ? null : partnerRow,
+          isCacheFallback(partnerStatus) ? null : partnerStatus
+        );
         await upsertCacheRow(CACHE_SCOPES.prompts, mapped);
         return mapped;
       },
-      fallbackOnAnyError: true,
     });
   },
 
@@ -1612,7 +1654,7 @@ const SupabaseDataLayer = {
   async getSharedPromptAnswers({ dateKey: dk, promptId, limit = 100, offset = 0 } = {}) {
     if (!_coupleId) return [];
 
-    const rows = await cdQuery('prompt_answer', {
+    const queryOptions = {
       limit,
       offset,
       filter: (q) => {
@@ -1623,10 +1665,18 @@ const SupabaseDataLayer = {
 
         return query;
       },
-    });
+    };
+    const rows = await cdQuery('prompt_answer', queryOptions);
+    const statusRows = isCacheFallback(rows)
+      ? CACHE_FALLBACK
+      : await cdQuery('prompt_answer_status', queryOptions);
 
     const sourceRows = isCacheFallback(rows) ? await loadCache(CACHE_SCOPES.prompts) : rows;
+    const sourceStatuses = isCacheFallback(statusRows) ? [] : (statusRows || []);
     const matchingRows = (sourceRows || [])
+      .filter((row) => !dk || getPromptRowDateKey(row) === dk)
+      .filter((row) => !promptId || getPromptRowId(row) === promptId);
+    const matchingStatuses = sourceStatuses
       .filter((row) => !dk || getPromptRowDateKey(row) === dk)
       .filter((row) => !promptId || getPromptRowId(row) === promptId);
     const filteredRows = isCacheFallback(rows)
@@ -1634,7 +1684,15 @@ const SupabaseDataLayer = {
       : matchingRows;
 
     if (!isCacheFallback(rows)) {
-      const mapped = await Promise.all(rows.map((r) => mapPromptRow(r)));
+      const mapped = await Promise.all(rows.map((r) => {
+        const partnerStatus = matchingStatuses.find((p) =>
+          (p.created_by || p.user_id) !== _userId
+          && getPromptRowId(p) === getPromptRowId(r)
+          && getPromptRowDateKey(p) === getPromptRowDateKey(r)
+        ) || null;
+
+        return mapPromptRow(r, null, partnerStatus);
+      }));
       await replaceCacheSubset(CACHE_SCOPES.prompts, mapped, (row) =>
         (!dk || row?.date_key === dk)
         && (!promptId || row?.prompt_id === promptId)
@@ -1643,19 +1701,27 @@ const SupabaseDataLayer = {
 
     const myRows = filteredRows.filter((r) => (r.created_by || r.user_id) === _userId);
     const partnerRows = filteredRows.filter((r) => (r.created_by || r.user_id) !== _userId);
+    const partnerStatuses = matchingStatuses.filter((r) => (r.created_by || r.user_id) !== _userId);
 
     return Promise.all(myRows.map((r) => {
       const partner = partnerRows.find((p) =>
         getPromptRowId(p) === getPromptRowId(r)
         && getPromptRowDateKey(p) === getPromptRowDateKey(r)
       ) || null;
+      const partnerStatus = partnerStatuses.find((p) =>
+        getPromptRowId(p) === getPromptRowId(r)
+        && getPromptRowDateKey(p) === getPromptRowDateKey(r)
+      ) || null;
 
-      if (r.value) return mapPromptRow(r, partner);
+      if (r.value) return mapPromptRow(r, partner, partnerStatus);
 
+      const isRevealed = !!(r.is_revealed || partner?.is_revealed);
       return {
         ...r,
-        partnerAnswer: partner?.answer || r.partnerAnswer || null,
-        is_revealed: !!(r.is_revealed || partner?.is_revealed),
+        partnerAnswer: isRevealed ? (partner?.answer || r.partnerAnswer || null) : null,
+        partnerHasAnswered: !!(partner || partnerStatus || r.partnerHasAnswered),
+        partner_answered_at: getPromptStatusAnsweredAt(partnerStatus) || partner?.created_at || r.partner_answered_at || null,
+        is_revealed: isRevealed,
         reveal_at: r.reveal_at || partner?.reveal_at || null,
       };
     }));
@@ -1669,13 +1735,21 @@ const SupabaseDataLayer = {
       return this._getCachedPromptAnswer(promptId, dk, _userId);
     }
 
-    const partnerRow = await this._findPartnerPromptAnswer(promptId, dk);
+    const [partnerRow, partnerStatus] = await Promise.all([
+      this._findPartnerPromptAnswer(promptId, dk),
+      this._findPartnerPromptStatus(promptId, dk),
+    ]);
 
     if (!row) {
-      return isCacheFallback(partnerRow) ? null : mapPartnerOnlyPromptRow(partnerRow);
+      if (isCacheFallback(partnerRow) || isCacheFallback(partnerStatus)) return null;
+      return mapPartnerOnlyPromptRow(partnerRow, partnerStatus);
     }
 
-    return mapPromptRow(row, isCacheFallback(partnerRow) ? null : partnerRow);
+    return mapPromptRow(
+      row,
+      isCacheFallback(partnerRow) ? null : partnerRow,
+      isCacheFallback(partnerStatus) ? null : partnerStatus
+    );
   },
 
   async _findPromptAnswer(promptId, dk, userId) {
@@ -1715,6 +1789,32 @@ const SupabaseDataLayer = {
       .select('*')
       .eq('couple_id', _coupleId)
       .eq('data_type', 'prompt_answer')
+      .neq('created_by', _userId)
+      .eq('value->>promptId', promptId)
+      .eq('value->>dateKey', dk)
+      .or('is_deleted.is.null,is_deleted.eq.false')
+      .maybeSingle();
+
+    if (error) {
+      if (isOfflineCapableError(error)) return CACHE_FALLBACK;
+      if (isMissingRowError(error)) return null;
+      throw error;
+    }
+
+    return data || null;
+  },
+
+  async _findPartnerPromptStatus(promptId, dk) {
+    const sb = getSupabaseOrNull();
+
+    if (!sb) return CACHE_FALLBACK;
+    if (!_coupleId || !_userId) return null;
+
+    const { data, error } = await sb
+      .from(TABLES.COUPLE_DATA)
+      .select('*')
+      .eq('couple_id', _coupleId)
+      .eq('data_type', 'prompt_answer_status')
       .neq('created_by', _userId)
       .eq('value->>promptId', promptId)
       .eq('value->>dateKey', dk)

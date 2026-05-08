@@ -369,8 +369,9 @@ export default function CouplesQuizScreen({ navigation }) {
 
             if (mine.partnerAnswer) {
               setPartnerGuess(mine.partnerAnswer);
-              setPartnerHasSubmitted(true);
             }
+            setPartnerHasSubmitted(!!(mine.partnerHasAnswered || mine.partnerAnswer));
+            setIsRevealed(!!(mine.isRevealed || mine.is_revealed));
           }
         } catch {
           // Scoped local fallback below still keeps the screen usable offline.
@@ -412,7 +413,8 @@ export default function CouplesQuizScreen({ navigation }) {
     );
 
     setPartnerGuess(matchingSharedRow?.partnerAnswer || '');
-    setPartnerHasSubmitted(!!matchingSharedRow?.partnerAnswer);
+    setPartnerHasSubmitted(!!(matchingSharedRow?.partnerHasAnswered || matchingSharedRow?.partnerAnswer));
+    setIsRevealed(!!(matchingSharedRow?.isRevealed || matchingSharedRow?.is_revealed));
   }, [hasSubmitted, quizPromptId, todayKey]);
 
   useFocusEffect(
@@ -450,7 +452,7 @@ export default function CouplesQuizScreen({ navigation }) {
                 const row = payload.new || payload.old;
                 const currentUserId = user?.uid || user?.id;
 
-                if (row?.data_type !== 'prompt_answer') return;
+                if (!['prompt_answer', 'prompt_answer_status'].includes(row?.data_type)) return;
                 if (currentUserId && row?.created_by === currentUserId) return;
                 if (row?.value?.promptId !== quizPromptId || row?.value?.dateKey !== todayKey) return;
 
@@ -519,8 +521,9 @@ export default function CouplesQuizScreen({ navigation }) {
 
         if (matchingSharedRow?.partnerAnswer) {
           setPartnerGuess(matchingSharedRow.partnerAnswer);
-          setPartnerHasSubmitted(true);
         }
+        setPartnerHasSubmitted(!!(matchingSharedRow?.partnerHasAnswered || matchingSharedRow?.partnerAnswer));
+        setIsRevealed(!!(matchingSharedRow?.isRevealed || matchingSharedRow?.is_revealed));
 
       } catch {
         // graceful — local save succeeded
@@ -595,7 +598,7 @@ export default function CouplesQuizScreen({ navigation }) {
     );
   }, [answerId, clearLocalQuizAnswer, resetSubmittedAnswerState]);
 
-  const handleReveal = useCallback(() => {
+  const handleReveal = useCallback(async () => {
     if (isLinked && !partnerHasSubmitted) {
       Alert.alert(
         `Waiting for ${partnerName}`,
@@ -604,10 +607,40 @@ export default function CouplesQuizScreen({ navigation }) {
       );
       return;
     }
-    impact(ImpactFeedbackStyle.Heavy);
-    setIsRevealed(true);
-    revealScale.value = withSpring(1, { damping: 14, stiffness: 120 });
-  }, [isLinked, partnerHasSubmitted, partnerName, revealScale]);
+
+    try {
+      if (isLinked) {
+        const row = answerId
+          ? { id: answerId }
+          : await DataLayer.getPromptAnswerForToday?.(quizPromptId, todayKey);
+        if (!row?.id) throw new Error('No saved quiz answer was found for this reveal.');
+
+        const revealedRow = await DataLayer.revealPromptAnswer?.(row.id);
+        const refreshedRow = revealedRow?.partnerAnswer
+          ? revealedRow
+          : await DataLayer.getPromptAnswerForToday?.(quizPromptId, todayKey);
+
+        if (!refreshedRow?.partnerAnswer) {
+          throw new Error('Partner answer was not available after reveal.');
+        }
+
+        setPartnerGuess(refreshedRow.partnerAnswer);
+        setPartnerHasSubmitted(true);
+        setAnswerId((current) => current || refreshedRow.id || null);
+      }
+
+      impact(ImpactFeedbackStyle.Heavy);
+      setIsRevealed(true);
+      revealScale.value = withSpring(1, { damping: 14, stiffness: 120 });
+    } catch (error) {
+      Alert.alert(
+        'Reveal not ready',
+        String(error?.message || '').toLowerCase().includes('partner')
+          ? `${partnerName} still needs to lock in their guess before this reveal can open.`
+          : 'Please check your connection and try again.'
+      );
+    }
+  }, [answerId, isLinked, partnerHasSubmitted, partnerName, quizPromptId, revealScale, todayKey]);
 
   // ── Render phases ──────────────────────────────────────────────────
 
