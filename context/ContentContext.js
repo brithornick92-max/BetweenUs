@@ -47,6 +47,19 @@ function getSharedPromptId(selection) {
   return selection?.value?.promptId || selection?.promptId || null;
 }
 
+function getCachedDailyPrompt(selection, dateKey, scope) {
+  if (
+    selection?.dateKey !== dateKey
+    || selection?.scope !== scope
+    || !selection?.promptId
+  ) {
+    return null;
+  }
+
+  const prompt = getPromptById(selection.promptId);
+  return prompt?.text ? prompt : null;
+}
+
 function getDailyPromptHeatFilters() {
   return {
     minHeatLevel: 1,
@@ -67,6 +80,19 @@ function selectCanonicalCoupleDailyPrompt(dateKey, scope, heatFilters = {}) {
   if (!promptPool.length) return FALLBACK_PROMPT;
 
   return selectTodayBetweenUsPrompt(promptPool, dateKey, scope) || promptPool[0];
+}
+
+function getEmergencyDailyPrompt(dateKey, scope, heatFilters = {}) {
+  try {
+    if (dateKey && scope) {
+      const prompt = selectCanonicalCoupleDailyPrompt(dateKey, scope, heatFilters);
+      if (prompt?.text) return prompt;
+    }
+  } catch (_) {
+    // Keep the emergency path non-throwing so loadTodayPrompt can recover cleanly.
+  }
+
+  return FALLBACK_PROMPT;
 }
 
 function normalizeRelationshipStartDate(value) {
@@ -235,6 +261,10 @@ export const ContentProvider = ({ children }) => {
   const loadTodayPrompt = useCallback(async (_heatLevel = null, options = {}) => {
       if (loadingPromptRef.current) return todayPrompt;
 
+      let fallbackDateKey = null;
+      let fallbackScope = null;
+      let fallbackHeatFilters = null;
+
       try {
         if (!user) {
           throw new Error('User not authenticated');
@@ -243,10 +273,16 @@ export const ContentProvider = ({ children }) => {
         loadingPromptRef.current = true;
 
       const today = getDailyContentDateKey();
+      fallbackDateKey = today;
+      const activeUserId = user.uid || user.id;
+      if (!activeUserId) {
+        throw new Error('User id unavailable');
+      }
       const coupleId = await getActiveCoupleId({
         fallbackCoupleId: userProfile?.coupleId || null,
       });
-      const scope = getDailyPromptScope(user.uid, coupleId);
+      const scope = getDailyPromptScope(activeUserId, coupleId);
+      fallbackScope = scope;
 
       if (!coupleId && (
         todayPrompt?.dateKey === today
@@ -260,6 +296,7 @@ export const ContentProvider = ({ children }) => {
       }
 
       const cachedPromptSelection = await storage.get(DAILY_PROMPT_CACHE_KEY, null);
+      const cachedPrompt = getCachedDailyPrompt(cachedPromptSelection, today, scope);
 
       if (coupleId) {
         const sharedPromptSelection = await getSharedDailyPromptSelection(today, {
@@ -269,17 +306,37 @@ export const ContentProvider = ({ children }) => {
         const sharedPromptId = getSharedPromptId(sharedPromptSelection);
         let sharedPrompt = sharedPromptId ? getPromptById(sharedPromptId) : null;
 
+        if (!sharedPrompt?.text && cachedPrompt?.text) {
+          sharedPrompt = cachedPrompt;
+        }
+
         if (!sharedPrompt?.text) {
           const profile = await loadContentProfile(options?.profileOverride || userProfile || {});
           const heatFilters = getDailyPromptHeatFilters(profile || options?.profileOverride || userProfile || {}, isPremium);
+          fallbackHeatFilters = heatFilters;
           sharedPrompt = selectCanonicalCoupleDailyPrompt(today, scope, heatFilters);
-          if (sharedPrompt?.id) {
-            await saveSharedDailyPromptSelection(today, sharedPrompt.id, user.uid, {
+        }
+
+        if (!sharedPromptId && sharedPrompt?.id) {
+          const saved = await saveSharedDailyPromptSelection(today, sharedPrompt.id, activeUserId, {
+            fallbackCoupleId: coupleId,
+            ensureSession: ensureSupabaseSession,
+          }).catch((error) => {
+            if (__DEV__) console.warn('[ContentContext] Shared daily prompt sync failed:', error?.message);
+            return false;
+          });
+
+          if (saved) {
+            const confirmedSelection = await getSharedDailyPromptSelection(today, {
               fallbackCoupleId: coupleId,
               ensureSession: ensureSupabaseSession,
-            }).catch((error) => {
-              if (__DEV__) console.warn('[ContentContext] Shared daily prompt sync failed:', error?.message);
-            });
+            }).catch(() => null);
+            const confirmedPromptId = getSharedPromptId(confirmedSelection);
+            const confirmedPrompt = confirmedPromptId ? getPromptById(confirmedPromptId) : null;
+
+            if (confirmedPrompt?.text) {
+              sharedPrompt = confirmedPrompt;
+            }
           }
         }
 
@@ -309,18 +366,13 @@ export const ContentProvider = ({ children }) => {
       }
 
       if (
-        cachedPromptSelection?.dateKey === today
-        && cachedPromptSelection?.scope === scope
-        && cachedPromptSelection?.promptId
+        cachedPrompt?.text
       ) {
-        const cachedPrompt = getPromptById(cachedPromptSelection.promptId);
-        if (cachedPrompt?.text) {
-          const personalizedCachedPrompt = await personalizePrompt({ ...cachedPrompt, dateKey: today });
-          const resolvedCachedPrompt = { ...personalizedCachedPrompt, _dailyPromptScope: scope };
-          setTodayPrompt(resolvedCachedPrompt);
-          PromptAllocator.setDailyPromptId(cachedPrompt.id);
-          return resolvedCachedPrompt;
-        }
+        const personalizedCachedPrompt = await personalizePrompt({ ...cachedPrompt, dateKey: today });
+        const resolvedCachedPrompt = { ...personalizedCachedPrompt, _dailyPromptScope: scope };
+        setTodayPrompt(resolvedCachedPrompt);
+        PromptAllocator.setDailyPromptId(cachedPrompt.id);
+        return resolvedCachedPrompt;
       }
 
       // Load (or refresh) the content profile
@@ -332,13 +384,14 @@ export const ContentProvider = ({ children }) => {
         profile || options?.profileOverride || userProfile || {},
         isPremium
       );
+      fallbackHeatFilters = dailyHeatFilters;
 
       if (dailyHeatFilters.heatLevels.length === 0) {
         throw new Error('No prompts available for your preferences');
       }
 
       // Check if user can access this heat level
-      const accessCheck = await PremiumGatekeeper.canAccessPrompt(user.uid, dailyHeatFilters.maxHeatLevel, isPremium);
+      const accessCheck = await PremiumGatekeeper.canAccessPrompt(activeUserId, dailyHeatFilters.maxHeatLevel, isPremium);
       if (!accessCheck.canAccess) {
         throw new Error(accessCheck.message);
       }
@@ -390,7 +443,7 @@ export const ContentProvider = ({ children }) => {
       });
 
       if (coupleId) {
-        await saveSharedDailyPromptSelection(today, selectedPrompt.id, user.uid, {
+        await saveSharedDailyPromptSelection(today, selectedPrompt.id, activeUserId, {
           fallbackCoupleId: coupleId,
           ensureSession: ensureSupabaseSession,
         }).catch((error) => {
@@ -419,11 +472,23 @@ export const ContentProvider = ({ children }) => {
           if (__DEV__) console.error("Error loading today's prompt:", error);
         }
 
-        const fallbackPrompt = FALLBACK_PROMPT;
+        const fallbackPrompt = getEmergencyDailyPrompt(
+          fallbackDateKey || getDailyContentDateKey(),
+          fallbackScope || null,
+          fallbackHeatFilters || getDailyPromptHeatFilters()
+        );
 
-        const personalizedFallback = await personalizePrompt(fallbackPrompt);
-        const fallbackResolved = { ...personalizedFallback, dateKey: getDailyContentDateKey() };
+        const fallbackResolvedDateKey = fallbackDateKey || getDailyContentDateKey();
+        const personalizedFallback = await personalizePrompt({ ...fallbackPrompt, dateKey: fallbackResolvedDateKey });
+        const fallbackResolved = {
+          ...personalizedFallback,
+          dateKey: fallbackResolvedDateKey,
+          ...(fallbackScope ? { _dailyPromptScope: fallbackScope } : {}),
+        };
         setTodayPrompt(fallbackResolved);
+        if (fallbackPrompt?.id) {
+          PromptAllocator.setDailyPromptId(fallbackPrompt.id);
+        }
         return fallbackResolved;
       } finally {
         loadingPromptRef.current = false;

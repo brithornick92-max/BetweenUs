@@ -5,6 +5,7 @@ export const SHARED_ANNIVERSARY_KEY = 'relationship_start_date';
 export const PENDING_SHARED_ANNIVERSARY_KEY = '@betweenus:cache:pendingSharedAnniversaryDate';
 export const SHARED_DAILY_PROMPT_KEY_PREFIX = 'daily_prompt';
 export const SHARED_DAILY_QUIZ_KEY_PREFIX = 'daily_quiz';
+export const SHARED_DAILY_SELECTION_DATA_TYPE = 'couple_state';
 
 function getDependencies(dependencies = {}) {
   return {
@@ -63,7 +64,8 @@ export async function saveSharedDailyPromptSelection(dateKey, promptId, userId, 
     { promptId, dateKey },
     userId,
     false,
-    'daily_prompt'
+    SHARED_DAILY_SELECTION_DATA_TYPE,
+    { preserveOnDuplicate: true }
   );
 }
 
@@ -104,7 +106,8 @@ export async function saveSharedDailyQuizQuestionSelection(dateKey, questionId, 
     { questionId, dateKey },
     userId,
     false,
-    'daily_quiz'
+    SHARED_DAILY_SELECTION_DATA_TYPE,
+    { preserveOnDuplicate: true }
   );
 }
 

@@ -71,7 +71,8 @@ describe('CoupleStateService', () => {
       { promptId: 'prompt-2', dateKey: '2026-04-20' },
       'user-1',
       false,
-      'daily_prompt'
+      'couple_state',
+      { preserveOnDuplicate: true }
     );
   });
 
@@ -102,7 +103,8 @@ describe('CoupleStateService', () => {
       { questionId: 'q124', dateKey: '2026-04-20' },
       'user-1',
       false,
-      'daily_quiz'
+      'couple_state',
+      { preserveOnDuplicate: true }
     );
   });
 

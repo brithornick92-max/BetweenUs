@@ -46,6 +46,25 @@ describe('no-repeat content rotation', () => {
     expect(firstScopeIds[0]).not.toBe(secondScopeIds[0]);
   });
 
+  it('can pin the active cycle so appended OTA content does not reshuffle existing days', () => {
+    const originalItems = makeItems(MINIMUM_QUESTION_REPEAT_DAYS);
+    const expandedItems = makeItems(MINIMUM_QUESTION_REPEAT_DAYS + 12);
+
+    for (let offset = 0; offset < MINIMUM_QUESTION_REPEAT_DAYS; offset += 1) {
+      const dateKey = dateKeyForOffset(offset);
+      const original = getNoRepeatRotationItem(originalItems, dateKey, {
+        seed: 'couple:stable',
+        stableCycleSize: MINIMUM_QUESTION_REPEAT_DAYS,
+      });
+      const expanded = getNoRepeatRotationItem(expandedItems, dateKey, {
+        seed: 'couple:stable',
+        stableCycleSize: MINIMUM_QUESTION_REPEAT_DAYS,
+      });
+
+      expect(expanded.id).toBe(original.id);
+    }
+  });
+
   it('reports when a pool is too small to guarantee the window', () => {
     expect(getNoRepeatWindowStatus(makeItems(150))).toMatchObject({
       canGuarantee: false,

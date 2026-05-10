@@ -16,6 +16,7 @@
     "lint": "npx expo lint App.js assets components config context hooks mocks navigation plugins screens services utils __tests__ scripts -- --no-error-on-unmatched-pattern",
     "pre-deploy": "npm test && npm run validate:ios && npm run validate:android",
     "test": "jest",
+    "audit:content": "node scripts/audit-content-integrity.cjs",
     "validate:ios": "npm run lint && npx tsc --noEmit",
     "validate:android": "npm run lint && npx tsc --noEmit"
   },

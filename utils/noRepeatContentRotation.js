@@ -36,16 +36,21 @@ export function getNoRepeatRotationIndex(
   {
     seed = '',
     anchorUtc = DAILY_CONTENT_ROTATION_ANCHOR_UTC,
+    stableCycleSize = null,
   } = {}
 ) {
   const total = Number(totalItems);
   if (!Number.isFinite(total) || total <= 0) return -1;
+  const stableTotal = Number(stableCycleSize);
+  const rotationTotal = Number.isFinite(stableTotal) && stableTotal > 0
+    ? Math.min(total, stableTotal)
+    : total;
 
   const dayOffset = getDateKeyDayOffset(dateKey, anchorUtc);
-  const seedOffset = seed ? stableStringHash(seed) % total : 0;
-  const index = (dayOffset + seedOffset) % total;
+  const seedOffset = seed ? stableStringHash(seed) % rotationTotal : 0;
+  const index = (dayOffset + seedOffset) % rotationTotal;
 
-  return index < 0 ? index + total : index;
+  return index < 0 ? index + rotationTotal : index;
 }
 
 const defaultIdentity = (item) =>

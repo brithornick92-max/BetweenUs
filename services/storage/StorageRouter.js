@@ -520,7 +520,7 @@ class StorageRouter {
     }
   }
 
-  async upsertCoupleData(coupleId, key, value, createdBy, isPrivate = false, dataType = 'unknown') {
+  async upsertCoupleData(coupleId, key, value, createdBy, isPrivate = false, dataType = 'unknown', options = {}) {
     if (!this._canUseAuthenticatedCloud() || !coupleId || !key || !createdBy) return false;
 
     try {
@@ -540,6 +540,9 @@ class StorageRouter {
         message.includes('couple_data_couple_id_key_unique');
 
       if (isDuplicate) {
+        if (options?.preserveOnDuplicate) {
+          return true;
+        }
         await CloudEngine.updateCoupleData(coupleId, key, value);
         return true;
       }
