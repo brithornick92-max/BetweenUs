@@ -93,14 +93,11 @@ You agree not to use the Service to create, upload, store, or share content that
 
 ### 5.1 Free and Premium Features
 
-- Free users start with 20 prompts, 20 date ideas, and 5 sex positions, then receive 5 more prompts, 5 more date ideas, and 1 more sex position each personal week.
+- Free users start with 20 prompts, 20 date ideas, and 5 sex positions, then receive 5 more prompts, 5 more date ideas, and 1 more sex position each personal week. Free weekly picks stay in the lower-intensity range.
 - Free users can use calendar, journal, partner linking, heartbeat/sync, date planning, and supported data export.
 - Free Keepsake history is available one month at a time.
-- Premium users start with 100 prompts, 100 date ideas, and 10 sex positions, then receive 15 more prompts, 15 more date ideas, and 3 more sex positions each personal premium week. Premium also includes full Keepsake history, Vibe Signal, recaps, inside-joke features, and other premium experiences shown in the app.
+- Premium users start with 100 prompts, 100 date ideas, and 10 sex positions, then receive 15 more prompts, 15 more date ideas, and 3 more sex positions each personal premium week. Premium also includes higher-intensity content, full Keepsake history, Vibe Signal, recaps, inside-joke features, and other premium experiences shown in the app.
 - One premium subscription is intended to cover both linked partners after entitlement sync completes
-- Current fallback display pricing in the app is:
-  - Monthly: $7.99/month
-  - Yearly: $49.99/year
 - Actual prices, trials, offers, taxes, and currency are shown by the App Store or RevenueCat purchase flow at the time of purchase and may vary by region or store configuration
 
 ### 5.2 Billing

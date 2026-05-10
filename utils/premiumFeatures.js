@@ -4,12 +4,11 @@ import { storage } from './storage';
 
 const FEATURE_USAGE_KEY = '@betweenus:cache:premiumFeatureUsage';
 
-// Single source of truth for fallback display prices.
 // Actual purchase prices always come from RevenueCat / App Store / Google Play at runtime.
-// Update these when you change pricing in App Store Connect / Google Play Console.
+// Fallback copy avoids hardcoded pricing so legal/FAQ surfaces cannot drift from the store.
 export const FALLBACK_PRICES = {
-  monthly: '$7.99/month',
-  yearly: '$49.99/year',
+  monthly: 'shown at checkout',
+  yearly: 'shown at checkout',
 };
 
 // Premium features configuration
@@ -19,7 +18,7 @@ export const PREMIUM_FEATURES = {
     name: 'Memory Export',
     description: 'Export your complete shared timeline as PDF',
     category: 'memory',
-    emotionalValue: 'Preserve your love story forever',
+    emotionalValue: 'Preserve a fuller version of your love story',
     icon: 'library-outline',
   },
 
@@ -34,7 +33,7 @@ export const PREMIUM_FEATURES = {
   CLOUD_SYNC: {
     id: 'cloud_sync',
     name: 'Cloud Backup',
-    description: 'Never lose your precious memories',
+    description: 'Sync shared memories across signed-in devices',
     category: 'sync',
     emotionalValue: 'Peace of mind for your shared history',
     icon: 'cloud-outline',
@@ -51,8 +50,8 @@ export const SUBSCRIPTION_TIERS = {
     mostPopular: false,
     features: Object.values(PREMIUM_FEATURES),
     emotionalBenefits: [
-      'Protect your love story forever',
-      'Never lose precious memories',
+      'Keep a fuller shared history',
+      'Sync precious memories across devices',
       'Build stronger connection habits',
     ],
     memoryProtection: [
@@ -69,10 +68,10 @@ export const SUBSCRIPTION_TIERS = {
     mostPopular: true,
     features: Object.values(PREMIUM_FEATURES),
     emotionalBenefits: [
-      'Best value: Save 48% vs monthly',
+      'Best value when yearly pricing is lower than monthly',
       'All premium features, all year',
       'Priority support',
-      'Protect your love story forever',
+      'Keep a fuller shared history',
     ],
     memoryProtection: [
       'Unlimited memory storage',

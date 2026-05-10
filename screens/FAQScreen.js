@@ -46,7 +46,7 @@ const FAQ_DATA = [
       },
       {
         q: 'How much does it cost?',
-        a: `The free version includes the core couple experience: prompts, notes, date ideas, shared calendar, Keepsake, app lock, and recaps.\n\nFree users start with 20 prompts, 20 date ideas, and 5 sex positions, and add 5 prompts, 5 date ideas, and 1 sex position each week from your signup day. Free Keepsake shows the last 30 days of your shared story.\n\nPremium users start with 100 prompts, 100 date ideas, and 10 sex positions, then add 15 prompts, 15 date ideas, and 3 sex positions each week from the day premium starts. Premium also includes the Vibe Signal screen and the full Keepsake archive. One subscription covers both linked partners after entitlement sync completes.\n\n• Monthly: ${FALLBACK_PRICES.monthly}\n• Yearly: ${FALLBACK_PRICES.yearly}`,
+        a: `The free version includes the core couple experience: prompts, notes, date ideas, shared calendar, Keepsake, app lock, and recaps.\n\nFree users start with 20 prompts, 20 date ideas, and 5 sex positions, and add 5 prompts, 5 date ideas, and 1 sex position each week from your signup day. Free weekly picks stay in the lower-intensity range. Free Keepsake shows the last 30 days of your shared story.\n\nPremium users start with 100 prompts, 100 date ideas, and 10 sex positions, then add 15 prompts, 15 date ideas, and 3 sex positions each week from the day premium starts. Premium also includes higher-intensity content, the Vibe Signal screen, and the full Keepsake archive. One subscription covers both linked partners after entitlement sync completes.\n\nPrices are shown by the App Store purchase sheet and may vary by region or offer.\n\n• Monthly: ${FALLBACK_PRICES.monthly}\n• Yearly: ${FALLBACK_PRICES.yearly}`,
       },
       {
         q: 'How do I get started?',
@@ -105,7 +105,7 @@ const FAQ_DATA = [
     questions: [
       {
         q: 'What are Heat Levels?',
-        a: 'Heat levels help you choose the intensity of prompts, from emotional connection (1) to explicit (5). All 5 Heat Levels are available on both free and premium. Premium mainly adds a larger content library and the full Keepsake archive.',
+        a: 'Heat levels help you choose the intensity of prompts, from emotional connection (1) to explicit (5). Free weekly picks stay in the lower-intensity range. Premium adds the larger library, higher-intensity content, and the full Keepsake archive.',
       },
       {
         q: 'How do prompts work?',

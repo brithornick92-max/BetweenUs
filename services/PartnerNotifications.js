@@ -57,7 +57,6 @@ const PartnerNotifications = {
       body: 'Something for the two of you is waiting.',
       data: {
         type: 'date_planned',
-        ...(dateTitle ? { title: dateTitle } : {}),
         ...DeepLinkHandler.buildNotificationData('calendar'),
       },
     });
@@ -103,10 +102,9 @@ const PartnerNotifications = {
     const name = senderName || 'Your partner';
     await this._send({
       title: `${name} added something to your calendar`,
-      body: eventTitle ? `${eventTitle} is on your shared calendar.` : 'Open Calendar to see what changed.',
+      body: 'Open Calendar to see what changed.',
       data: {
         type: 'calendar_event_created',
-        ...(eventTitle ? { title: eventTitle } : {}),
         ...DeepLinkHandler.buildNotificationData('calendar'),
       },
     });

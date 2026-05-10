@@ -1,11 +1,15 @@
 {
-    "kiroAgent.configureMCP": "Disabled",
-    "files.watcherExclude": {
-        "**/node_modules/**": true,
-        "**/ios/Pods/**": true,
-        "**/ios/build/**": true,
-        "**/android/.gradle/**": true,
-        "**/android/app/build/**": true,
-        "**/*.ipa": true
-    }
+  "kiroAgent.configureMCP": "Disabled",
+  "files.watcherExclude": {
+    "**/node_modules/**": true,
+    "**/ios/Pods/**": true,
+    "**/ios/build/**": true,
+    "**/android/.gradle/**": true,
+    "**/android/app/build/**": true,
+    "**/*.ipa": true,
+    "**/.git/**": true,
+    "**/android/build/**": true,
+    "**/.expo/**": true
+  },
+  "typescript.tsserver.maxTsServerMemory": 4096
 }

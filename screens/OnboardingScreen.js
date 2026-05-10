@@ -230,7 +230,7 @@ export default function OnboardingScreen({ navigation }) {
   const freePlanFeatures = useMemo(() => ([
     `Starts with ${FREE_LIMITS.WEEK_0_PROMPTS} prompts, ${FREE_LIMITS.WEEK_0_DATES} date ideas, and ${FREE_LIMITS.WEEK_0_POSITIONS} sex positions`,
     `Adds ${FREE_LIMITS.WEEKLY_PROMPTS} prompts, ${FREE_LIMITS.WEEKLY_DATES} date ideas, and ${FREE_LIMITS.WEEKLY_POSITIONS} sex position each week`,
-    'Includes all 5 heat levels, partner linking, shared notes, calendar, app lock, and recaps',
+    'Includes lower-intensity weekly picks, partner linking, shared notes, calendar, app lock, and recaps',
     'Keepsake collects the last 30 days for free users',
   ]), []);
 

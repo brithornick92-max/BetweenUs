@@ -55,6 +55,11 @@ const WEEKLY_LIMITS = {
 };
 
 const PREMIUM_PROMPT_HEAT_LEVELS = [1, 2, 3, 4, 5];
+const FREE_MAX_HEAT_BY_TYPE = {
+  [CONTENT_TYPES.PROMPTS]: 2,
+  [CONTENT_TYPES.DATES]: 2,
+  [CONTENT_TYPES.POSITIONS]: 2,
+};
 
 const normalizeUnlockCount = (value, fallback = 0) => {
   const numeric = Number(value);
@@ -81,18 +86,18 @@ const capSelection = (items, limit) => {
 const UPGRADE_COPY = {
   [CONTENT_TYPES.PROMPTS]: {
     headline: 'Keep more of the conversation open',
-    body: 'Free users start with 20 prompts and add 5 more each week. Premium users start with 100 prompts across every heat level and add 15 more each week.',
-    cta: 'Unlock All Prompts',
+    body: 'Free users start with 20 lower-intensity prompts and add 5 more each week. Premium users start with 100 prompts across every heat level and add 15 more each week.',
+    cta: 'Expand Prompt Library',
   },
   [CONTENT_TYPES.DATES]: {
     headline: 'Ready for more date inspiration?',
-    body: 'Free users start with 20 date ideas and add 5 more each week. Premium users start with 100 date ideas and add 15 more each week.',
-    cta: 'Unlock All Dates',
+    body: 'Free users start with 20 lower-intensity date ideas and add 5 more each week. Premium users start with 100 date ideas across the full date library and add 15 more each week.',
+    cta: 'Expand Date Library',
   },
   [CONTENT_TYPES.POSITIONS]: {
     headline: 'Explore the full sex position library',
-    body: 'Free users start with 5 sex positions and add 1 more each week. Premium users start with 10 sex positions and add 3 more each week.',
-    cta: 'Unlock All Sex Positions',
+    body: 'Free users start with 5 lower-intensity sex positions and add 1 more each week. Premium users start with 10 positions across the full library and add 3 more each week.',
+    cta: 'Expand Position Library',
   },
 };
 
@@ -522,10 +527,13 @@ const buildWeeklySet = (
   const settings = normalizeUserSettings(userSettings);
   const seed = `${type}:${userId || 'anonymous'}:library`;
 
+  const freeMaxHeat = isPremium ? Infinity : (FREE_MAX_HEAT_BY_TYPE[type] ?? 3);
+  const tierAllowedByHeat = (item) => getHeat(item) <= freeMaxHeat;
+
   const eligible = settings.hideSpicy && type === CONTENT_TYPES.POSITIONS
     ? []
     : (Array.isArray(items) ? items : []).filter((item) =>
-        isAllowedByHeat(item, settings)
+        isAllowedByHeat(item, settings) && tierAllowedByHeat(item)
       );
 
   const visibleTargetCount = isPremium

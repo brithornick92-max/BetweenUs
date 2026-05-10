@@ -912,6 +912,34 @@ describe('SupabaseDataLayer memory snapshots', () => {
     expect(rows).toEqual([]);
   });
 
+  it('keeps cached shared rows scoped to the active couple', async () => {
+    await SupabaseDataLayer.init({
+      userId: 'user-1',
+      coupleId: 'couple-old',
+      isPremium: true,
+    });
+
+    await SupabaseDataLayer.saveJournalEntry({
+      title: 'Old couple note',
+      body: 'Should not follow this user into a new couple.',
+      mood: 'calm',
+      tags: [],
+    });
+
+    expect(mockStorageState.has('@betweenus:cache:data:user-1:couple:couple-old:journals')).toBe(true);
+
+    await SupabaseDataLayer.reconfigure({
+      userId: 'user-1',
+      coupleId: 'couple-new',
+      isPremium: true,
+    });
+
+    const rows = await SupabaseDataLayer.getJournalEntries({ limit: 500, visibility: 'shared' });
+
+    expect(rows).toEqual([]);
+    expect(mockStorageState.has('@betweenus:cache:data:user-1:couple:couple-new:journals')).toBe(true);
+  });
+
   it('uses local love note storage as the notes fallback', async () => {
     await SupabaseDataLayer.init({
       userId: 'user-1',

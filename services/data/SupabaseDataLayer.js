@@ -80,12 +80,16 @@ const CACHE_SCOPES = Object.freeze({
   datePlans: 'datePlans',
 });
 
-function offlineQueueKey(userId) {
-  return `${STORAGE_KEYS.CLOUD_SYNC_QUEUE}:${userId || 'anonymous'}`;
+function currentRelationshipScope(coupleId = _coupleId) {
+  return coupleId ? `couple:${coupleId}` : 'solo';
 }
 
-function cacheKey(userId, scope) {
-  return `@betweenus:cache:data:${userId || 'anonymous'}:${scope}`;
+function offlineQueueKey(userId, coupleId = _coupleId) {
+  return `${STORAGE_KEYS.CLOUD_SYNC_QUEUE}:${userId || 'anonymous'}:${currentRelationshipScope(coupleId)}`;
+}
+
+function cacheKey(userId, scope, coupleId = _coupleId) {
+  return `@betweenus:cache:data:${userId || 'anonymous'}:${currentRelationshipScope(coupleId)}:${scope}`;
 }
 
 function makeId() {
@@ -166,6 +170,34 @@ function isPromptRowRevealed(row) {
   return !!(value.isRevealed || value.is_revealed || row?.is_revealed);
 }
 
+function getRowCoupleId(row) {
+  return row?.couple_id || row?.coupleId || row?.value?.couple_id || row?.value?.coupleId || null;
+}
+
+function getRowUserId(row) {
+  return row?.created_by || row?.user_id || row?.userId || row?.value?.user_id || row?.value?.userId || null;
+}
+
+function belongsToCurrentCouple(row) {
+  return !!_coupleId && getRowCoupleId(row) === _coupleId;
+}
+
+function belongsToCurrentUser(row) {
+  return !_userId || getRowUserId(row) === _userId;
+}
+
+function belongsToCurrentDataScope(row) {
+  if (_coupleId) return belongsToCurrentCouple(row);
+  return belongsToCurrentUser(row) && !getRowCoupleId(row);
+}
+
+function queueItemMatchesCurrentScope(item) {
+  const itemUserId = hasOwn(item, 'userId') ? item.userId : _userId;
+  const itemCoupleId = hasOwn(item, 'coupleId') ? item.coupleId : _coupleId;
+
+  return itemUserId === _userId && (itemCoupleId || null) === (_coupleId || null);
+}
+
 async function getOfflineQueue() {
   return storage.get(offlineQueueKey(_userId), []);
 }
@@ -179,6 +211,8 @@ function normalizeQueueItem(item) {
 
   return {
     mutationId: item?.mutationId || randomUUID(),
+    userId: hasOwn(item, 'userId') ? item.userId : (_userId || null),
+    coupleId: hasOwn(item, 'coupleId') ? item.coupleId : (_coupleId || null),
     queuedAt,
     status: item?.status || 'pending',
     attempts: Number.isFinite(Number(item?.attempts)) ? Number(item.attempts) : 0,
@@ -218,6 +252,8 @@ async function enqueueOfflineMutation(mutation) {
 
   queue.push(normalizeQueueItem({
     mutationId: randomUUID(),
+    userId: _userId || null,
+    coupleId: _coupleId || null,
     queuedAt: now(),
     status: 'pending',
     attempts: 0,
@@ -929,6 +965,8 @@ function mapCalendarRow(row) {
 
   return {
     id: row.id,
+    user_id: row.created_by,
+    couple_id: row.couple_id,
     title: row.title || '',
     location: row.location || '',
     notes: row.description || '',
@@ -953,6 +991,8 @@ function mapDatePlanRow(row) {
 
   return {
     id: row.id,
+    user_id: row.created_by,
+    couple_id: row.couple_id,
     title: v.title || '',
     sourceEventId: v.sourceEventId || null,
     locationType: v.locationType || 'home',
@@ -1083,6 +1123,8 @@ function makeOfflineCalendarRow(id, event, base = {}) {
 
   return {
     id,
+    user_id: _userId,
+    couple_id: _coupleId,
     title: event?.title || '',
     location: event?.location || '',
     notes: event?.notes || '',
@@ -1107,6 +1149,8 @@ function makeOfflineDatePlanRow(id, plan, base = {}) {
 
   return {
     id,
+    user_id: _userId,
+    couple_id: _coupleId,
     title: plan?.title || '',
     sourceEventId: plan?.sourceEventId || null,
     locationType: plan?.locationType || 'home',
@@ -1414,13 +1458,15 @@ const SupabaseDataLayer = {
     if (!isCacheFallback(rows)) {
       const mapped = await Promise.all(rows.map((r) => mapJournalRow(r)));
       return replaceCacheSubset(CACHE_SCOPES.journals, mapped, (row) =>
-        (_coupleId && visibility !== 'owned') || row?.user_id === _userId
+        belongsToCurrentDataScope(row)
+        && ((_coupleId && visibility !== 'owned') || row?.user_id === _userId)
       );
     }
 
     const cached = await loadCache(CACHE_SCOPES.journals);
 
     return cached
+      .filter((row) => belongsToCurrentDataScope(row))
       .filter((row) => (_coupleId && visibility !== 'owned') || row?.user_id === _userId)
       .filter((row) => !mood || row?.mood === mood)
       .slice(offset, offset + limit);
@@ -1428,7 +1474,7 @@ const SupabaseDataLayer = {
 
   async getJournalEntry(id) {
     const cached = await loadCache(CACHE_SCOPES.journals);
-    const cachedRow = cached.find((row) => row?.id === id);
+    const cachedRow = cached.find((row) => row?.id === id && belongsToCurrentDataScope(row));
 
     if (cachedRow) return cachedRow;
 
@@ -1456,9 +1502,10 @@ const SupabaseDataLayer = {
     const cached = await loadCache(CACHE_SCOPES.prompts);
 
     const row = cached.find((entry) =>
-      entry?.prompt_id === promptId
-      && entry?.date_key === dk
+      belongsToCurrentDataScope(entry)
       && entry?.user_id === userId
+      && entry?.prompt_id === promptId
+      && entry?.date_key === dk
     ) || null;
 
     if (!row || row?.is_revealed) return row;
@@ -1470,12 +1517,16 @@ const SupabaseDataLayer = {
 
   async _getCachedCheckInByDate(dk) {
     const cached = await loadCache(CACHE_SCOPES.checkIns);
-    return cached.find((entry) => entry?.dateKey === dk && entry?.user_id === _userId) || null;
+    return cached.find((entry) =>
+      belongsToCurrentDataScope(entry)
+      && entry?.dateKey === dk
+      && entry?.user_id === _userId
+    ) || null;
   },
 
   async _getCachedLatestVibe() {
     const cached = await loadCache(CACHE_SCOPES.vibes);
-    return cached.find((row) => row?.user_id === _userId) || null;
+    return cached.find((row) => belongsToCurrentDataScope(row) && row?.user_id === _userId) || null;
   },
 
   // ─── Prompt Answers ──────────────────────────────────────────────────────
@@ -1636,7 +1687,8 @@ const SupabaseDataLayer = {
     if (!isCacheFallback(rows)) {
       const mapped = await Promise.all(rows.map((r) => mapPromptRow(r)));
       return replaceCacheSubset(CACHE_SCOPES.prompts, mapped, (row) =>
-        row?.user_id === _userId
+        belongsToCurrentDataScope(row)
+        && row?.user_id === _userId
         && (!dk || row?.date_key === dk)
         && (!promptId || row?.prompt_id === promptId)
       );
@@ -1645,6 +1697,7 @@ const SupabaseDataLayer = {
     const cached = await loadCache(CACHE_SCOPES.prompts);
 
     return cached
+      .filter((row) => belongsToCurrentDataScope(row))
       .filter((row) => row?.user_id === _userId)
       .filter((row) => !dk || row?.date_key === dk)
       .filter((row) => !promptId || row?.prompt_id === promptId)
@@ -1674,6 +1727,7 @@ const SupabaseDataLayer = {
     const sourceRows = isCacheFallback(rows) ? await loadCache(CACHE_SCOPES.prompts) : rows;
     const sourceStatuses = isCacheFallback(statusRows) ? [] : (statusRows || []);
     const matchingRows = (sourceRows || [])
+      .filter((row) => !isCacheFallback(rows) || belongsToCurrentDataScope(row))
       .filter((row) => !dk || getPromptRowDateKey(row) === dk)
       .filter((row) => !promptId || getPromptRowId(row) === promptId);
     const matchingStatuses = sourceStatuses
@@ -1694,7 +1748,8 @@ const SupabaseDataLayer = {
         return mapPromptRow(r, null, partnerStatus);
       }));
       await replaceCacheSubset(CACHE_SCOPES.prompts, mapped, (row) =>
-        (!dk || row?.date_key === dk)
+        belongsToCurrentDataScope(row)
+        && (!dk || row?.date_key === dk)
         && (!promptId || row?.prompt_id === promptId)
       );
     }
@@ -1912,6 +1967,7 @@ const SupabaseDataLayer = {
       const cached = await loadCache(CACHE_SCOPES.memories);
 
       return cached
+        .filter((row) => belongsToCurrentDataScope(row))
         .filter((row) => row?.user_id === _userId)
         .filter((row) => !type || row?.type === type)
         .slice(offset, offset + limit);
@@ -1932,7 +1988,8 @@ const SupabaseDataLayer = {
     if (!isCacheFallback(rows)) {
       const mapped = await Promise.all(rows.map((r) => mapMemoryRow(r)));
       return replaceCacheSubset(CACHE_SCOPES.memories, mapped, (row) =>
-        ((_coupleId && !ownedOnly) || row?.user_id === _userId)
+        belongsToCurrentDataScope(row)
+        && ((_coupleId && !ownedOnly) || row?.user_id === _userId)
         && (!type || row?.type === type)
       );
     }
@@ -1940,6 +1997,7 @@ const SupabaseDataLayer = {
     const cached = await loadCache(CACHE_SCOPES.memories);
 
     return cached
+      .filter((row) => belongsToCurrentDataScope(row))
       .filter((row) => (_coupleId && !ownedOnly) || row?.user_id === _userId)
       .filter((row) => !type || row?.type === type)
       .slice(offset, offset + limit);
@@ -1963,13 +2021,15 @@ const SupabaseDataLayer = {
     if (!isCacheFallback(rows)) {
       const mapped = await Promise.all(rows.map((r) => mapMemoryRow(r)));
       return replaceCacheSubset(CACHE_SCOPES.memories, mapped, (row) =>
-        !type || row?.type === type
+        belongsToCurrentDataScope(row)
+        && (!type || row?.type === type)
       );
     }
 
     const cached = await loadCache(CACHE_SCOPES.memories);
 
     return cached
+      .filter((row) => belongsToCurrentDataScope(row))
       .filter((row) => !type || row?.type === type)
       .slice(offset, offset + limit);
   },
@@ -1989,7 +2049,7 @@ const SupabaseDataLayer = {
     if ('occurred_at' in updates) valuePatch.occurred_at = updates.occurred_at || null;
 
     const cachedRows = await loadCache(CACHE_SCOPES.memories);
-    const cached = cachedRows.find((row) => row?.id === id) || {};
+    const cached = cachedRows.find((row) => row?.id === id && belongsToCurrentDataScope(row)) || {};
     const cachedUpdate = {
       id,
       user_id: cached.user_id || _userId,
@@ -2072,7 +2132,7 @@ const SupabaseDataLayer = {
     return runCloudOperation({
       perform: async () => (existing ? cdUpdate(existing.id, value) : cdInsert('check_in', id, value)),
       onSuccess: async (row) => {
-        const mapped = { ...row, ...(row.value || {}) };
+        const mapped = { ...row, user_id: row.created_by, couple_id: row.couple_id, ...(row.value || {}) };
         await upsertCacheRow(CACHE_SCOPES.checkIns, mapped);
         return mapped;
       },
@@ -2101,7 +2161,7 @@ const SupabaseDataLayer = {
     });
 
     if (!isCacheFallback(rows)) {
-      const mapped = rows.map((r) => ({ ...r, ...(r.value || {}) }));
+      const mapped = rows.map((r) => ({ ...r, user_id: r.created_by, couple_id: r.couple_id, ...(r.value || {}) }));
       await replaceCache(CACHE_SCOPES.checkIns, mapped);
       return mapped;
     }
@@ -2109,6 +2169,7 @@ const SupabaseDataLayer = {
     const cached = await loadCache(CACHE_SCOPES.checkIns);
 
     return cached
+      .filter((row) => belongsToCurrentDataScope(row))
       .filter((row) => row?.user_id === _userId)
       .slice(offset, offset + limit);
   },
@@ -2125,7 +2186,7 @@ const SupabaseDataLayer = {
       return null;
     }
 
-    const mapped = { ...row, ...(row.value || {}) };
+    const mapped = { ...row, user_id: row.created_by, couple_id: row.couple_id, ...(row.value || {}) };
     await upsertCacheRow(CACHE_SCOPES.checkIns, mapped);
     return mapped;
   },
@@ -2164,7 +2225,7 @@ const SupabaseDataLayer = {
     return runCloudOperation({
       perform: async () => cdInsert('vibe', id, value),
       onSuccess: async (row) => {
-        const mapped = { ...row, ...(row.value || {}) };
+        const mapped = { ...row, user_id: row.created_by, couple_id: row.couple_id, ...(row.value || {}) };
         await upsertCacheRow(CACHE_SCOPES.vibes, mapped);
         return mapped;
       },
@@ -2191,7 +2252,7 @@ const SupabaseDataLayer = {
     });
 
     if (!isCacheFallback(rows)) {
-      const mapped = rows.map((r) => ({ ...r, ...(r.value || {}) }));
+      const mapped = rows.map((r) => ({ ...r, user_id: r.created_by, couple_id: r.couple_id, ...(r.value || {}) }));
       await replaceCache(CACHE_SCOPES.vibes, mapped);
       return mapped;
     }
@@ -2199,6 +2260,7 @@ const SupabaseDataLayer = {
     const cached = await loadCache(CACHE_SCOPES.vibes);
 
     return cached
+      .filter((row) => belongsToCurrentDataScope(row))
       .filter((row) => row?.user_id === _userId)
       .slice(0, limit);
   },
@@ -2237,7 +2299,7 @@ const SupabaseDataLayer = {
       return null;
     }
 
-    const mapped = { ...data, ...(data.value || {}) };
+    const mapped = { ...data, user_id: data.created_by, couple_id: data.couple_id, ...(data.value || {}) };
     await upsertCacheRow(CACHE_SCOPES.vibes, mapped);
     return mapped;
   },
@@ -2485,12 +2547,16 @@ const SupabaseDataLayer = {
 
     if (!sb) {
       const cached = await loadCache(CACHE_SCOPES.calendar);
-      return cached.slice(0, limit);
+      return cached
+        .filter((row) => belongsToCurrentDataScope(row))
+        .slice(0, limit);
     }
 
     if (!_coupleId) {
       const cached = await loadCache(CACHE_SCOPES.calendar);
-      return cached.slice(0, limit);
+      return cached
+        .filter((row) => belongsToCurrentDataScope(row))
+        .slice(0, limit);
     }
 
     const { data, error } = await sb
@@ -2506,7 +2572,9 @@ const SupabaseDataLayer = {
       }
 
       const cached = await loadCache(CACHE_SCOPES.calendar);
-      return cached.slice(0, limit);
+      return cached
+        .filter((row) => belongsToCurrentDataScope(row))
+        .slice(0, limit);
     }
 
     const mapped = (data || []).map(mapCalendarRow);
@@ -2585,6 +2653,7 @@ const SupabaseDataLayer = {
     const cachedPlans = await loadCache(CACHE_SCOPES.datePlans);
 
     cachedPlans
+      .filter((plan) => belongsToCurrentDataScope(plan))
       .filter((plan) => sourceEventIds.includes(plan?.sourceEventId))
       .forEach((plan) => {
         if (plan?.id) relatedDatePlanIds.add(plan.id);
@@ -2758,7 +2827,9 @@ const SupabaseDataLayer = {
     }
 
     const cached = await loadCache(CACHE_SCOPES.datePlans);
-    return cached.slice(0, limit);
+    return cached
+      .filter((row) => belongsToCurrentDataScope(row))
+      .slice(0, limit);
   },
 
   async getDateShortlist({ userId } = {}) {
@@ -2895,6 +2966,10 @@ const SupabaseDataLayer = {
 
       for (const rawItem of queue) {
         const item = normalizeQueueItem(rawItem);
+
+        if (!queueItemMatchesCurrentScope(item)) {
+          continue;
+        }
 
         if (item.status === 'in_flight') {
           continue;

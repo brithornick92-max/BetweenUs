@@ -61,23 +61,31 @@ describe('PartnerNotifications', () => {
   it('datePlanned — sends correct route', async () => {
     await PartnerNotifications.datePlanned('Alex', 'Movie Night');
 
+    const payload = mockNotifyPartner.mock.calls[0][1];
     expect(mockNotifyPartner).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({
-        data: expect.objectContaining({ route: 'calendar', type: 'date_planned', title: 'Movie Night' }),
+        data: expect.objectContaining({ route: 'calendar', type: 'date_planned' }),
       })
     );
+    expect(payload.title).toContain('Alex');
+    expect(payload.body).not.toContain('Movie Night');
+    expect(payload.data).not.toHaveProperty('title');
   });
 
   it('calendarEventCreated — sends correct route', async () => {
     await PartnerNotifications.calendarEventCreated('Alex', 'Dinner');
 
+    const payload = mockNotifyPartner.mock.calls[0][1];
     expect(mockNotifyPartner).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({
-        data: expect.objectContaining({ route: 'calendar', type: 'calendar_event_created', title: 'Dinner' }),
+        data: expect.objectContaining({ route: 'calendar', type: 'calendar_event_created' }),
       })
     );
+    expect(payload.title).toContain('Alex');
+    expect(payload.body).not.toContain('Dinner');
+    expect(payload.data).not.toHaveProperty('title');
   });
 
   it('quizAnswered — sends correct route', async () => {

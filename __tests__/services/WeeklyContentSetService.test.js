@@ -88,9 +88,9 @@ describe('WeeklyContentSetService', () => {
   const positions = [
     makePosition('i1', 1, 'deep-connection', 'low-mobility', 'Soft connected hold'),
     makePosition('i2', 2, 'playful-energy', 'low-mobility', 'Playful low mobility'),
-    makePosition('i3', 3, 'exploratory', 'standard', 'Exploratory position'),
-    makePosition('i4', 3, 'trust-vulnerability', 'standard', 'Trust position'),
-    makePosition('i5', 3, 'sensual-rhythm', 'active', 'Rhythm position'),
+    makePosition('i3', 2, 'exploratory', 'standard', 'Exploratory position'),
+    makePosition('i4', 2, 'trust-vulnerability', 'standard', 'Trust position'),
+    makePosition('i5', 2, 'sensual-rhythm', 'active', 'Rhythm position'),
     makePosition('i6', 2, 'deep-connection', 'standard', 'Connected standard'),
   ];
 
@@ -288,7 +288,7 @@ describe('WeeklyContentSetService', () => {
   });
 
   it('builds free prompt welcome-week libraries with 20 usable cards and no locked previews', () => {
-    const result = buildWeeklySet(makePromptCatalog(6), {
+    const result = buildWeeklySet(makePromptCatalog(12), {
       contentType: CONTENT_TYPES.PROMPTS,
       userId: 'free-user',
       isPremium: false,
@@ -305,7 +305,7 @@ describe('WeeklyContentSetService', () => {
   });
 
   it('grows the free prompt library by 5 cards each week', () => {
-    const result = buildWeeklySet(makePromptCatalog(8), {
+    const result = buildWeeklySet(makePromptCatalog(30), {
       contentType: CONTENT_TYPES.PROMPTS,
       userId: 'free-user',
       isPremium: false,
@@ -320,7 +320,7 @@ describe('WeeklyContentSetService', () => {
   });
 
   it('builds free date welcome-week libraries with 20 usable cards and no locked previews', () => {
-    const result = buildWeeklySet(makeDateCatalog(), {
+    const result = buildWeeklySet(makeDateCatalog(40), {
       contentType: CONTENT_TYPES.DATES,
       userId: 'free-user',
       isPremium: false,
@@ -336,7 +336,7 @@ describe('WeeklyContentSetService', () => {
   });
 
   it('grows the free date library by 5 cards each week', () => {
-    const result = buildWeeklySet(makeDateCatalog(50), {
+    const result = buildWeeklySet(makeDateCatalog(80), {
       contentType: CONTENT_TYPES.DATES,
       userId: 'free-user',
       isPremium: false,
@@ -390,7 +390,7 @@ describe('WeeklyContentSetService', () => {
     const positionCatalog = Array.from({ length: 12 }, (_, index) =>
       makePosition(
         `free-ip${index + 1}`,
-        (index % 5) + 1,
+        (index % 2) + 1,
         ['deep-connection', 'playful-energy', 'exploratory', 'trust-vulnerability', 'sensual-rhythm'][index % 5],
         ['low-mobility', 'standard', 'active'][index % 3],
         `Free position ${index + 1}`
@@ -415,7 +415,7 @@ describe('WeeklyContentSetService', () => {
     const positionCatalog = Array.from({ length: 12 }, (_, index) =>
       makePosition(
         `free-ip${index + 1}`,
-        (index % 3) + 1,
+        (index % 2) + 1,
         ['deep-connection', 'playful-energy', 'exploratory', 'trust-vulnerability', 'sensual-rhythm'][index % 5],
         ['low-mobility', 'standard', 'active'][index % 3],
         `Free position ${index + 1}`
@@ -522,10 +522,10 @@ describe('WeeklyContentSetService', () => {
   it('keeps upgrade copy aligned with the new growth model', () => {
     expect(UPGRADE_COPY.prompts.body).toContain('add 5 more each week');
     expect(UPGRADE_COPY.dates.body).toContain('add 5 more each week');
-    expect(UPGRADE_COPY.prompts.body).toContain('20 prompts');
-    expect(UPGRADE_COPY.dates.body).toContain('20 date ideas');
-    expect(UPGRADE_COPY.positions.body).toContain('Free users start with 5 sex positions');
-    expect(UPGRADE_COPY.positions.body).toContain('Premium users start with 10 sex positions');
+    expect(UPGRADE_COPY.prompts.body).toContain('20 lower-intensity prompts');
+    expect(UPGRADE_COPY.dates.body).toContain('20 lower-intensity date ideas');
+    expect(UPGRADE_COPY.positions.body).toContain('Free users start with 5 lower-intensity sex positions');
+    expect(UPGRADE_COPY.positions.body).toContain('Premium users start with 10 positions');
   });
 
   it('respects maxHeat when building weekly sets', () => {
@@ -538,6 +538,34 @@ describe('WeeklyContentSetService', () => {
     });
 
     expect(result.items.every((item) => item.heat <= 2)).toBe(true);
+  });
+
+  it('keeps free weekly libraries in the lower-intensity range', () => {
+    const freePrompts = buildWeeklySet(makePromptCatalog(20), {
+      contentType: CONTENT_TYPES.PROMPTS,
+      userId: 'free-prompt-safety',
+      isPremium: false,
+      userSettings: { maxHeat: 5 },
+      date: TEST_DATE,
+    });
+    const freeDates = buildWeeklySet(makeDateCatalog(80), {
+      contentType: CONTENT_TYPES.DATES,
+      userId: 'free-date-safety',
+      isPremium: false,
+      userSettings: { maxHeat: 5 },
+      date: TEST_DATE,
+    });
+    const freePositions = buildWeeklySet(makePositionCatalog(80), {
+      contentType: CONTENT_TYPES.POSITIONS,
+      userId: 'free-position-safety',
+      isPremium: false,
+      userSettings: { maxHeat: 5 },
+      date: TEST_DATE,
+    });
+
+    expect(freePrompts.items.every((item) => item.heat <= 2)).toBe(true);
+    expect(freeDates.items.every((item) => item.heat <= 2)).toBe(true);
+    expect(freePositions.items.every((item) => item.heat <= 2)).toBe(true);
   });
 
   it('returns stable picks for the same user and week', () => {
@@ -561,7 +589,7 @@ describe('WeeklyContentSetService', () => {
   });
 
   it('keeps earlier free cards when the cumulative prompt library grows', () => {
-    const catalog = makePromptCatalog(10);
+    const catalog = makePromptCatalog(20);
     const baseOptions = {
       contentType: CONTENT_TYPES.PROMPTS,
       userId: 'growing-free-user',

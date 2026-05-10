@@ -77,7 +77,7 @@ jest.mock('../../config/supabase', () => ({
   },
 }));
 
-const queueKey = '@betweenus:cache:cloudSyncQueue:user-1';
+const queueKey = '@betweenus:cache:cloudSyncQueue:user-1:couple:couple-1';
 
 const makeQueuedJournalInsert = (overrides = {}) => ({
   mutationId: 'mutation-1',
@@ -213,6 +213,27 @@ describe('SupabaseDataLayer offline queue', () => {
         attempts: 1,
       })
     );
+  });
+
+  it('does not flush queue items from a different couple scope', async () => {
+    mockStorageState.set(queueKey, [
+      makeQueuedJournalInsert({
+        coupleId: 'couple-old',
+      }),
+    ]);
+
+    await SupabaseDataLayer.init({
+      userId: 'user-1',
+      coupleId: 'couple-1',
+      isPremium: true,
+    });
+
+    expect(mockUpsert).not.toHaveBeenCalled();
+    expect(mockStorageState.get(queueKey)).toEqual([
+      expect.objectContaining({
+        coupleId: 'couple-old',
+      }),
+    ]);
   });
 
   it('flushes queued calendar writes with upsert instead of re-enqueueing through public APIs', async () => {
