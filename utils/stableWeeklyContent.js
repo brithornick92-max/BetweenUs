@@ -30,16 +30,19 @@ const getTargetCount = (weeklySet) => {
 export function getWeeklyContentAllocationKey({
   contentType = 'prompts',
   userId = 'anonymous',
+  coupleId = null,
   isPremium = false,
   userCreatedAt = null,
   weekNumber = 0,
   contentVersion = CONTENT_CATALOG_VERSION,
   schedulerVersion = WEEKLY_CONTENT_SCHEDULER_VERSION,
 } = {}) {
+  const allocationOwnerId = coupleId ? `couple:${coupleId}` : userId || 'anonymous';
+
   return [
     normalizePart(contentType),
     normalizePart(isPremium ? 'premium' : 'free'),
-    normalizePart(userId || 'anonymous'),
+    normalizePart(allocationOwnerId),
     normalizePart(normalizeDateStamp(userCreatedAt)),
     `week_${Number.isFinite(Number(weekNumber)) ? Number(weekNumber) : 0}`,
     normalizePart(contentVersion),
@@ -78,11 +81,14 @@ export async function buildStableWeeklySet(items, options = {}) {
   const candidateSet = buildWeeklySet(sourceItems, options);
   const targetCount = getTargetCount(candidateSet);
   const userId = options.userId || 'anonymous';
+  const coupleId = options.coupleId || null;
+  const allocationOwnerId = coupleId ? `couple:${coupleId}` : userId;
   const contentVersion = options.contentVersion || CONTENT_CATALOG_VERSION;
   const schedulerVersion = options.schedulerVersion || WEEKLY_CONTENT_SCHEDULER_VERSION;
   const allocationKey = getWeeklyContentAllocationKey({
     contentType: candidateSet.contentType,
     userId,
+    coupleId,
     isPremium: candidateSet.isPremium,
     userCreatedAt: options.userCreatedAt,
     weekNumber: candidateSet.weekNumber,
@@ -132,6 +138,8 @@ export async function buildStableWeeklySet(items, options = {}) {
       schedulerVersion,
       isPremium: candidateSet.isPremium,
       userId,
+      coupleId,
+      allocationOwnerId,
       anchorDate: normalizeDateStamp(options.userCreatedAt),
       weekNumber: candidateSet.weekNumber,
       targetCount,

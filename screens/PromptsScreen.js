@@ -32,6 +32,7 @@ import { PremiumFeature } from '../utils/featureFlags';
 import { useTheme } from "../context/ThemeContext";
 import { useEntitlements } from "../context/EntitlementsContext";
 import { useAuth } from "../context/AuthContext";
+import { useAppContext } from "../context/AppContext";
 import * as PreferenceEngine from "../services/PreferenceEngine";
 import { CONTENT_TYPES } from "../services/WeeklyContentSetService";
 import PromptCardDeck from "../components/PromptCardDeck";
@@ -230,6 +231,8 @@ export default function PromptsScreen({ navigation }) {
   const { isDark } = useTheme();
   const { isPremiumEffective: isPremium, premiumStartedAt, showPaywall } = useEntitlements();
   const { user, userProfile } = useAuth();
+  const { state } = useAppContext();
+  const coupleId = state?.coupleId || userProfile?.coupleId || userProfile?.couple_id || null;
 
   const [weeklyPromptSet, setWeeklyPromptSet] = useState(null);
   const [selectedTone, setSelectedTone] = useState('warm');
@@ -341,6 +344,7 @@ export default function PromptsScreen({ navigation }) {
       const weeklySet = await buildStableWeeklySet(activeBoundaryEligible, {
         contentType: CONTENT_TYPES.PROMPTS,
         userId: user?.uid || user?.id || 'anonymous',
+        coupleId,
         isPremium,
         userSettings: contentProfile || userProfile || {},
         userCreatedAt: contentAnchorDate,
@@ -357,7 +361,7 @@ export default function PromptsScreen({ navigation }) {
     } finally {
       setLoading(false);
     }
-  }, [activePromptUserId, contentAnchorDate, contentProfile, isPremium, user?.id, user?.uid, userProfile, rawBoundaries]);
+  }, [activePromptUserId, contentAnchorDate, contentProfile, coupleId, isPremium, user?.id, user?.uid, userProfile, rawBoundaries]);
 
   useEffect(() => {
     loadPrompts();

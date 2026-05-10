@@ -53,7 +53,11 @@ const CrashReporting = {
         enableLogs: true,
         // Integrations: replay + user feedback widget
         integrations: [
-          Sentry.mobileReplayIntegration(),
+          Sentry.mobileReplayIntegration({
+            maskAllText: true,
+            maskAllImages: true,
+            maskAllVectors: true,
+          }),
           Sentry.feedbackIntegration(),
         ],
         // Strip PII from breadcrumbs

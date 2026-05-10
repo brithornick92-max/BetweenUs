@@ -398,6 +398,13 @@ export const ContentProvider = ({ children }) => {
               sharedPromptSource = 'supabase_confirmed';
             }
           }
+
+          if (!saved && !cachedPrompt?.text) {
+            setTodayPrompt(null);
+            PromptAllocator.setDailyPromptId(null);
+            updateWidgetPrompt('').catch(() => {});
+            return null;
+          }
         }
 
         if (sharedPrompt?.text) {

@@ -3049,23 +3049,23 @@ CREATE POLICY "Deny client entitlement writes" ON "public"."user_entitlements" F
 
 
 
-CREATE POLICY "Premium members can delete calendar events" ON "public"."calendar_events" FOR DELETE USING (((EXISTS ( SELECT 1
+CREATE POLICY "Couple members can delete calendar events" ON "public"."calendar_events" FOR DELETE USING ((EXISTS ( SELECT 1
    FROM "public"."couple_members" "m"
-  WHERE (("m"."couple_id" = "calendar_events"."couple_id") AND ("m"."user_id" = "auth"."uid"())))) AND "public"."couple_has_premium"("couple_id")));
+  WHERE (("m"."couple_id" = "calendar_events"."couple_id") AND ("m"."user_id" = "auth"."uid"())))));
 
 
 
-CREATE POLICY "Premium members can update calendar events" ON "public"."calendar_events" FOR UPDATE USING (((EXISTS ( SELECT 1
+CREATE POLICY "Couple members can update calendar events" ON "public"."calendar_events" FOR UPDATE USING ((EXISTS ( SELECT 1
    FROM "public"."couple_members" "m"
-  WHERE (("m"."couple_id" = "calendar_events"."couple_id") AND ("m"."user_id" = "auth"."uid"())))) AND "public"."couple_has_premium"("couple_id"))) WITH CHECK (((EXISTS ( SELECT 1
+  WHERE (("m"."couple_id" = "calendar_events"."couple_id") AND ("m"."user_id" = "auth"."uid"()))))) WITH CHECK ((EXISTS ( SELECT 1
    FROM "public"."couple_members" "m"
-  WHERE (("m"."couple_id" = "calendar_events"."couple_id") AND ("m"."user_id" = "auth"."uid"())))) AND "public"."couple_has_premium"("couple_id")));
+  WHERE (("m"."couple_id" = "calendar_events"."couple_id") AND ("m"."user_id" = "auth"."uid"())))));
 
 
 
-CREATE POLICY "Premium members can create calendar events" ON "public"."calendar_events" FOR INSERT WITH CHECK ((("created_by" = "auth"."uid"()) AND (EXISTS ( SELECT 1
+CREATE POLICY "Couple members can create calendar events" ON "public"."calendar_events" FOR INSERT WITH CHECK ((("created_by" = "auth"."uid"()) AND (EXISTS ( SELECT 1
    FROM "public"."couple_members" "m"
-  WHERE (("m"."couple_id" = "calendar_events"."couple_id") AND ("m"."user_id" = "auth"."uid"())))) AND "public"."couple_has_premium"("couple_id")));
+  WHERE (("m"."couple_id" = "calendar_events"."couple_id") AND ("m"."user_id" = "auth"."uid"()))))));
 
 
 

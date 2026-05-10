@@ -55,7 +55,7 @@ export async function ensureDefaultNotificationChannel() {
     vibrationPattern: [0, 250, 250, 250],
     lightColor: REMINDER_CATEGORY_COLORS.intimacy,
     sound: true,
-    lockscreenVisibility: Notifications.AndroidNotificationVisibility?.PUBLIC,
+    lockscreenVisibility: Notifications.AndroidNotificationVisibility?.PRIVATE,
   }).catch(() => {});
 }
 

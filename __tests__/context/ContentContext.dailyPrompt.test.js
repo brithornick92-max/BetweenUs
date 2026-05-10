@@ -480,6 +480,52 @@ describe('ContentContext daily prompt stability', () => {
     tree.unmount();
   });
 
+  it('does not display a new couple prompt when the assignment cannot be saved and no cache exists', async () => {
+    const coupleStateService = require('../../services/couple/CoupleStateService');
+    const contentCoupleService = require('../../services/content/ContentCoupleService');
+    const expectedPromptId = expectedCouplePromptId(TODAY_KEY, 'couple-1');
+
+    coupleStateService.getActiveCoupleId.mockResolvedValue('couple-1');
+    contentCoupleService.getSharedDailyPromptSelection.mockResolvedValue(null);
+    contentCoupleService.saveSharedDailyPromptSelection.mockResolvedValue(false);
+    mockStorageGet.mockImplementation(async (key) => {
+      if (key === DAILY_PROMPT_CACHE_KEY) {
+        return null;
+      }
+      if (key === 'contentDeckRestores') {
+        return {
+          prompts: [],
+          dates: [],
+          positions: [],
+        };
+      }
+      return null;
+    });
+
+    const tree = await mountProvider();
+
+    let prompt;
+    await renderer.act(async () => {
+      prompt = await capturedContext.loadTodayPrompt();
+    });
+
+    expect(prompt).toBeNull();
+    expect(contentCoupleService.saveSharedDailyPromptSelection).toHaveBeenCalledWith(
+      TODAY_KEY,
+      expectedPromptId,
+      'user-1',
+      expect.objectContaining({ fallbackCoupleId: 'couple-1' })
+    );
+    expect(mockStorageSet).not.toHaveBeenCalledWith(
+      DAILY_PROMPT_CACHE_KEY,
+      expect.anything()
+    );
+    expect(mockSetDailyPromptId).toHaveBeenCalledWith(null);
+    expect(mockUpdateWidgetPrompt).toHaveBeenCalledWith('');
+
+    tree.unmount();
+  });
+
   it('re-reads the shared couple prompt after saving so the first cloud writer wins', async () => {
     const coupleStateService = require('../../services/couple/CoupleStateService');
     const contentCoupleService = require('../../services/content/ContentCoupleService');

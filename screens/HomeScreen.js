@@ -168,7 +168,7 @@ export default function HomeScreen({ navigation }) {
   const disclosure = useProgressiveDisclosure(answeredCount);
   const preferredName = getMyDisplayName(userProfile, state?.userProfile, user?.displayName || null);
   const partnerLabel = getPartnerDisplayName(userProfile, state?.userProfile, 'your partner');
-  const coupleId = state?.coupleId || userProfile?.coupleId || null;
+  const coupleId = state?.coupleId || userProfile?.coupleId || userProfile?.couple_id || null;
   const isLinked = !!coupleId;
   const activePromptUserId = user?.id || user?.uid || state?.userId || null;
 
@@ -688,6 +688,7 @@ export default function HomeScreen({ navigation }) {
           );
           const isWeeklyPrompt = await isItemInStableFreeWeeklyDeck(prompt.id, weeklyEligiblePrompts, {
             contentType: CONTENT_TYPES.PROMPTS,
+            coupleId,
             user,
             userProfile,
             userSettings: profile || userProfile || {},
@@ -732,6 +733,8 @@ export default function HomeScreen({ navigation }) {
         nextRevealed = !!(refreshedRow?.isRevealed || refreshedRow?.is_revealed);
       } catch (dataLayerError) {
         if (__DEV__) console.warn('[Home] DataLayer prompt save failed:', dataLayerError?.message);
+        Alert.alert('Something didn\u2019t work', "We couldn\u2019t save your thoughts. Please try again.");
+        return;
       }
 
       await promptStorage.setAnswer(todayKey, prompt.id, {
@@ -807,6 +810,7 @@ export default function HomeScreen({ navigation }) {
     prompt,
     user,
     userProfile,
+    coupleId,
     isPremium,
     myAnswer,
     partnerAnswer,

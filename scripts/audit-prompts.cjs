@@ -91,7 +91,7 @@ items.forEach((p, idx) => {
     }
   }
 });
-console.log(`\nID/heat prefix mismatches: ${idHeatMismatches.length}`);
+console.log(`\nLegacy ID/heat prefix mismatches: ${idHeatMismatches.length} (heat field is canonical; do not rename stable ids)`);
 
 // ============================================================================
 // 3. CATEGORY VALIDATION

@@ -9,6 +9,7 @@ const getItemId = (item) => item?.id ?? item?.promptId ?? item?.dateId ?? null;
 export async function getStableFreeWeeklyDeck(items, {
   contentType,
   userId,
+  coupleId,
   user,
   userProfile,
   userSettings = {},
@@ -17,6 +18,7 @@ export async function getStableFreeWeeklyDeck(items, {
   const weeklySet = await buildStableWeeklySet(Array.isArray(items) ? items : [], {
     contentType,
     userId: userId || resolvePromptUsageUserId(user, userProfile),
+    coupleId,
     isPremium: false,
     userSettings,
     userCreatedAt: resolveUserCreatedAt(user, userProfile),

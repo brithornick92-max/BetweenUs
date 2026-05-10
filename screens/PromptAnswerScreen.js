@@ -79,6 +79,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
   const { user, userProfile } = useAuth();
   const { state } = useAppContext();
   const { loadUsageStatus } = useContent();
+  const coupleId = state?.coupleId || userProfile?.coupleId || userProfile?.couple_id || null;
 
   const [prompt, setPrompt] = useState(routePrompt || null);
   const [answer, setAnswer] = useState("");
@@ -173,6 +174,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
         );
         const isWeeklyPrompt = await isItemInStableFreeWeeklyDeck(resolvedPrompt.id, weeklyEligiblePrompts, {
           contentType: CONTENT_TYPES.PROMPTS,
+          coupleId,
           user,
           userProfile,
           userSettings: profile || userProfile || {},
@@ -202,7 +204,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
     return () => {
       active = false;
     };
-  }, [routePrompt, promptId, routeDateKey, routeDateKeySnake, navigation, userProfile, isPremium, showPaywall, user]);
+  }, [coupleId, routePrompt, promptId, routeDateKey, routeDateKeySnake, navigation, userProfile, isPremium, showPaywall, user]);
 
   const loadExistingAnswer = useCallback(async () => {
     if (!prompt?.id) return;
@@ -337,6 +339,8 @@ export default function PromptAnswerScreen({ route, navigation }) {
         syncedAnswer = await DataLayer.getPromptAnswerForToday(prompt.id, prompt.dateKey);
       } catch (dataLayerError) {
         if (__DEV__) console.warn('[PromptAnswer] DataLayer prompt save failed:', dataLayerError?.message);
+        Alert.alert("We couldn't save your answer", "Please check your connection and try again.");
+        return;
       }
 
       // Keep a local answer even when the shared cloud row cannot be written yet.

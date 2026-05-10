@@ -48,6 +48,8 @@ export const FREE_LIMITS = Object.freeze({
   FULL_DATE_FLOWS_PER_WEEK: Infinity, // Planning stays usable on the free tier
   JOURNAL_ENTRIES_VISIBLE: Infinity, // Notes stay usable on the free tier
   FREE_HEAT_LEVELS: [1, 2, 3, 4, 5],
+  FREE_LIBRARY_HEAT_LEVELS: [1, 2],
+  FREE_DAILY_HEAT_LEVELS: [1, 2, 3],
   SURPRISE_ME_ENABLED: true,
   CALENDAR_ENABLED: true,
   PARTNER_LINKING_ENABLED: true,

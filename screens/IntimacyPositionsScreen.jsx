@@ -21,6 +21,7 @@ import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/nativ
 import { useTheme } from '../context/ThemeContext';
 import { useEntitlements } from '../context/EntitlementsContext';
 import { useAuth } from '../context/AuthContext';
+import { useAppContext } from '../context/AppContext';
 import { getPartnerDisplayName } from '../utils/profileNames';
 import contentAccessService from '../services/ContentAccessService';
 import { CONTENT_TYPES } from '../services/WeeklyContentSetService';
@@ -106,6 +107,8 @@ export default function IntimacyPositionsScreen() {
   const { colors, isDark } = useTheme();
   const { isPremiumEffective, premiumStartedAt, showPaywall } = useEntitlements();
   const { userProfile } = useAuth();
+  const { state } = useAppContext();
+  const coupleId = state?.coupleId || userProfile?.coupleId || userProfile?.couple_id || null;
   const navigation = useNavigation();
   const route = useRoute();
   const { width } = useWindowDimensions();
@@ -216,6 +219,7 @@ export default function IntimacyPositionsScreen() {
     const weeklySet = await buildStableWeeklySet(result.positions || [], {
       contentType: CONTENT_TYPES.POSITIONS,
       userId: userProfile?.id || userProfile?.user_id || userProfile?.uid || userProfile?.sub || 'anonymous',
+      coupleId,
       isPremium: isPremiumEffective,
       userSettings,
       userCreatedAt: contentAnchorDate,
@@ -223,7 +227,7 @@ export default function IntimacyPositionsScreen() {
     });
 
     setWeeklyPositionSet(weeklySet);
-  }, [allowSexPositionContent, contentAnchorDate, isPremiumEffective, positionCatalog, userProfile]);
+  }, [allowSexPositionContent, contentAnchorDate, coupleId, isPremiumEffective, positionCatalog, userProfile]);
 
   const refreshPositionAccess = useCallback(async () => {
     setPositionsLoading(true);

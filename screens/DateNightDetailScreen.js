@@ -70,6 +70,7 @@ export default function DateNightDetailScreen({ route, navigation }) {
   const { user, userProfile } = useAuth();
   const { state } = useAppContext();
   const userId = userProfile?.id || userProfile?.user_id || userProfile?.uid || user?.uid || user?.id || null;
+  const coupleId = state?.coupleId || userProfile?.coupleId || userProfile?.couple_id || null;
   const { loadUsageStatus } = useContent();
   const [date, setDate] = useState(routeDate || null);
   const [dateHistoryEntry, setDateHistoryEntry] = useState(null);
@@ -135,6 +136,7 @@ export default function DateNightDetailScreen({ route, navigation }) {
         const isWeeklyDate = await isItemInStableFreeWeeklyDeck(resolvedDate.id, weeklyEligibleDates, {
           contentType: CONTENT_TYPES.DATES,
           userId,
+          coupleId,
           user,
           userProfile,
           userSettings: profile || userProfile || {},
@@ -176,7 +178,7 @@ export default function DateNightDetailScreen({ route, navigation }) {
     return () => {
       active = false;
     };
-  }, [routeDate, dateId, navigation, userProfile, isPremium, showPaywall, user, userId, loadUsageStatus]);
+  }, [coupleId, routeDate, dateId, navigation, userProfile, isPremium, showPaywall, user, userId, loadUsageStatus]);
 
   const partnerName = useMemo(
     () => getPartnerDisplayName(userProfile, state?.userProfile, 'your partner'),
@@ -255,7 +257,7 @@ export default function DateNightDetailScreen({ route, navigation }) {
       return undefined;
     }
 
-    getDateShortlist(userId)
+    getDateShortlist(userId, coupleId)
       .then(async (rows) => {
         if (!active) return;
         setIsSaved((rows || []).some((row) => row.date_id === date.id));
@@ -272,7 +274,7 @@ export default function DateNightDetailScreen({ route, navigation }) {
     return () => {
       active = false;
     };
-  }, [date?.id, userId]);
+  }, [coupleId, date?.id, userId]);
 
   useEffect(() => {
     autoLoggedRef.current = false;
@@ -365,9 +367,9 @@ export default function DateNightDetailScreen({ route, navigation }) {
     try {
       if (userId) {
         if (wasSaved) {
-          await removeDateFromShortlist(userId, date.id);
+          await removeDateFromShortlist(userId, date.id, coupleId);
         } else {
-          await addDateToShortlist(userId, date.id);
+          await addDateToShortlist(userId, date.id, coupleId);
         }
       }
 

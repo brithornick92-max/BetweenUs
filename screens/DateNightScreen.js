@@ -436,6 +436,7 @@ export default function DateNightScreen({ navigation, route }) {
   const { user, userProfile } = useAuth();
   const { state } = useAppContext();
   const userId = userProfile?.id || userProfile?.user_id || userProfile?.uid || userProfile?.sub || user?.uid || user?.id || null;
+  const coupleId = state?.coupleId || userProfile?.coupleId || userProfile?.couple_id || null;
   const partnerName = useMemo(
     () => getPartnerDisplayName(userProfile, state?.userProfile, 'your partner'),
     [state?.userProfile, userProfile]
@@ -549,6 +550,7 @@ export default function DateNightScreen({ navigation, route }) {
         const weeklySet = await buildStableWeeklySet(activeBoundaryEligible, {
           contentType: CONTENT_TYPES.DATES,
           userId: userId || 'anonymous',
+          coupleId,
           isPremium,
           userSettings: profile || userProfile || {},
           userCreatedAt: contentAnchorDate,
@@ -560,7 +562,7 @@ export default function DateNightScreen({ navigation, route }) {
 
         if (userId) {
           Promise.all([
-            getDateShortlist(userId).catch(() => []),
+            getDateShortlist(userId, coupleId).catch(() => []),
             getDateMatchState(userId).catch(() => ({})),
           ])
             .then(([rows, matches]) => {
@@ -589,7 +591,7 @@ export default function DateNightScreen({ navigation, route }) {
     };
     loadCleanupRef.current = cleanup;
     return cleanup;
-  }, [contentAnchorDate, isPremium, userId, userProfile]);
+  }, [contentAnchorDate, coupleId, isPremium, userId, userProfile]);
 
   useFocusEffect(
     useCallback(() => {
@@ -696,8 +698,8 @@ export default function DateNightScreen({ navigation, route }) {
     const persist = Promise.all([
       userId
         ? (wasSaved
-          ? removeDateFromShortlist(userId, date.id)
-          : addDateToShortlist(userId, date.id))
+          ? removeDateFromShortlist(userId, date.id, coupleId)
+          : addDateToShortlist(userId, date.id, coupleId))
         : Promise.resolve(),
       wasSaved
         ? removeDateSavedKeepsake(date.id)
@@ -716,7 +718,7 @@ export default function DateNightScreen({ navigation, route }) {
 
     setDeckIndex(prev => prev + 1);
     setTopDateRevealed(dateDeckRevealsCards);
-  }, [dateDeckRevealsCards, likedDates, userId, showPaywall]);
+  }, [coupleId, dateDeckRevealsCards, likedDates, userId, showPaywall]);
 
   const handleSwipeLeft = useCallback(() => {
     setDeckIndex(prev => prev + 1);
@@ -832,9 +834,9 @@ export default function DateNightScreen({ navigation, route }) {
     try {
       if (userId) {
         if (wasSaved) {
-          await removeDateFromShortlist(userId, date.id);
+          await removeDateFromShortlist(userId, date.id, coupleId);
         } else {
-          await addDateToShortlist(userId, date.id);
+          await addDateToShortlist(userId, date.id, coupleId);
         }
       }
 
@@ -860,7 +862,7 @@ export default function DateNightScreen({ navigation, route }) {
         return next;
       });
     }
-  }, [likedDates, userId]);
+  }, [coupleId, likedDates, userId]);
 
   const handlePauseDate = useCallback((date) => {    if (!date?.id) return;
 
@@ -874,7 +876,7 @@ export default function DateNightScreen({ navigation, route }) {
           onPress: async () => {
             await SoftBoundaries.pauseDate(date.id);
             if (userId) {
-              await removeDateFromShortlist(userId, date.id).catch(() => {});
+              await removeDateFromShortlist(userId, date.id, coupleId).catch(() => {});
             }
             setLikedDates((prev) => prev.filter((entry) => entry.id !== date.id));
             await refreshBoundaryProfile();
@@ -882,7 +884,7 @@ export default function DateNightScreen({ navigation, route }) {
         },
       ]
     );
-  }, [refreshBoundaryProfile, userId]);
+  }, [coupleId, refreshBoundaryProfile, userId]);
 
   return (
     <View style={[styles.root, { backgroundColor: t.background }]}>

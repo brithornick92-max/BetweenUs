@@ -124,6 +124,7 @@ function isOfflineCapableError(error) {
     || message.includes('timed out')
     || message.includes('failed to fetch')
     || message.includes('network request failed')
+    || message.includes('storage unavailable')
     || message.includes('not paired')
     || message.includes('couple_id is required')
   );
@@ -366,12 +367,12 @@ async function removeQueuedCalendarMutations(id) {
   }
 }
 
-async function runCloudOperation({ perform, onSuccess, onOffline, fallbackOnAnyError = false }) {
+async function runCloudOperation({ perform, onSuccess, onOffline }) {
   try {
     const result = await perform();
     return onSuccess ? await onSuccess(result) : result;
   } catch (error) {
-    if ((!fallbackOnAnyError && !isOfflineCapableError(error)) || !onOffline) throw error;
+    if (!isOfflineCapableError(error) || !onOffline) throw error;
     return onOffline(error);
   }
 }
@@ -1274,7 +1275,6 @@ const SupabaseDataLayer = {
         await upsertCacheRow(CACHE_SCOPES.journals, mapped);
         return mapped;
       },
-      fallbackOnAnyError: true,
     });
   },
 
@@ -1412,7 +1412,6 @@ const SupabaseDataLayer = {
         await upsertCacheRow(CACHE_SCOPES.journals, mapped);
         return mapped;
       },
-      fallbackOnAnyError: true,
     });
   },
 
@@ -1432,7 +1431,6 @@ const SupabaseDataLayer = {
         await enqueueOfflineMutation({ entity: 'journal', action: 'delete', id });
         await removeCacheRow(CACHE_SCOPES.journals, id);
       },
-      fallbackOnAnyError: true,
     });
   },
 
@@ -1595,7 +1593,6 @@ const SupabaseDataLayer = {
         await upsertCacheRow(CACHE_SCOPES.prompts, mapped);
         return mapped;
       },
-      fallbackOnAnyError: true,
     });
   },
 
@@ -1666,7 +1663,6 @@ const SupabaseDataLayer = {
 
         await removeCacheRow(CACHE_SCOPES.prompts, id);
       },
-      fallbackOnAnyError: true,
     });
   },
 
@@ -1958,7 +1954,6 @@ const SupabaseDataLayer = {
         await upsertCacheRow(CACHE_SCOPES.memories, mapped);
         return mapped;
       },
-      fallbackOnAnyError: true,
     });
   },
 
@@ -2089,7 +2084,6 @@ const SupabaseDataLayer = {
         await upsertCacheRow(CACHE_SCOPES.memories, cachedUpdate);
         return cachedUpdate;
       },
-      fallbackOnAnyError: true,
     });
   },
 
@@ -2114,7 +2108,6 @@ const SupabaseDataLayer = {
 
         await removeCacheRow(CACHE_SCOPES.memories, id);
       },
-      fallbackOnAnyError: true,
     });
   },
 
@@ -2454,7 +2447,6 @@ const SupabaseDataLayer = {
 
         return mapped;
       },
-      fallbackOnAnyError: true,
     });
   },
 
@@ -2538,7 +2530,6 @@ const SupabaseDataLayer = {
 
         return mapped;
       },
-      fallbackOnAnyError: true,
     });
   },
 
@@ -2644,7 +2635,6 @@ const SupabaseDataLayer = {
           await removeCacheRow(CACHE_SCOPES.calendar, id);
           if (targetId !== id) await removeCacheRow(CACHE_SCOPES.calendar, targetId);
         },
-        fallbackOnAnyError: true,
       });
     }
 
@@ -2832,8 +2822,8 @@ const SupabaseDataLayer = {
       .slice(0, limit);
   },
 
-  async getDateShortlist({ userId } = {}) {
-    return fetchDateShortlist(userId || _userId);
+  async getDateShortlist({ userId, coupleId } = {}) {
+    return fetchDateShortlist(userId || _userId, coupleId || _coupleId);
   },
 
   async deleteDatePlan(id) {
@@ -2858,7 +2848,6 @@ const SupabaseDataLayer = {
         await removeCacheRow(CACHE_SCOPES.datePlans, id);
       },
       onOffline: removeLocally,
-      fallbackOnAnyError: true,
     });
   },
 

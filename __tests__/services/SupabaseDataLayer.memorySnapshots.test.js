@@ -408,7 +408,7 @@ describe('SupabaseDataLayer memory snapshots', () => {
     expect(JSON.stringify(Array.from(mockStorageState.values()))).toContain('"localMediaUri":"file:///snapshot-photo.jpg"');
   });
 
-  it('removes uploaded memory media if the cloud row insert fails', async () => {
+  it('removes uploaded memory media and rejects if the cloud row insert fails', async () => {
     await SupabaseDataLayer.init({
       userId: 'user-1',
       coupleId: 'couple-1',
@@ -420,20 +420,18 @@ describe('SupabaseDataLayer memory snapshots', () => {
       error: { message: 'new row violates row-level security policy' },
     });
 
-    const saved = await SupabaseDataLayer.saveMemory({
+    await expect(SupabaseDataLayer.saveMemory({
       content: 'Rollback this upload',
       type: 'snapshot',
       mediaUri: 'file:///snapshot-photo.jpg',
       mimeType: 'image/jpeg',
       notifyPartner: false,
-    });
+    })).rejects.toEqual(expect.objectContaining({
+      message: 'new row violates row-level security policy',
+    }));
 
     expect(mockStorageRemove).toHaveBeenCalledWith(['couples/couple-1/mem-test-id-123.jpeg']);
-    expect(saved).toEqual(expect.objectContaining({
-      content: 'Rollback this upload',
-      mediaUri: 'file:///snapshot-photo.jpg',
-      sync_status: 'pending',
-    }));
+    expect(JSON.stringify(Array.from(mockStorageState.values()))).not.toContain('Rollback this upload');
   });
 
   it('keeps selected journal media pending if storage upload fails', async () => {
@@ -681,7 +679,7 @@ describe('SupabaseDataLayer memory snapshots', () => {
     expect(JSON.stringify(Array.from(mockStorageState.values()))).toContain('"entity":"calendar"');
   });
 
-  it('keeps calendar events readable when the cloud insert is blocked', async () => {
+  it('does not turn blocked calendar writes into local success', async () => {
     await SupabaseDataLayer.init({
       userId: 'user-1',
       coupleId: 'couple-1',
@@ -693,12 +691,15 @@ describe('SupabaseDataLayer memory snapshots', () => {
       error: { code: '42501', message: 'violates row-level security policy' },
     });
 
-    const saved = await SupabaseDataLayer.createCalendarEvent({
+    await expect(SupabaseDataLayer.createCalendarEvent({
       id: 'calendar-blocked-1',
       title: 'Coffee walk',
       whenTs: Date.parse('2026-05-02T14:00:00.000Z'),
       eventType: 'general',
-    });
+    })).rejects.toEqual(expect.objectContaining({
+      code: '42501',
+      message: 'violates row-level security policy',
+    }));
     const rows = await SupabaseDataLayer.getCalendarEvents({ limit: 50 });
 
     expect(mockInsert).toHaveBeenCalledWith(expect.objectContaining({
@@ -706,31 +707,16 @@ describe('SupabaseDataLayer memory snapshots', () => {
       couple_id: 'couple-1',
       title: 'Coffee walk',
     }));
-    expect(saved).toEqual(expect.objectContaining({
-      id: 'calendar-blocked-1',
-      title: 'Coffee walk',
-      sync_status: 'pending',
-      remoteSynced: false,
-    }));
-    expect(rows).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        id: 'calendar-blocked-1',
-        title: 'Coffee walk',
-        sync_status: 'pending',
-      }),
+    expect(rows).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 'calendar-blocked-1' }),
     ]));
   });
 
   it('deletes pending local calendar events without requiring remote delete permission', async () => {
     await SupabaseDataLayer.init({
       userId: 'user-1',
-      coupleId: 'couple-1',
+      coupleId: null,
       isPremium: false,
-    });
-
-    mockSingle.mockResolvedValueOnce({
-      data: null,
-      error: { code: '42501', message: 'violates row-level security policy' },
     });
 
     await SupabaseDataLayer.createCalendarEvent({
@@ -790,7 +776,7 @@ describe('SupabaseDataLayer memory snapshots', () => {
     expect(JSON.stringify(Array.from(mockStorageState.values()))).toContain('"action":"delete"');
   });
 
-  it('hides remote calendar events locally and queues a retry when remote delete is denied', async () => {
+  it('rejects remote calendar delete without queuing local delete when denied', async () => {
     await SupabaseDataLayer.init({
       userId: 'user-1',
       coupleId: 'couple-1',
@@ -813,15 +799,9 @@ describe('SupabaseDataLayer memory snapshots', () => {
     await expect(SupabaseDataLayer.deleteCalendarEvent('calendar-remote-delete-1', {
       deleteRemote: true,
       remoteId: 'calendar-remote-delete-1',
-    })).resolves.toBeUndefined();
+    })).rejects.toThrow('Calendar event could not be deleted');
 
-    const rows = await SupabaseDataLayer.getCalendarEvents({ limit: 50 });
-
-    expect(rows).not.toEqual(expect.arrayContaining([
-      expect.objectContaining({ id: 'calendar-remote-delete-1' }),
-    ]));
-    expect(JSON.stringify(Array.from(mockStorageState.values()))).toContain('"action":"delete"');
-    expect(JSON.stringify(Array.from(mockStorageState.values()))).toContain('calendar-remote-delete-1');
+    expect(JSON.stringify(Array.from(mockStorageState.values()))).not.toContain('"action":"delete"');
   });
 
   it('keeps journal entries readable and editable while unpaired', async () => {
@@ -965,7 +945,7 @@ describe('SupabaseDataLayer memory snapshots', () => {
     expect(mockLoveNoteDelete).toHaveBeenCalledWith('note-1');
   });
 
-  it('preserves pending local content after unexpected Supabase write errors and empty cloud reads', async () => {
+  it('rejects unexpected Supabase write errors instead of caching local success', async () => {
     await SupabaseDataLayer.init({
       userId: 'user-1',
       coupleId: 'couple-1',
@@ -977,25 +957,18 @@ describe('SupabaseDataLayer memory snapshots', () => {
       error: { message: 'new row violates row-level security policy' },
     });
 
-    const memory = await SupabaseDataLayer.saveMemory({
+    await expect(SupabaseDataLayer.saveMemory({
       content: 'Local keepsake',
       type: 'snapshot',
       notifyPartner: false,
-    });
-
-    let memories = await SupabaseDataLayer.getMemories({ type: 'snapshot' });
-
-    expect(memory).toEqual(expect.objectContaining({
-      id: 'mem-test-id-123',
-      content: 'Local keepsake',
-      sync_status: 'pending',
+    })).rejects.toEqual(expect.objectContaining({
+      message: 'new row violates row-level security policy',
     }));
-    expect(memories).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        id: memory.id,
-        content: 'Local keepsake',
-        sync_status: 'pending',
-      }),
+
+    const memories = await SupabaseDataLayer.getMemories({ type: 'snapshot' });
+
+    expect(memories).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ content: 'Local keepsake' }),
     ]));
 
     mockSingle.mockResolvedValueOnce({
@@ -1003,24 +976,17 @@ describe('SupabaseDataLayer memory snapshots', () => {
       error: { message: 'new row violates row-level security policy' },
     });
 
-    const journal = await SupabaseDataLayer.saveJournalEntry({
+    await expect(SupabaseDataLayer.saveJournalEntry({
       title: 'Local journal',
       body: 'Still visible after an empty cloud read.',
-    });
+    })).rejects.toEqual(expect.objectContaining({
+      message: 'new row violates row-level security policy',
+    }));
 
     const journals = await SupabaseDataLayer.getJournalEntries({ limit: 500, visibility: 'shared' });
 
-    expect(journal).toEqual(expect.objectContaining({
-      id: 'mem-test-id-123',
-      title: 'Local journal',
-      sync_status: 'pending',
-    }));
-    expect(journals).toEqual(expect.arrayContaining([
-      expect.objectContaining({
-        id: journal.id,
-        title: 'Local journal',
-        sync_status: 'pending',
-      }),
+    expect(journals).not.toEqual(expect.arrayContaining([
+      expect.objectContaining({ title: 'Local journal' }),
     ]));
   });
 

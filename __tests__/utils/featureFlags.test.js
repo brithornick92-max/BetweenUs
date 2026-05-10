@@ -79,6 +79,11 @@ describe('FREE_LIMITS', () => {
     expect(FREE_LIMITS.FREE_HEAT_LEVELS).toEqual([1, 2, 3, 4, 5]);
   });
 
+  it('keeps free weekly libraries lower-intensity than general previews', () => {
+    expect(FREE_LIMITS.FREE_LIBRARY_HEAT_LEVELS).toEqual([1, 2]);
+    expect(FREE_LIMITS.FREE_DAILY_HEAT_LEVELS).toEqual([1, 2, 3]);
+  });
+
   it('uses the new cumulative free content growth sizes', () => {
     expect(FREE_LIMITS.VISIBLE_PROMPTS_PER_WEEK).toBe(5);
     expect(FREE_LIMITS.VISIBLE_DATE_IDEAS_PER_WEEK).toBe(5);

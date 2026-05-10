@@ -1,7 +1,7 @@
 /**
  * WeeklyContentSetService.js — Personalized content release calendar
  * 
- * MODEL: Each user gets their own content schedule starting from signup date
+ * MODEL: Each solo user or couple gets a stable content schedule from signup date
  * 
  * FREE USERS (CUMULATIVE):
  * - Week 0: 20 prompts, 20 date ideas, 5 positions
@@ -55,10 +55,11 @@ const WEEKLY_LIMITS = {
 };
 
 const PREMIUM_PROMPT_HEAT_LEVELS = [1, 2, 3, 4, 5];
+const FREE_LIBRARY_MAX_HEAT = Math.max(...(FREE_LIMITS.FREE_LIBRARY_HEAT_LEVELS || [1, 2]));
 const FREE_MAX_HEAT_BY_TYPE = {
-  [CONTENT_TYPES.PROMPTS]: 2,
-  [CONTENT_TYPES.DATES]: 2,
-  [CONTENT_TYPES.POSITIONS]: 2,
+  [CONTENT_TYPES.PROMPTS]: FREE_LIBRARY_MAX_HEAT,
+  [CONTENT_TYPES.DATES]: FREE_LIBRARY_MAX_HEAT,
+  [CONTENT_TYPES.POSITIONS]: FREE_LIBRARY_MAX_HEAT,
 };
 
 const normalizeUnlockCount = (value, fallback = 0) => {

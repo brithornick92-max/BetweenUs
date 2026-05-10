@@ -295,14 +295,16 @@ CREATE TABLE IF NOT EXISTS notification_log (
   created_at  timestamptz DEFAULT now()
 );
 
--- Date shortlist (per-user saved date idea list)
+-- Date shortlist (shared by couple when paired, per-user when solo)
 CREATE TABLE IF NOT EXISTS date_shortlist (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  couple_id uuid REFERENCES couples(id) ON DELETE CASCADE,
   date_id text NOT NULL,
   created_at timestamptz NOT NULL DEFAULT now(),
   removed_at timestamptz,
-  CONSTRAINT date_shortlist_user_date_unique UNIQUE (user_id, date_id)
+  CONSTRAINT date_shortlist_user_date_unique UNIQUE (user_id, date_id),
+  CONSTRAINT date_shortlist_couple_date_unique UNIQUE (couple_id, date_id)
 );
 
 
@@ -435,6 +437,9 @@ CREATE INDEX IF NOT EXISTS idx_password_recovery_request_limits_updated_at
 CREATE INDEX IF NOT EXISTS date_shortlist_user_active_idx
   ON date_shortlist(user_id, created_at DESC)
   WHERE removed_at IS NULL;
+CREATE INDEX IF NOT EXISTS date_shortlist_couple_active_idx
+  ON date_shortlist(couple_id, created_at DESC)
+  WHERE removed_at IS NULL AND couple_id IS NOT NULL;
 
 -- partial indexes for cron cleanup queries
 CREATE INDEX IF NOT EXISTS idx_link_codes_unused      ON partner_link_codes(expires_at) WHERE used_at IS NULL;
@@ -2287,17 +2292,57 @@ CREATE POLICY password_recovery_request_limits_service_only ON password_recovery
 -- ─── DATE_SHORTLIST ────────────────────────────────────────────────
 DROP POLICY IF EXISTS "Users can read their own date shortlist" ON date_shortlist;
 CREATE POLICY "Users can read their own date shortlist" ON date_shortlist
-  FOR SELECT TO authenticated USING ((select auth.uid()) = user_id);
+  FOR SELECT TO authenticated USING (
+    (select auth.uid()) = user_id
+    OR (
+      couple_id IS NOT NULL
+      AND EXISTS (
+        SELECT 1 FROM couple_members m
+        WHERE m.couple_id = date_shortlist.couple_id
+          AND m.user_id = (select auth.uid())
+      )
+    )
+  );
 
 DROP POLICY IF EXISTS "Users can insert their own date shortlist" ON date_shortlist;
 CREATE POLICY "Users can insert their own date shortlist" ON date_shortlist
-  FOR INSERT TO authenticated WITH CHECK ((select auth.uid()) = user_id);
+  FOR INSERT TO authenticated WITH CHECK (
+    (select auth.uid()) = user_id
+    AND (
+      couple_id IS NULL
+      OR EXISTS (
+        SELECT 1 FROM couple_members m
+        WHERE m.couple_id = date_shortlist.couple_id
+          AND m.user_id = (select auth.uid())
+      )
+    )
+  );
 
 DROP POLICY IF EXISTS "Users can update their own date shortlist" ON date_shortlist;
 CREATE POLICY "Users can update their own date shortlist" ON date_shortlist
   FOR UPDATE TO authenticated
-  USING ((select auth.uid()) = user_id)
-  WITH CHECK ((select auth.uid()) = user_id);
+  USING (
+    (select auth.uid()) = user_id
+    OR (
+      couple_id IS NOT NULL
+      AND EXISTS (
+        SELECT 1 FROM couple_members m
+        WHERE m.couple_id = date_shortlist.couple_id
+          AND m.user_id = (select auth.uid())
+      )
+    )
+  )
+  WITH CHECK (
+    (select auth.uid()) = user_id
+    OR (
+      couple_id IS NOT NULL
+      AND EXISTS (
+        SELECT 1 FROM couple_members m
+        WHERE m.couple_id = date_shortlist.couple_id
+          AND m.user_id = (select auth.uid())
+      )
+    )
+  );
 
 -- Restrictive policies block Supabase anonymous-auth users. Anonymous auth
 -- receives the authenticated role, so this protects all private app tables.
