@@ -213,7 +213,7 @@ export function AppProvider({ children }) {
 
       let hydratedUserProfile = userProfile && typeof userProfile === 'object' ? { ...userProfile } : {};
       const cachedCoupleId = coupleId || null;
-      const resolvedCoupleId = null;
+      const resolvedCoupleId = cachedCoupleId;
 
       syncState({
         userId,

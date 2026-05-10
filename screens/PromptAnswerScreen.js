@@ -67,7 +67,13 @@ const loadAllBundledPrompts = () => {
 };
 
 export default function PromptAnswerScreen({ route, navigation }) {
-  const { prompt: routePrompt, promptId, mode } = route.params || {};
+  const {
+    prompt: routePrompt,
+    promptId,
+    mode,
+    dateKey: routeDateKey,
+    date_key: routeDateKeySnake,
+  } = route.params || {};
   const { colors, isDark } = useTheme();
   const { isPremiumEffective: isPremium, showPaywall } = useEntitlements();
   const { user, userProfile } = useAuth();
@@ -179,7 +185,11 @@ export default function PromptAnswerScreen({ route, navigation }) {
         }
       }
 
-      const dateKey = resolvePromptAnswerDateKey(resolvedPrompt);
+      const dateKey = resolvePromptAnswerDateKey(
+        resolvedPrompt,
+        undefined,
+        routeDateKey || routeDateKeySnake
+      );
       setPrompt({ ...resolvedPrompt, dateKey });
     })().catch(() => {
       if (active) {
@@ -192,7 +202,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
     return () => {
       active = false;
     };
-  }, [routePrompt, promptId, navigation, userProfile, isPremium, showPaywall, user]);
+  }, [routePrompt, promptId, routeDateKey, routeDateKeySnake, navigation, userProfile, isPremium, showPaywall, user]);
 
   const loadExistingAnswer = useCallback(async () => {
     if (!prompt?.id) return;

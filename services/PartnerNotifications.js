@@ -13,14 +13,20 @@ const PartnerNotifications = {
   /**
    * Partner answered today's prompt.
    */
-  async promptAnswered(senderName, promptId) {
+  async promptAnswered(senderName, promptId, dateKey = null) {
     const name = senderName || 'Your partner';
+    const routeParams = promptId ? { id: promptId } : {};
+    if (dateKey) {
+      routeParams.dateKey = dateKey;
+      routeParams.date_key = dateKey;
+    }
+
     await this._send({
       title: `${name} answered today's question`,
       body: 'A private answer is waiting. Add yours to reveal.',
       data: {
         type: 'prompt_answered',
-        ...DeepLinkHandler.buildNotificationData('prompt', promptId ? { id: promptId } : {}),
+        ...DeepLinkHandler.buildNotificationData('prompt', routeParams),
       },
     });
   },

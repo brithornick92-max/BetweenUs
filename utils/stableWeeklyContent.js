@@ -1,7 +1,8 @@
 import { buildWeeklySet } from '../services/WeeklyContentSetService';
 import { storage, STORAGE_KEYS } from './storage';
+import { CONTENT_CATALOG_VERSION, WEEKLY_CONTENT_SCHEDULER_VERSION } from './contentVersions';
 
-const ALLOCATION_VERSION = 1;
+const ALLOCATION_VERSION = 2;
 const MAX_CACHED_ALLOCATIONS = 80;
 
 const getItemId = (item) =>
@@ -32,6 +33,8 @@ export function getWeeklyContentAllocationKey({
   isPremium = false,
   userCreatedAt = null,
   weekNumber = 0,
+  contentVersion = CONTENT_CATALOG_VERSION,
+  schedulerVersion = WEEKLY_CONTENT_SCHEDULER_VERSION,
 } = {}) {
   return [
     normalizePart(contentType),
@@ -39,6 +42,8 @@ export function getWeeklyContentAllocationKey({
     normalizePart(userId || 'anonymous'),
     normalizePart(normalizeDateStamp(userCreatedAt)),
     `week_${Number.isFinite(Number(weekNumber)) ? Number(weekNumber) : 0}`,
+    normalizePart(contentVersion),
+    normalizePart(schedulerVersion),
   ].join(':');
 }
 
@@ -73,12 +78,16 @@ export async function buildStableWeeklySet(items, options = {}) {
   const candidateSet = buildWeeklySet(sourceItems, options);
   const targetCount = getTargetCount(candidateSet);
   const userId = options.userId || 'anonymous';
+  const contentVersion = options.contentVersion || CONTENT_CATALOG_VERSION;
+  const schedulerVersion = options.schedulerVersion || WEEKLY_CONTENT_SCHEDULER_VERSION;
   const allocationKey = getWeeklyContentAllocationKey({
     contentType: candidateSet.contentType,
     userId,
     isPremium: candidateSet.isPremium,
     userCreatedAt: options.userCreatedAt,
     weekNumber: candidateSet.weekNumber,
+    contentVersion,
+    schedulerVersion,
   });
 
   const store = normalizeAllocationStore(
@@ -119,6 +128,8 @@ export async function buildStableWeeklySet(items, options = {}) {
     [allocationKey]: {
       version: ALLOCATION_VERSION,
       contentType: candidateSet.contentType,
+      contentVersion,
+      schedulerVersion,
       isPremium: candidateSet.isPremium,
       userId,
       anchorDate: normalizeDateStamp(options.userCreatedAt),
@@ -151,4 +162,3 @@ export async function getStableWeeklyItemIds(items, options = {}) {
       .map(String)
   );
 }
-

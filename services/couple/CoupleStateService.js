@@ -24,7 +24,7 @@ export function getSharedDailyQuizKey(dateKey) {
 
 export async function getActiveCoupleId({ fallbackCoupleId = null, dependencies = {} } = {}) {
   const { storageApi } = getDependencies(dependencies);
-  return (await storageApi.get(STORAGE_KEYS.COUPLE_ID, null)) || fallbackCoupleId || null;
+  return fallbackCoupleId || (await storageApi.get(STORAGE_KEYS.COUPLE_ID, null)) || null;
 }
 
 export async function getSharedDailyPromptSelection(dateKey, {
@@ -46,6 +46,7 @@ export async function getSharedDailyPromptSelection(dateKey, {
 export async function saveSharedDailyPromptSelection(dateKey, promptId, userId, {
   fallbackCoupleId = null,
   ensureSession,
+  assignment = null,
   dependencies = {},
 } = {}) {
   if (!dateKey || !promptId || !userId) return false;
@@ -61,7 +62,11 @@ export async function saveSharedDailyPromptSelection(dateKey, promptId, userId, 
   return storageRouter.upsertCoupleData(
     coupleId,
     getSharedDailyPromptKey(dateKey),
-    { promptId, dateKey },
+    {
+      ...(assignment && typeof assignment === 'object' ? assignment : {}),
+      promptId,
+      dateKey,
+    },
     userId,
     false,
     SHARED_DAILY_SELECTION_DATA_TYPE,

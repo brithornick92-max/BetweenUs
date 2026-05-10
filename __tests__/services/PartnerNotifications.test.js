@@ -20,14 +20,20 @@ beforeEach(() => {
 
 describe('PartnerNotifications', () => {
   it('promptAnswered — sends correct title, body, and data', async () => {
-    await PartnerNotifications.promptAnswered('Alex', 'h2_042');
+    await PartnerNotifications.promptAnswered('Alex', 'h2_042', '2026-05-05');
 
     expect(mockNotifyPartner).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({
         title: expect.stringContaining('Alex'),
         body: expect.stringContaining('reveal'),
-        data: expect.objectContaining({ route: 'prompt', type: 'prompt_answered', id: 'h2_042' }),
+        data: expect.objectContaining({
+          route: 'prompt',
+          type: 'prompt_answered',
+          id: 'h2_042',
+          dateKey: '2026-05-05',
+          date_key: '2026-05-05',
+        }),
       })
     );
   });

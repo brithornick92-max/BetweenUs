@@ -1,11 +1,18 @@
 import { isTodayBetweenUsPrompt } from './contentLoader';
 import { getDailyContentDateKey } from './dailyContentDate';
 
+const DATE_KEY_RE = /^\d{4}-\d{2}-\d{2}$/;
+
 const hasPromptText = (prompt) => (
   !!prompt?.id
   && typeof prompt?.text === 'string'
   && !!prompt.text.trim()
 );
+
+function normalizeDateKey(value) {
+  const dateKey = typeof value === 'string' ? value.trim() : '';
+  return DATE_KEY_RE.test(dateKey) ? dateKey : null;
+}
 
 export function resolveVisibleDailyPromptState(
   todayPrompt,
@@ -24,11 +31,16 @@ export function resolveVisibleDailyPromptState(
 
 export function resolvePromptAnswerDateKey(
   prompt,
-  currentDateKey = getDailyContentDateKey()
+  currentDateKey = getDailyContentDateKey(),
+  explicitDateKey = null
 ) {
+  const routedDateKey = normalizeDateKey(explicitDateKey);
+  if (routedDateKey) return routedDateKey;
+
+  const promptDateKey = normalizeDateKey(prompt?.dateKey || prompt?.date_key);
   if (isTodayBetweenUsPrompt(prompt)) {
-    return currentDateKey;
+    return promptDateKey || currentDateKey;
   }
 
-  return prompt?.dateKey || currentDateKey;
+  return promptDateKey || currentDateKey;
 }

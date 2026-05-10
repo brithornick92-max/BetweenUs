@@ -34,13 +34,21 @@ describe('dailyPromptState', () => {
     });
   });
 
-  it('uses the active daily window for Today Between Us answer routes', () => {
+  it('preserves explicit date keys for Today Between Us answer routes', () => {
     expect(resolvePromptAnswerDateKey({
       id: 'daily-1',
       text: 'Old routed daily question',
       dateKey: '2026-05-05',
       dailyOnly: true,
-    }, '2026-05-06')).toBe('2026-05-06');
+    }, '2026-05-06')).toBe('2026-05-05');
+  });
+
+  it('uses notification date keys for Today Between Us answer routes', () => {
+    expect(resolvePromptAnswerDateKey({
+      id: 'daily-1',
+      text: 'Routed daily question',
+      dailyOnly: true,
+    }, '2026-05-06', '2026-05-05')).toBe('2026-05-05');
   });
 
   it('preserves explicit date keys for non-daily prompt answer routes', () => {

@@ -359,11 +359,13 @@ describe('ContentContext daily prompt stability', () => {
     );
     expect(mockStorageSet).toHaveBeenCalledWith(
       DAILY_PROMPT_CACHE_KEY,
-      {
+      expect.objectContaining({
         dateKey: TODAY_KEY,
         scope: 'couple:couple-1',
         promptId: 'allowed',
-      }
+        contentCatalogVersion: expect.any(String),
+        schedulerVersion: expect.any(String),
+      })
     );
 
     tree.unmount();
@@ -409,11 +411,13 @@ describe('ContentContext daily prompt stability', () => {
     );
     expect(mockStorageSet).toHaveBeenCalledWith(
       DAILY_PROMPT_CACHE_KEY,
-      {
+      expect.objectContaining({
         dateKey: TODAY_KEY,
         scope: 'couple:couple-1',
         promptId: 'allowed',
-      }
+        contentCatalogVersion: expect.any(String),
+        schedulerVersion: expect.any(String),
+      })
     );
 
     tree.unmount();
@@ -464,11 +468,13 @@ describe('ContentContext daily prompt stability', () => {
     );
     expect(mockStorageSet).toHaveBeenCalledWith(
       DAILY_PROMPT_CACHE_KEY,
-      {
+      expect.objectContaining({
         dateKey: TODAY_KEY,
         scope: 'couple:couple-1',
         promptId: expectedPromptId,
-      }
+        contentCatalogVersion: expect.any(String),
+        schedulerVersion: expect.any(String),
+      })
     );
 
     tree.unmount();
@@ -516,11 +522,13 @@ describe('ContentContext daily prompt stability', () => {
     expect(contentCoupleService.getSharedDailyPromptSelection).toHaveBeenCalledTimes(2);
     expect(mockStorageSet).toHaveBeenCalledWith(
       DAILY_PROMPT_CACHE_KEY,
-      {
+      expect.objectContaining({
         dateKey: TODAY_KEY,
         scope: 'couple:couple-1',
         promptId: winningPromptId,
-      }
+        contentCatalogVersion: expect.any(String),
+        schedulerVersion: expect.any(String),
+      })
     );
 
     tree.unmount();

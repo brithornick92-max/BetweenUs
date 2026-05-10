@@ -49,7 +49,7 @@ import {
 import WinBackNudges from '../services/WinBackNudges';
 
 // ─── Local cache keys for couple premium ─────────────────────────────────────
-const COUPLE_PREMIUM_CACHE_KEY = '@betweenus:cache:couplePremium';
+const COUPLE_PREMIUM_CACHE_PREFIX = '@betweenus:cache:couplePremium';
 const GRACE_WINDOW_MS = 72 * 60 * 60 * 1000; // 72 hours offline grace
 const COUPLE_PREMIUM_RPC_TIMEOUT_MS = 10_000;
 
@@ -139,7 +139,7 @@ export const EntitlementsProvider = ({ children }) => {
   const fetchCouplePremium = useCallback(async () => {
     if (!resolvedCoupleId || !supabase) {
       // No couple link or no Supabase → fall back to cached value
-      const cached = await _loadCachedCouplePremium();
+      const cached = await _loadCachedCouplePremium(resolvedCoupleId);
       if (cached !== null) {
         setIsPremiumCouple(!!cached.isPremium);
         setCouplePremiumSince(cached.isPremium ? cached.premiumSince || null : null);
@@ -165,7 +165,7 @@ export const EntitlementsProvider = ({ children }) => {
       if (error) {
         if (__DEV__) console.warn('[Entitlements] Failed to fetch couple premium:', error.message);
         // Fallback to cache with grace window
-        const cached = await _loadCachedCouplePremium();
+        const cached = await _loadCachedCouplePremium(resolvedCoupleId);
         if (cached !== null) {
           setIsPremiumCouple(!!cached.isPremium);
           setCouplePremiumSince(cached.isPremium ? cached.premiumSince || null : null);
@@ -180,10 +180,10 @@ export const EntitlementsProvider = ({ children }) => {
       setCouplePremiumSince(premiumSince);
 
       // Cache for offline grace window
-      await _cacheCouplePremium(couplePremium, premiumSince);
+      await _cacheCouplePremium(couplePremium, premiumSince, resolvedCoupleId);
     } catch (err) {
       if (__DEV__) console.warn('[Entitlements] Couple premium exception:', err.message);
-      const cached = await _loadCachedCouplePremium();
+      const cached = await _loadCachedCouplePremium(resolvedCoupleId);
       if (cached !== null) {
         setIsPremiumCouple(!!cached.isPremium);
         setCouplePremiumSince(cached.isPremium ? cached.premiumSince || null : null);
@@ -333,7 +333,7 @@ export const EntitlementsProvider = ({ children }) => {
           const newPremiumSince = newPremium ? payload.new?.premium_since || null : null;
           setIsPremiumCouple(newPremium);
           setCouplePremiumSince(newPremiumSince);
-          _cacheCouplePremium(newPremium, newPremiumSince);
+          _cacheCouplePremium(newPremium, newPremiumSince, resolvedCoupleId);
           if (__DEV__) console.log('[Entitlements] Real-time couple premium update:', newPremium);
         }
       )
@@ -587,10 +587,16 @@ export const EntitlementsProvider = ({ children }) => {
 
 // ─── Private Helpers: Offline Cache ───────────────────────────────────────────
 
-async function _cacheCouplePremium(isPremium, premiumSince = null) {
+function getCouplePremiumCacheKey(coupleId) {
+  return coupleId ? `${COUPLE_PREMIUM_CACHE_PREFIX}:${coupleId}` : null;
+}
+
+async function _cacheCouplePremium(isPremium, premiumSince = null, coupleId = null) {
   try {
+    const cacheKey = getCouplePremiumCacheKey(coupleId);
+    if (!cacheKey) return;
     await AsyncStorage.setItem(
-      COUPLE_PREMIUM_CACHE_KEY,
+      cacheKey,
       JSON.stringify({ isPremium, premiumSince, cachedAt: Date.now() })
     );
   } catch (e) {
@@ -598,9 +604,11 @@ async function _cacheCouplePremium(isPremium, premiumSince = null) {
   }
 }
 
-async function _loadCachedCouplePremium() {
+async function _loadCachedCouplePremium(coupleId = null) {
   try {
-    const raw = await AsyncStorage.getItem(COUPLE_PREMIUM_CACHE_KEY);
+    const cacheKey = getCouplePremiumCacheKey(coupleId);
+    if (!cacheKey) return null;
+    const raw = await AsyncStorage.getItem(cacheKey);
     if (!raw) return null;
     const { isPremium, premiumSince = null, cachedAt } = JSON.parse(raw);
 
@@ -630,7 +638,13 @@ async function _loadCachedCouplePremium() {
  */
 export async function clearCouplePremiumCache() {
   try {
-    await AsyncStorage.removeItem(COUPLE_PREMIUM_CACHE_KEY);
+    const keys = await AsyncStorage.getAllKeys();
+    const couplePremiumKeys = keys.filter((key) =>
+      key === COUPLE_PREMIUM_CACHE_PREFIX || key.startsWith(`${COUPLE_PREMIUM_CACHE_PREFIX}:`)
+    );
+    if (couplePremiumKeys.length) {
+      await AsyncStorage.multiRemove(couplePremiumKeys);
+    }
   } catch (e) {
     if (__DEV__) console.warn('[Entitlements] Failed to clear couple premium cache:', e?.message);
   }

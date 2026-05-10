@@ -47,9 +47,15 @@ const TYPE_ROUTE_FALLBACKS = {
 
 // Only allow safe characters in deep link ID parameters
 const SAFE_ID_RE = /^[a-zA-Z0-9_\-:.]{1,128}$/;
+const SAFE_DATE_KEY_RE = /^\d{4}-\d{2}-\d{2}$/;
 const _sanitizeId = (id) => {
   if (!id || typeof id !== 'string') return null;
   return SAFE_ID_RE.test(id) ? id : null;
+};
+
+const _sanitizeDateKey = (dateKey) => {
+  if (!dateKey || typeof dateKey !== 'string') return null;
+  return SAFE_DATE_KEY_RE.test(dateKey) ? dateKey : null;
 };
 
 const _parseMaybeJsonObject = (value) => {
@@ -102,6 +108,24 @@ const _getNotificationId = (data = {}) => {
   );
 };
 
+const _getNotificationDateKey = (data = {}) => {
+  const params = data.params || {};
+
+  return _firstPresent(
+    data.dateKey,
+    data.date_key,
+    params.dateKey,
+    params.date_key
+  );
+};
+
+const _withPromptRouteParams = ({ id, dateKey } = {}) => {
+  const params = { promptId: _sanitizeId(id) };
+  const sanitizedDateKey = _sanitizeDateKey(dateKey);
+  if (sanitizedDateKey) params.dateKey = sanitizedDateKey;
+  return params;
+};
+
 // Navigate, falling back to MainTabs home if a secondary tab isn't mounted yet
 const _navigateSafe = (screen, params) => {
   if (screen === 'MainTabs' && params?.screen && ['Calendar', 'DatePlans'].includes(params.screen)) {
@@ -120,7 +144,7 @@ const ROUTE_MAP = {
   }),
   'prompt': (params) => ({
     screen: 'PromptAnswer',
-    params: { promptId: _sanitizeId(params.id) },
+    params: _withPromptRouteParams(params),
   }),
   'prompts': () => ({
     screen: 'MainTabs',
@@ -220,6 +244,7 @@ const DeepLinkHandler = {
       const pathParts = parsed.pathname.replace(/^\/+/, '').split('/').filter(Boolean);
       const route = hostRoute || pathParts[0];
       const queryId = parsed.searchParams?.get('id') || (route === 'join' ? parsed.searchParams?.get('code') : null);
+      const queryDateKey = parsed.searchParams?.get('dateKey') || parsed.searchParams?.get('date_key') || null;
       const id = hostRoute
         ? (pathParts[0] || queryId || null)
         : (pathParts[1] || queryId || null);
@@ -239,7 +264,7 @@ const DeepLinkHandler = {
         }
       }
 
-      const { screen, params } = handler({ id: sanitizedId, url });
+      const { screen, params } = handler({ id: sanitizedId, dateKey: queryDateKey, url });
       _navigateSafe(screen, params);
       return true;
     } catch (err) {
@@ -276,6 +301,7 @@ const DeepLinkHandler = {
 
       const rawId = _getNotificationId(data);
       const sanitizedId = rawId ? _sanitizeId(String(rawId)) : null;
+      const rawDateKey = _getNotificationDateKey(data);
 
       // Routes that require an ID — bail if ID is missing or failed sanitization
       if (ID_REQUIRED_ROUTES.has(route) && !sanitizedId) {
@@ -286,6 +312,7 @@ const DeepLinkHandler = {
 
       const { screen, params } = handler({
         id: sanitizedId,
+        dateKey: rawDateKey ? String(rawDateKey) : null,
         url,
       });
       // Only merge known-safe params — don't pass arbitrary notification data to screens
@@ -306,10 +333,13 @@ const DeepLinkHandler = {
    * @returns {Object} - Data object for notification content
    */
   buildNotificationData(route, params = {}) {
+    const query = params.dateKey || params.date_key
+      ? `?dateKey=${encodeURIComponent(params.dateKey || params.date_key)}`
+      : '';
     return {
       route,
       ...params,
-      url: `betweenus://${route}${params.id ? '/' + params.id : ''}`,
+      url: `betweenus://${route}${params.id ? '/' + params.id : ''}${query}`,
     };
   },
 };

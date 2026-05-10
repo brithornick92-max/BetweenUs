@@ -30,13 +30,13 @@ describe('CoupleStateService', () => {
     };
   }
 
-  it('reads the active couple id from storage with fallback support', async () => {
+  it('prefers the verified fallback couple id over stale storage', async () => {
     const { getActiveCoupleId } = require('../../services/couple/CoupleStateService');
 
     await expect(getActiveCoupleId({
       fallbackCoupleId: 'profile-couple-id',
       dependencies: createDeps({ coupleId: 'stored-couple-id' }),
-    })).resolves.toBe('stored-couple-id');
+    })).resolves.toBe('profile-couple-id');
 
     await expect(getActiveCoupleId({
       fallbackCoupleId: 'profile-couple-id',

@@ -33,11 +33,13 @@ import {
   getMsUntilNextDailyContentRollover,
 } from '../utils/dailyContentDate';
 import { TODAY_BETWEEN_US_HEAT_LEVELS, selectTodayBetweenUsPrompt } from '../utils/todayBetweenUsRotation';
+import { CONTENT_CATALOG_VERSION, TODAY_BETWEEN_US_SCHEDULER_VERSION } from '../utils/contentVersions';
 import { storage } from '../utils/storage';
 import { dateOnlyToLocalDate, isFutureLocalDate, normalizeDateOnlyKey } from '../utils/dateOnly';
 
 const ContentContext = createContext({});
 const DAILY_PROMPT_CACHE_KEY = '@betweenus:cache:dailyPromptSelection';
+const DAILY_PROMPT_ASSIGNMENT_VERSION = 1;
 
 function getDailyPromptScope(userId, coupleId) {
   return coupleId ? `couple:${coupleId}` : `user:${userId}`;
@@ -68,18 +70,55 @@ function getDailyPromptHeatFilters() {
   };
 }
 
-function selectCanonicalCoupleDailyPrompt(dateKey, scope, heatFilters = {}) {
-  const promptPool = getTodayBetweenUsPrompts({
+function getCanonicalDailyPromptPool(heatFilters = {}) {
+  return getTodayBetweenUsPrompts({
     minHeatLevel: heatFilters.minHeatLevel ?? 1,
     maxHeatLevel: heatFilters.maxHeatLevel ?? 3,
     heatLevels: heatFilters.heatLevels || [],
   })
     .filter((prompt) => prompt?.id && typeof prompt.text === 'string' && prompt.text.trim())
     .sort((a, b) => String(a.id).localeCompare(String(b.id)));
+}
+
+function selectCanonicalCoupleDailyPrompt(dateKey, scope, heatFilters = {}) {
+  const promptPool = getCanonicalDailyPromptPool(heatFilters);
 
   if (!promptPool.length) return FALLBACK_PROMPT;
 
   return selectTodayBetweenUsPrompt(promptPool, dateKey, scope) || promptPool[0];
+}
+
+function buildDailyPromptAssignment({
+  dateKey,
+  scope,
+  promptId,
+  source,
+  heatFilters = {},
+  poolSize = null,
+  selectionPoolSize = null,
+  excludedPromptIds = [],
+  isPremium = false,
+} = {}) {
+  return {
+    assignmentType: 'daily_prompt',
+    assignmentVersion: DAILY_PROMPT_ASSIGNMENT_VERSION,
+    promptId,
+    dateKey,
+    scope,
+    source: source || 'unknown',
+    algorithm: 'today-between-us-no-repeat-v1',
+    seed: scope ? `${scope}:today-between-us` : 'default:today-between-us',
+    contentCatalogVersion: CONTENT_CATALOG_VERSION,
+    schedulerVersion: TODAY_BETWEEN_US_SCHEDULER_VERSION,
+    heatLevels: heatFilters.heatLevels || TODAY_BETWEEN_US_HEAT_LEVELS,
+    minHeatLevel: heatFilters.minHeatLevel ?? 1,
+    maxHeatLevel: heatFilters.maxHeatLevel ?? 3,
+    poolSize,
+    selectionPoolSize,
+    excludedPromptIds,
+    entitlementTier: isPremium ? 'premium' : 'free',
+    assignedAt: new Date().toISOString(),
+  };
 }
 
 function getEmergencyDailyPrompt(dateKey, scope, heatFilters = {}) {
@@ -305,22 +344,42 @@ export const ContentProvider = ({ children }) => {
         });
         const sharedPromptId = getSharedPromptId(sharedPromptSelection);
         let sharedPrompt = sharedPromptId ? getPromptById(sharedPromptId) : null;
+        let sharedPromptSource = sharedPromptId ? 'supabase' : null;
+        let sharedPromptPoolSize = Number(sharedPromptSelection?.value?.poolSize ?? sharedPromptSelection?.poolSize ?? NaN);
+        if (!Number.isFinite(sharedPromptPoolSize)) sharedPromptPoolSize = null;
 
         if (!sharedPrompt?.text && cachedPrompt?.text) {
           sharedPrompt = cachedPrompt;
+          sharedPromptSource = 'daily_cache';
         }
 
         if (!sharedPrompt?.text) {
           const profile = await loadContentProfile(options?.profileOverride || userProfile || {});
           const heatFilters = getDailyPromptHeatFilters(profile || options?.profileOverride || userProfile || {}, isPremium);
           fallbackHeatFilters = heatFilters;
-          sharedPrompt = selectCanonicalCoupleDailyPrompt(today, scope, heatFilters);
+          const canonicalPool = getCanonicalDailyPromptPool(heatFilters);
+          sharedPromptPoolSize = canonicalPool.length;
+          sharedPrompt = canonicalPool.length
+            ? selectTodayBetweenUsPrompt(canonicalPool, today, scope) || canonicalPool[0]
+            : FALLBACK_PROMPT;
+          sharedPromptSource = 'deterministic';
         }
 
         if (!sharedPromptId && sharedPrompt?.id) {
+          const assignment = buildDailyPromptAssignment({
+            dateKey: today,
+            scope,
+            promptId: sharedPrompt.id,
+            source: sharedPromptSource,
+            heatFilters: fallbackHeatFilters || getDailyPromptHeatFilters(),
+            poolSize: sharedPromptPoolSize,
+            selectionPoolSize: sharedPromptPoolSize,
+            isPremium,
+          });
           const saved = await saveSharedDailyPromptSelection(today, sharedPrompt.id, activeUserId, {
             fallbackCoupleId: coupleId,
             ensureSession: ensureSupabaseSession,
+            assignment,
           }).catch((error) => {
             if (__DEV__) console.warn('[ContentContext] Shared daily prompt sync failed:', error?.message);
             return false;
@@ -336,16 +395,22 @@ export const ContentProvider = ({ children }) => {
 
             if (confirmedPrompt?.text) {
               sharedPrompt = confirmedPrompt;
+              sharedPromptSource = 'supabase_confirmed';
             }
           }
         }
 
         if (sharedPrompt?.text) {
-          await storage.set(DAILY_PROMPT_CACHE_KEY, {
+          await storage.set(DAILY_PROMPT_CACHE_KEY, buildDailyPromptAssignment({
             dateKey: today,
             scope,
             promptId: sharedPrompt.id,
-          });
+            source: sharedPromptSource || 'supabase',
+            heatFilters: fallbackHeatFilters || getDailyPromptHeatFilters(),
+            poolSize: sharedPromptPoolSize,
+            selectionPoolSize: sharedPromptPoolSize,
+            isPremium,
+          }));
 
           if (
             todayPrompt?.dateKey === today
@@ -412,6 +477,9 @@ export const ContentProvider = ({ children }) => {
         ? await DataLayer.getPromptAnswers({ limit: 1000 }).catch(() => [])
         : [];
       const recentlyCompletedPromptIds = getRecentlyCompletedPromptIds(promptAnswers);
+      const excludedPromptIds = promptsData
+        .filter((prompt) => recentlyCompletedPromptIds.has(prompt?.id))
+        .map((prompt) => prompt.id);
       const uncompletedPrompts = promptsData.filter(
         (prompt) => !recentlyCompletedPromptIds.has(prompt?.id)
       );
@@ -436,16 +504,25 @@ export const ContentProvider = ({ children }) => {
       // Reserve this prompt so browse screens won't show it
       PromptAllocator.setDailyPromptId(selectedPrompt.id);
 
-      await storage.set(DAILY_PROMPT_CACHE_KEY, {
+      const assignment = buildDailyPromptAssignment({
         dateKey: today,
         scope,
         promptId: selectedPrompt.id,
+        source: 'deterministic',
+        heatFilters: dailyHeatFilters,
+        poolSize: promptsData.length,
+        selectionPoolSize: deterministicPool.length,
+        excludedPromptIds,
+        isPremium,
       });
+
+      await storage.set(DAILY_PROMPT_CACHE_KEY, assignment);
 
       if (coupleId) {
         await saveSharedDailyPromptSelection(today, selectedPrompt.id, activeUserId, {
           fallbackCoupleId: coupleId,
           ensureSession: ensureSupabaseSession,
+          assignment,
         }).catch((error) => {
           if (__DEV__) console.warn('[ContentContext] Shared daily prompt sync failed:', error?.message);
         });

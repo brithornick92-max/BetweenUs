@@ -26,6 +26,16 @@ describe('DeepLinkHandler.handleUrl', () => {
     expect(navigate).toHaveBeenCalledWith('PromptAnswer', { promptId: 'prompt-123' });
   });
 
+  it('passes prompt date keys from custom URLs', () => {
+    const handled = DeepLinkHandler.handleUrl('betweenus://prompt/p-123?dateKey=2026-05-05');
+
+    expect(handled).toBe(true);
+    expect(navigate).toHaveBeenCalledWith('PromptAnswer', {
+      promptId: 'p-123',
+      dateKey: '2026-05-05',
+    });
+  });
+
   it('routes journal URLs to the journal home', () => {
     const handled = DeepLinkHandler.handleUrl('betweenus://journal');
 
@@ -164,6 +174,28 @@ describe('DeepLinkHandler.handleNotificationResponse', () => {
 
     expect(handled).toBe(true);
     expect(navigate).toHaveBeenCalledWith('PromptAnswer', { promptId: 'h2_042' });
+  });
+
+  it('passes prompt date keys from backend notification data', () => {
+    const handled = DeepLinkHandler.handleNotificationResponse({
+      notification: {
+        request: {
+          content: {
+            data: {
+              route: 'prompt',
+              prompt_id: 'h2_042',
+              date_key: '2026-05-05',
+            },
+          },
+        },
+      },
+    });
+
+    expect(handled).toBe(true);
+    expect(navigate).toHaveBeenCalledWith('PromptAnswer', {
+      promptId: 'h2_042',
+      dateKey: '2026-05-05',
+    });
   });
 
   it('infers routes from notification activity types when route is absent', () => {
