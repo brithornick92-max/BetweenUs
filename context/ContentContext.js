@@ -777,6 +777,8 @@ export const ContentProvider = ({ children }) => {
         unsubscribe = await subscribeToSharedAnniversary({
           userId: user.uid,
           currentRelationshipStartDate: userProfile?.relationshipStartDate,
+          fallbackCoupleId: userProfile?.coupleId || userProfile?.couple_id || null,
+          allowStoredFallback: false,
           ensureSession: ensureSupabaseSession,
           normalizeRelationshipStartDate,
           onRemoteUpdate: async (nextDate) => {
@@ -797,7 +799,7 @@ export const ContentProvider = ({ children }) => {
         unsubscribe();
       }
     };
-  }, [applyRelationshipStartDate, ensureSupabaseSession, user?.uid, userProfile?.relationshipStartDate]);
+  }, [applyRelationshipStartDate, ensureSupabaseSession, user?.uid, userProfile?.coupleId, userProfile?.couple_id, userProfile?.relationshipStartDate]);
 
   // Get date ideas with premium filtering + preference-based ranking
   const getDateIdeas = useCallback(async (filters = {}) => {

@@ -45,8 +45,13 @@ describe('CoupleStateService', () => {
   });
 
   it('can disable stored couple id fallback for shared assignment reads', async () => {
-    const { getActiveCoupleId, getSharedDailyPromptSelection } = require('../../services/couple/CoupleStateService');
+    const {
+      getActiveCoupleId,
+      getSharedDailyPromptSelection,
+      subscribeToSharedAnniversary,
+    } = require('../../services/couple/CoupleStateService');
     const deps = createDeps({ coupleId: 'stale-couple-id' });
+    const ensureSession = jest.fn().mockResolvedValue({ access_token: 'token' });
 
     await expect(getActiveCoupleId({
       allowStoredFallback: false,
@@ -58,7 +63,17 @@ describe('CoupleStateService', () => {
       dependencies: deps,
     })).resolves.toBeNull();
 
+    await expect(subscribeToSharedAnniversary({
+      userId: 'user-1',
+      allowStoredFallback: false,
+      ensureSession,
+      normalizeRelationshipStartDate: (value) => value,
+      onRemoteUpdate: jest.fn(),
+      dependencies: deps,
+    })).resolves.toBeNull();
+
     expect(deps.storageRouter.getCoupleData).not.toHaveBeenCalled();
+    expect(ensureSession).not.toHaveBeenCalled();
   });
 
   it('reads and writes shared daily prompt selections through one service boundary', async () => {

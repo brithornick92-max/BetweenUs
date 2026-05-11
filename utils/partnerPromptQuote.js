@@ -1,5 +1,6 @@
 import { getDailyContentDateKey } from './dailyContentDate';
 import { dateOnlyToLocalDate } from './dateOnly';
+import { stableStringHash } from './noRepeatContentRotation';
 import { storage, STORAGE_KEYS } from './storage';
 
 function parseDateKey(value) {
@@ -38,10 +39,52 @@ function pickRandom(items, random = Math.random) {
   return items[index];
 }
 
+function normalizeCacheScope({ scope = null, coupleId = null, userId = null } = {}) {
+  if (scope) return String(scope);
+  if (coupleId) return `couple:${coupleId}`;
+  if (userId) return `user:${userId}`;
+  return 'default';
+}
+
 function getQuoteIdentity(row) {
   const promptId = String(row?.prompt_id || '');
   const dateKey = String(row?.date_key || '');
   return promptId && dateKey ? `${dateKey}:${promptId}` : null;
+}
+
+function sortQuoteCandidates(items = []) {
+  return [...items].sort((a, b) => String(getQuoteIdentity(a) || '').localeCompare(String(getQuoteIdentity(b) || '')));
+}
+
+function pickDeterministicDailyQuote(items, { dailyKey, scope } = {}) {
+  const pool = sortQuoteCandidates(items);
+  if (!pool.length) return null;
+  const index = stableStringHash(`${dailyKey || 'unknown'}:${scope || 'default'}:partner-prompt-quote`) % pool.length;
+  return pool[index];
+}
+
+function getScopedDailyCacheEntry(cache, dailyKey, scope) {
+  const dailyCache = cache?.[dailyKey];
+  if (!dailyCache || typeof dailyCache !== 'object') return null;
+  if (dailyCache.identity) {
+    return scope === 'default' ? dailyCache : null;
+  }
+  return dailyCache?.[scope] || null;
+}
+
+function buildScopedDailyCache(cache, dailyKey, scope, entry) {
+  const currentDailyCache = cache?.[dailyKey];
+  const scopedDailyCache = currentDailyCache && typeof currentDailyCache === 'object' && !currentDailyCache.identity
+    ? currentDailyCache
+    : {};
+
+  return {
+    ...(cache && typeof cache === 'object' ? cache : {}),
+    [dailyKey]: {
+      ...scopedDailyCache,
+      [scope]: entry,
+    },
+  };
 }
 
 function getQuoteCandidatePools(candidates, { now, relationshipStartDate }) {
@@ -112,19 +155,23 @@ export function choosePartnerPromptQuote(rows = [], {
 export async function chooseDailyPartnerPromptQuote(rows = [], {
   now = new Date(),
   relationshipStartDate = null,
-  random = Math.random,
+  random = null,
+  scope = null,
+  coupleId = null,
+  userId = null,
 } = {}) {
   const candidates = normalizePartnerQuoteRows(rows, now);
 
   if (!candidates.length) return null;
 
   const dailyKey = getDailyContentDateKey(now);
+  const cacheScope = normalizeCacheScope({ scope, coupleId, userId });
   const { pool, onThisDayCandidates } = getQuoteCandidatePools(candidates, {
     now,
     relationshipStartDate,
   });
   const cache = await storage.get(STORAGE_KEYS.PARTNER_PROMPT_DAILY_QUOTE, {});
-  const cachedIdentity = cache?.[dailyKey]?.identity || null;
+  const cachedIdentity = getScopedDailyCacheEntry(cache, dailyKey, cacheScope)?.identity || null;
   const cachedCandidate = cachedIdentity
     ? candidates.find((row) => getQuoteIdentity(row) === cachedIdentity)
     : null;
@@ -133,18 +180,21 @@ export async function chooseDailyPartnerPromptQuote(rows = [], {
     return formatPartnerPromptQuote(cachedCandidate, onThisDayCandidates);
   }
 
-  const selected = pickRandom(pool, random);
+  const selected = typeof random === 'function'
+    ? pickRandom(pool, random)
+    : pickDeterministicDailyQuote(pool, { dailyKey, scope: cacheScope });
   const identity = getQuoteIdentity(selected);
 
   if (selected && identity) {
-    await storage.set(STORAGE_KEYS.PARTNER_PROMPT_DAILY_QUOTE, {
-      [dailyKey]: {
+    await storage.set(
+      STORAGE_KEYS.PARTNER_PROMPT_DAILY_QUOTE,
+      buildScopedDailyCache(cache, dailyKey, cacheScope, {
         identity,
         dateKey: selected.date_key,
         promptId: selected.prompt_id,
         selectedAt: new Date().toISOString(),
-      },
-    });
+      })
+    );
   }
 
   return formatPartnerPromptQuote(selected, onThisDayCandidates);

@@ -183,6 +183,24 @@ describe('Keepsake history writers', () => {
     }));
   });
 
+  it('does not report saved date removal when the Keepsake delete fails', async () => {
+    mockGetMemories.mockResolvedValue([
+      {
+        id: 'memory-1',
+        type: 'date_saved',
+        content: JSON.stringify({
+          kind: 'date_saved',
+          dateId: 'date-1',
+          title: 'Coffee walk',
+        }),
+        created_at: '2026-04-28T12:00:00.000Z',
+      },
+    ]);
+    mockDeleteMemory.mockRejectedValueOnce(new Error('delete failed'));
+
+    await expect(removeDateSavedKeepsake('date-1')).rejects.toThrow('delete failed');
+  });
+
   it('saves positions tried as intimacy_tried memories for Keepsake without reloading the whole tried map', async () => {
     const position = {
       id: 'ip001',
@@ -279,5 +297,20 @@ describe('Keepsake history writers', () => {
       positionId: 'ip001',
       memoryId: 'memory-1',
     }));
+  });
+
+  it('does not mark a favorite position saved when the Keepsake write fails', async () => {
+    mockSaveMemory.mockRejectedValueOnce(new Error('write failed'));
+    const position = {
+      id: 'ip001',
+      title: 'Close Hold',
+      commonName: 'Side by side',
+      mood: 'tender',
+      heat: 2,
+    };
+
+    await expect(toggleIntimacyFavorite(position, {
+      currentlyFavorite: false,
+    })).rejects.toThrow('write failed');
   });
 });

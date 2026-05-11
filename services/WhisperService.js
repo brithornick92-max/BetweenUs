@@ -35,8 +35,6 @@ async function upload({ fileUri, coupleId, senderId, durationMs }) {
 
   if (uploadError) throw new Error(`WhisperService upload: ${uploadError.message}`);
 
-  await FileSystem.deleteAsync(fileUri, { idempotent: true });
-
   const { error: metaError } = await supabase
     .from(TABLES.COUPLE_DATA)
     .insert({
@@ -60,6 +58,8 @@ async function upload({ fileUri, coupleId, senderId, durationMs }) {
     await supabase.storage.from(WHISPER_BUCKET).remove([storagePath]).catch(() => {});
     throw new Error(`WhisperService metadata: ${metaError.message}`);
   }
+
+  await FileSystem.deleteAsync(fileUri, { idempotent: true }).catch(() => {});
 
   return { whisperId };
 }

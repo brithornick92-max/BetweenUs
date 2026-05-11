@@ -180,6 +180,45 @@ describe('chooseDailyPartnerPromptQuote', () => {
     expect(second.answer).toBe('Second remembered answer.');
   });
 
+  it('selects the same deterministic quote for the same scope on separate devices', async () => {
+    const first = await chooseDailyPartnerPromptQuote(rows, {
+      now: new Date(2026, 4, 5, 12),
+      scope: 'couple:couple-1',
+    });
+
+    installStorageMock();
+
+    const second = await chooseDailyPartnerPromptQuote([...rows].reverse(), {
+      now: new Date(2026, 4, 5, 12),
+      scope: 'couple:couple-1',
+    });
+
+    expect(second.prompt_id).toBe(first.prompt_id);
+    expect(second.answer).toBe(first.answer);
+  });
+
+  it('keeps cached daily quotes scoped by couple or user', async () => {
+    const firstCoupleQuote = await chooseDailyPartnerPromptQuote(rows, {
+      now: new Date(2026, 4, 5, 12),
+      scope: 'couple:couple-1',
+      random: () => 0,
+    });
+    const secondCoupleQuote = await chooseDailyPartnerPromptQuote(rows, {
+      now: new Date(2026, 4, 5, 12),
+      scope: 'couple:couple-2',
+      random: () => 0.9,
+    });
+    const firstCoupleCachedQuote = await chooseDailyPartnerPromptQuote(rows, {
+      now: new Date(2026, 4, 5, 12),
+      scope: 'couple:couple-1',
+      random: () => 0.9,
+    });
+
+    expect(firstCoupleQuote.prompt_id).toBe('p1');
+    expect(secondCoupleQuote.prompt_id).toBe('p2');
+    expect(firstCoupleCachedQuote.prompt_id).toBe('p1');
+  });
+
   it('uses the same daily quote before the 4am rollover', async () => {
     const first = await chooseDailyPartnerPromptQuote(rows, {
       now: new Date(2026, 4, 5, 23),

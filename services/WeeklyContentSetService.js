@@ -147,7 +147,31 @@ const seededScore = (item, seed) => {
  * @param {Date|string} currentDate - Current date (defaults to now)
  * @returns {number} Week number (0 = signup week, 1 = first week after, etc.)
  */
+const DATE_STAMP_PATTERN = /^(\d{4})-(\d{2})-(\d{2})/;
+
+const datePartsToLocalDayStart = (year, month, day) => {
+  const parsedYear = Number(year);
+  const parsedMonth = Number(month);
+  const parsedDay = Number(day);
+  const date = new Date(parsedYear, parsedMonth - 1, parsedDay);
+  if (
+    date.getFullYear() !== parsedYear
+    || date.getMonth() !== parsedMonth - 1
+    || date.getDate() !== parsedDay
+  ) {
+    return null;
+  }
+  return date;
+};
+
 const toLocalDayStart = (value) => {
+  if (typeof value === 'string') {
+    const match = value.trim().match(DATE_STAMP_PATTERN);
+    if (match) {
+      return datePartsToLocalDayStart(match[1], match[2], match[3]);
+    }
+  }
+
   const date = value instanceof Date ? new Date(value) : new Date(value);
   if (Number.isNaN(date.getTime())) return null;
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());

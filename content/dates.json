@@ -4,6 +4,7 @@
     "app": "Between Us",
     "version": "5.0.0-emotional",
     "description": "707 unique date ideas with shuffle-first categories",
+    "totalDates": 707,
     "minMinutes": 45,
     "locations": {
       "home": "At-home intimate experiences",

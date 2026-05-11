@@ -191,6 +191,8 @@ export async function subscribeToSharedAnniversary({
   userId,
   currentRelationshipStartDate,
   getCurrentRelationshipStartDate,
+  fallbackCoupleId = null,
+  allowStoredFallback = true,
   ensureSession,
   normalizeRelationshipStartDate,
   onRemoteUpdate,
@@ -200,7 +202,7 @@ export async function subscribeToSharedAnniversary({
     return null;
   }
 
-  const coupleId = await getActiveCoupleId({ dependencies });
+  const coupleId = await getActiveCoupleId({ fallbackCoupleId, allowStoredFallback, dependencies });
   if (!coupleId) return null;
 
   const session = await ensureSession?.();

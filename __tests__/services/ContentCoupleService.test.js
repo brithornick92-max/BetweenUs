@@ -104,4 +104,24 @@ describe('ContentCoupleService', () => {
     expect(deps.coupleStateService.getSharedDailyPromptSelection).toHaveBeenCalledWith('2026-04-20', expect.any(Object));
     expect(deps.coupleStateService.saveSharedDailyPromptSelection).toHaveBeenCalledWith('2026-04-20', 'prompt-2', 'user-1', expect.any(Object));
   });
+
+  it('passes the stored couple fallback policy through prompt couple context', async () => {
+    const { getPromptCoupleContext } = require('../../services/content/ContentCoupleService');
+    const deps = createDeps({ coupleId: 'profile-couple-id' });
+
+    await expect(getPromptCoupleContext({
+      fallbackCoupleId: 'profile-couple-id',
+      allowStoredFallback: false,
+      dependencies: deps,
+    })).resolves.toEqual({
+      coupleId: 'profile-couple-id',
+      keyTier: 'couple',
+    });
+
+    expect(deps.coupleStateService.getActiveCoupleId).toHaveBeenCalledWith({
+      fallbackCoupleId: 'profile-couple-id',
+      allowStoredFallback: false,
+      dependencies: deps,
+    });
+  });
 });

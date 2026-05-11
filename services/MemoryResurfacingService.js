@@ -19,6 +19,7 @@ import {
   NOTIFICATION_TYPES,
 } from '../utils/notifications';
 import { dateOnlyToLocalDate, formatLocalDateKey } from '../utils/dateOnly';
+import DeepLinkHandler from './DeepLinkHandler';
 
 let Notifications = null;
 try {
@@ -84,20 +85,15 @@ function extractMMDD(isoDate) {
   return yearlessKey(isoDate);
 }
 
-function buildNotificationContent(memory, years) {
+function buildNotificationContent(years) {
   const yLabel = years === 1 ? '1 year ago' : `${years} years ago`;
-  const snippet = memory.content?.trim?.() || '';
-  const body = snippet
-    ? `${yLabel}: "${snippet.slice(0, 60)}${snippet.length > 60 ? '…' : ''}"`
-    : `You two made a memory ${yLabel}. Open to relive it.`;
 
   return {
     title: `On this day ${yLabel}`,
-    body,
+    body: `You two made a memory ${yLabel}. Open Between Us when you want to revisit it.`,
     data: {
       type: 'on_this_day',
-      route: 'saved-moments',
-      memoryId: memory.id || null,
+      ...DeepLinkHandler.buildNotificationData('saved-moments'),
     },
     sound: 'default',
   };
@@ -170,7 +166,7 @@ const MemoryResurfacingService = {
       // Schedule on the matching local calendar day.
       const trigger = nextSameDayNotificationTime(now);
       const id = await Notifications.scheduleNotificationAsync({
-        content: buildNotificationContent(best, bestYears),
+        content: buildNotificationContent(bestYears),
         trigger: dateTrigger(trigger),
       });
 
@@ -179,7 +175,7 @@ const MemoryResurfacingService = {
 
       if (__DEV__) {
         console.log(
-          `[MemoryResurfacing] Scheduled "on this day" notification for ${trigger.toISOString()}, memoryId=${best.id}`
+          `[MemoryResurfacing] Scheduled "on this day" notification for ${trigger.toISOString()}`
         );
       }
     } catch (err) {

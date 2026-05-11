@@ -10,15 +10,22 @@ export async function getStableFreeWeeklyDeck(items, {
   contentType,
   userId,
   coupleId,
+  coupleCreatedAt,
+  coupleAnchorDate,
   user,
   userProfile,
   userSettings = {},
   date = new Date(),
 } = {}) {
+  const resolvedCoupleCreatedAt = coupleId
+    ? (coupleCreatedAt || coupleAnchorDate || userProfile?.coupleCreatedAt || userProfile?.couple_created_at || null)
+    : null;
+
   const weeklySet = await buildStableWeeklySet(Array.isArray(items) ? items : [], {
     contentType,
     userId: userId || resolvePromptUsageUserId(user, userProfile),
     coupleId,
+    coupleCreatedAt: resolvedCoupleCreatedAt,
     isPremium: false,
     userSettings,
     userCreatedAt: resolveUserCreatedAt(user, userProfile),

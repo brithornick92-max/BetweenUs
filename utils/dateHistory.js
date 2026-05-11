@@ -243,6 +243,7 @@ export async function removeDateSavedKeepsake(dateId) {
       await DataLayer.deleteMemory(removed.memoryId);
     } catch (error) {
       if (__DEV__) console.warn('[dateHistory] Failed to delete saved date memory:', error?.message);
+      throw error;
     }
   }
 

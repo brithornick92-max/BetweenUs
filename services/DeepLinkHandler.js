@@ -333,13 +333,27 @@ const DeepLinkHandler = {
    * @returns {Object} - Data object for notification content
    */
   buildNotificationData(route, params = {}) {
-    const query = params.dateKey || params.date_key
-      ? `?dateKey=${encodeURIComponent(params.dateKey || params.date_key)}`
+    const rawId = params.id
+      ?? params.promptId
+      ?? params.prompt_id
+      ?? params.dateId
+      ?? params.date_id
+      ?? null;
+    const rawDateKey = params.dateKey ?? params.date_key ?? null;
+    const sanitizedId = rawId ? _sanitizeId(String(rawId)) : null;
+    const sanitizedDateKey = rawDateKey ? _sanitizeDateKey(String(rawDateKey)) : null;
+    const query = sanitizedDateKey
+      ? `?dateKey=${encodeURIComponent(sanitizedDateKey)}`
       : '';
+    const path = sanitizedId ? `/${encodeURIComponent(sanitizedId)}` : '';
+    const data = { route };
+
+    if (sanitizedId) data.id = sanitizedId;
+    if (sanitizedDateKey) data.dateKey = sanitizedDateKey;
+
     return {
-      route,
-      ...params,
-      url: `betweenus://${route}${params.id ? '/' + params.id : ''}${query}`,
+      ...data,
+      url: `betweenus://${route}${path}${query}`,
     };
   },
 };

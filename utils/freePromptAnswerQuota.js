@@ -18,6 +18,7 @@ const FREE_WEEKLY_PERIOD_PREFIXES = {
   prompts: 'promptAnswers',
   dates: 'dateDetails',
 };
+const DATE_STAMP_PATTERN = /^(\d{4})-(\d{2})-(\d{2})/;
 
 export const resolvePromptUsageUserId = (user, userProfile) =>
   user?.uid || user?.id || userProfile?.id || 'anonymous';
@@ -31,6 +32,11 @@ export const resolveUserCreatedAt = (user, userProfile) =>
   null;
 
 const toDateStamp = (value) => {
+  if (typeof value === 'string') {
+    const match = value.trim().match(DATE_STAMP_PATTERN);
+    if (match) return `${match[1]}-${match[2]}-${match[3]}`;
+  }
+
   const date = value ? new Date(value) : null;
   if (!date || Number.isNaN(date.getTime())) return 'unknown';
   return date.toISOString().slice(0, 10);

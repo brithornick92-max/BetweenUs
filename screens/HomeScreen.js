@@ -169,6 +169,12 @@ export default function HomeScreen({ navigation }) {
   const preferredName = getMyDisplayName(userProfile, state?.userProfile, user?.displayName || null);
   const partnerLabel = getPartnerDisplayName(userProfile, state?.userProfile, 'your partner');
   const coupleId = state?.coupleId || userProfile?.coupleId || userProfile?.couple_id || null;
+  const coupleCreatedAt = state?.coupleCreatedAt
+    || state?.userProfile?.coupleCreatedAt
+    || state?.userProfile?.couple_created_at
+    || userProfile?.coupleCreatedAt
+    || userProfile?.couple_created_at
+    || null;
   const isLinked = !!coupleId;
   const activePromptUserId = user?.id || user?.uid || state?.userId || null;
 
@@ -444,6 +450,7 @@ export default function HomeScreen({ navigation }) {
 
         const quote = await chooseDailyPartnerPromptQuote(shared || [], {
           relationshipStartDate: userProfile?.relationshipStartDate || state?.userProfile?.relationshipStartDate || null,
+          scope: coupleId ? `couple:${coupleId}` : (activePromptUserId ? `user:${activePromptUserId}` : 'default'),
         });
 
         if (!quote) {
@@ -465,7 +472,7 @@ export default function HomeScreen({ navigation }) {
     return () => {
       active = false;
     };
-  }, [state?.userProfile?.relationshipStartDate, todayKey, userProfile?.relationshipStartDate]);
+  }, [activePromptUserId, coupleId, state?.userProfile?.relationshipStartDate, todayKey, userProfile?.relationshipStartDate]);
 
   useFocusEffect(
     useCallback(() => {
@@ -689,6 +696,7 @@ export default function HomeScreen({ navigation }) {
           const isWeeklyPrompt = await isItemInStableFreeWeeklyDeck(prompt.id, weeklyEligiblePrompts, {
             contentType: CONTENT_TYPES.PROMPTS,
             coupleId,
+            coupleCreatedAt,
             user,
             userProfile,
             userSettings: profile || userProfile || {},
@@ -810,6 +818,7 @@ export default function HomeScreen({ navigation }) {
     prompt,
     user,
     userProfile,
+    coupleCreatedAt,
     coupleId,
     isPremium,
     myAnswer,

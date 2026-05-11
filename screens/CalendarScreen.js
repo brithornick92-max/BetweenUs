@@ -584,13 +584,12 @@ export default function CalendarScreen({ navigation, route }) {
             if (ok) {
               notificationId = await scheduleEventNotification({
                 title: 'Between Us',
-                body: `${form.title.trim()} is coming up.`,
+                body: 'You have a shared plan coming up.',
                 when: triggerTs,
                 data: {
                   route: 'calendar',
                   type: 'calendar_event_reminder',
                   eventId,
-                  title: form.title.trim(),
                 },
               });
               if (!notificationId) {

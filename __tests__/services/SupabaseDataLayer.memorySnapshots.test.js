@@ -381,6 +381,22 @@ describe('SupabaseDataLayer memory snapshots', () => {
     }));
   });
 
+  it('resolves m4v attachments from the video storage bucket', async () => {
+    const { supabase } = require('../../config/supabase');
+
+    await SupabaseDataLayer.init({
+      userId: 'user-1',
+      coupleId: 'couple-1',
+      isPremium: true,
+    });
+
+    const url = await SupabaseDataLayer.getAttachmentUrl('couple-1/user-1/clip.m4v');
+
+    expect(url).toBe('https://example.com/signed-media-url');
+    expect(supabase.storage.from).toHaveBeenCalledWith('attachments');
+    expect(mockCreateSignedUrl).toHaveBeenCalledWith('couple-1/user-1/clip.m4v', 3600);
+  });
+
   it('keeps selected memory media pending if storage upload fails', async () => {
     await SupabaseDataLayer.init({
       userId: 'user-1',

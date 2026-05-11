@@ -111,6 +111,7 @@ export default function IntimacyPositionsScreen() {
   const coupleId = state?.coupleId || userProfile?.coupleId || userProfile?.couple_id || null;
   const coupleCreatedAt = state?.coupleCreatedAt
     || state?.userProfile?.coupleCreatedAt
+    || state?.userProfile?.couple_created_at
     || userProfile?.coupleCreatedAt
     || userProfile?.couple_created_at
     || null;

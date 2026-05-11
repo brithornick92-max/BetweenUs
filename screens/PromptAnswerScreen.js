@@ -80,6 +80,12 @@ export default function PromptAnswerScreen({ route, navigation }) {
   const { state } = useAppContext();
   const { loadUsageStatus } = useContent();
   const coupleId = state?.coupleId || userProfile?.coupleId || userProfile?.couple_id || null;
+  const coupleCreatedAt = state?.coupleCreatedAt
+    || state?.userProfile?.coupleCreatedAt
+    || state?.userProfile?.couple_created_at
+    || userProfile?.coupleCreatedAt
+    || userProfile?.couple_created_at
+    || null;
 
   const [prompt, setPrompt] = useState(routePrompt || null);
   const [answer, setAnswer] = useState("");
@@ -175,6 +181,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
         const isWeeklyPrompt = await isItemInStableFreeWeeklyDeck(resolvedPrompt.id, weeklyEligiblePrompts, {
           contentType: CONTENT_TYPES.PROMPTS,
           coupleId,
+          coupleCreatedAt,
           user,
           userProfile,
           userSettings: profile || userProfile || {},
@@ -204,7 +211,7 @@ export default function PromptAnswerScreen({ route, navigation }) {
     return () => {
       active = false;
     };
-  }, [coupleId, routePrompt, promptId, routeDateKey, routeDateKeySnake, navigation, userProfile, isPremium, showPaywall, user]);
+  }, [coupleCreatedAt, coupleId, routePrompt, promptId, routeDateKey, routeDateKeySnake, navigation, userProfile, isPremium, showPaywall, user]);
 
   const loadExistingAnswer = useCallback(async () => {
     if (!prompt?.id) return;

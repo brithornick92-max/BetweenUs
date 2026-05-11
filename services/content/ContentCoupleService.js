@@ -14,9 +14,17 @@ function getDependencies(dependencies = {}) {
   };
 }
 
-export async function getPromptCoupleContext({ fallbackCoupleId = null, dependencies = {} } = {}) {
+export async function getPromptCoupleContext({
+  fallbackCoupleId = null,
+  allowStoredFallback = true,
+  dependencies = {},
+} = {}) {
   const { coupleStateService } = getDependencies(dependencies);
-  const coupleId = await coupleStateService.getActiveCoupleId({ fallbackCoupleId, dependencies });
+  const coupleId = await coupleStateService.getActiveCoupleId({
+    fallbackCoupleId,
+    allowStoredFallback,
+    dependencies,
+  });
   return {
     coupleId,
     keyTier: coupleId ? 'couple' : 'device',

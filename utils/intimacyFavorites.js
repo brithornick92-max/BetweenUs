@@ -228,6 +228,7 @@ export async function toggleIntimacyFavorite(position, { currentlyFavorite = fal
         await DataLayer.deleteMemory(existing.memoryId);
       } catch (error) {
         if (__DEV__) console.warn('[intimacyFavorites] Failed to delete favorite memory:', error?.message);
+        throw error;
       }
     }
 
@@ -247,6 +248,7 @@ export async function toggleIntimacyFavorite(position, { currentlyFavorite = fal
     memoryId = row?.id || memoryId;
   } catch (error) {
     if (__DEV__) console.warn('[intimacyFavorites] Failed to save favorite memory:', error?.message);
+    throw error;
   }
 
   favorites[position.id] = {

@@ -147,9 +147,9 @@ const WinBackNudges = {
    * Call this when the user's rhythm is loaded and they are leaving the home screen.
    *
    * @param {number} currentStreak
-   * @param {string} [partnerName]
+   * @param {string} [_partnerName]
    */
-  async scheduleStreakBreakAlert(currentStreak, partnerName, isPremium) {
+  async scheduleStreakBreakAlert(currentStreak, _partnerName, isPremium) {
     if (!Notifications) return;
     if (currentStreak < 3) {
       await this.cancelStreakBreakAlert();
@@ -187,9 +187,7 @@ const WinBackNudges = {
       const id = await Notifications.scheduleNotificationAsync({
         content: {
           title: `${currentStreak} connected days between you`,
-          body: partnerName
-            ? `You and ${partnerName} have a nice rhythm. Today can be another small moment, if it feels good.`
-            : 'You two have a nice rhythm. Today can be another small moment, if it feels good.',
+          body: 'You two have a nice rhythm. Today can be another small moment, if it feels good.',
           data: { route: 'home', type: 'streak_break_warning', streak: currentStreak },
         },
         trigger: dateTrigger(tomorrow),
@@ -261,11 +259,10 @@ const WinBackNudges = {
         await AsyncStorage.removeItem(WEEKLY_RECAP_ID_KEY);
       }
 
-      const { prompts = 0, partnerName = 'your partner' } = summary || {};
-      const partnerLine = partnerName && partnerName !== 'your partner' ? ` with ${partnerName}` : '';
+      const { prompts = 0 } = summary || {};
       const promptLine = prompts > 0
-        ? `${prompts} moment${prompts !== 1 ? 's' : ''}${partnerLine} this week`
-        : `Your week${partnerLine} is ready`;
+        ? `${prompts} moment${prompts !== 1 ? 's' : ''} this week`
+        : 'Your week together is ready';
 
       const id = await Notifications.scheduleNotificationAsync({
         content: {

@@ -32,7 +32,6 @@ describe('PartnerNotifications', () => {
           type: 'prompt_answered',
           id: 'h2_042',
           dateKey: '2026-05-05',
-          date_key: '2026-05-05',
         }),
       })
     );
@@ -47,15 +46,17 @@ describe('PartnerNotifications', () => {
     );
   });
 
-  it('vibeSent — sends correct route', async () => {
+  it('vibeSent — sends correct route without exposing the selected vibe label', async () => {
     await PartnerNotifications.vibeSent('Alex', 'thinking of you');
 
+    const payload = mockNotifyPartner.mock.calls[0][1];
     expect(mockNotifyPartner).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({
-        data: expect.objectContaining({ route: 'vibe', type: 'vibe_sent', vibeLabel: 'thinking of you' }),
+        data: expect.objectContaining({ route: 'vibe', type: 'vibe_sent' }),
       })
     );
+    expect(payload.data).not.toHaveProperty('vibeLabel');
   });
 
   it('datePlanned — sends correct route', async () => {
@@ -100,13 +101,21 @@ describe('PartnerNotifications', () => {
     );
   });
 
-  it('memorySaved — names anniversary type without revealing private details', async () => {
+  it('memorySaved — uses generic keepsake copy without revealing the memory type', async () => {
     await PartnerNotifications.memorySaved('Alex', 'anniversary');
 
     const payload = mockNotifyPartner.mock.calls[0][1];
-    expect(payload.title).toContain('anniversary');
-    expect(payload.body).toContain('archive');
+    expect(payload.title).toBe('Alex saved a moment');
+    expect(payload.body).toContain('Keepsake');
     expect(payload.data).toEqual(expect.objectContaining({ route: 'our-story' }));
+    expect(payload.data).not.toHaveProperty('memoryType');
+  });
+
+  it('sanitizes long sender names before putting them in notification titles', async () => {
+    await PartnerNotifications.promptAnswered('  Alexandria Catherine Montgomery-Smith III  ', 'h2_042');
+
+    const payload = mockNotifyPartner.mock.calls[0][1];
+    expect(payload.title).toBe('Alexandria Catherine Montgomery-Smith II answered today\'s question');
   });
 
   it('streakAtRisk — includes connected day count without guilt copy', async () => {

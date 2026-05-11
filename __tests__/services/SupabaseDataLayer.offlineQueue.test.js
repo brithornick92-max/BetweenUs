@@ -78,6 +78,9 @@ jest.mock('../../config/supabase', () => ({
 }));
 
 const queueKey = '@betweenus:cache:cloudSyncQueue:user-1:couple:couple-1';
+const soloQueueKey = '@betweenus:cache:cloudSyncQueue:user-1:solo';
+const soloMemoriesCacheKey = '@betweenus:cache:data:user-1:solo:memories';
+const coupleMemoriesCacheKey = '@betweenus:cache:data:user-1:couple:couple-1:memories';
 
 const makeQueuedJournalInsert = (overrides = {}) => ({
   mutationId: 'mutation-1',
@@ -277,5 +280,56 @@ describe('SupabaseDataLayer offline queue', () => {
       expect.objectContaining({ entity: 'calendar' })
     );
     expect(mockStorageState.get(queueKey)).toEqual([]);
+  });
+
+  it('adopts unpaired pending writes into the couple scope before flushing', async () => {
+    mockStorageState.set(soloQueueKey, [{
+      mutationId: 'solo-memory-1',
+      entity: 'memory',
+      action: 'insert',
+      id: 'memory-1',
+      userId: 'user-1',
+      coupleId: null,
+      payload: { content: 'Saved before pairing', type: 'moment' },
+      queuedAt: '2026-05-05T10:00:00.000Z',
+      status: 'pending',
+      attempts: 0,
+      inFlightAt: null,
+      updatedAt: '2026-05-05T10:00:00.000Z',
+    }]);
+    mockStorageState.set(soloMemoriesCacheKey, [{
+      id: 'memory-1',
+      user_id: 'user-1',
+      couple_id: null,
+      content: 'Saved before pairing',
+      type: 'moment',
+      sync_status: 'pending',
+    }]);
+
+    await SupabaseDataLayer.init({
+      userId: 'user-1',
+      coupleId: 'couple-1',
+      isPremium: true,
+    });
+
+    expect(mockUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        id: 'memory-1',
+        couple_id: 'couple-1',
+        data_type: 'memory',
+        value: expect.objectContaining({ content: 'Saved before pairing' }),
+      }),
+      { onConflict: 'id' }
+    );
+    expect(mockStorageState.get(soloQueueKey)).toEqual([]);
+    expect(mockStorageState.get(queueKey)).toEqual([]);
+    expect(mockStorageState.get(coupleMemoriesCacheKey)).toEqual([
+      expect.objectContaining({
+        id: 'memory-1',
+        couple_id: 'couple-1',
+        sync_status: 'pending',
+      }),
+    ]);
+    expect(mockStorageState.get(soloMemoriesCacheKey)).toEqual([]);
   });
 });

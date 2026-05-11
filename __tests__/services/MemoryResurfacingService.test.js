@@ -61,6 +61,12 @@ describe('MemoryResurfacingService', () => {
     await MemoryResurfacingService.schedule(DataLayer);
 
     expect(mockSchedule).toHaveBeenCalledTimes(1);
-    expect(mockSchedule.mock.calls[0][0].content.data.memoryId).toBe('memory-2');
+    const content = mockSchedule.mock.calls[0][0].content;
+    expect(content.body).not.toContain('A late local memory.');
+    expect(content.data).toEqual({
+      type: 'on_this_day',
+      route: 'saved-moments',
+      url: 'betweenus://saved-moments',
+    });
   });
 });

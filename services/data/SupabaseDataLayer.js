@@ -142,6 +142,16 @@ function isMissingRowError(error) {
   );
 }
 
+function isUniqueViolation(error) {
+  const message = String(error?.message || '').toLowerCase();
+
+  return (
+    error?.code === '23505'
+    || message.includes('duplicate key value')
+    || message.includes('unique constraint')
+  );
+}
+
 function normalizeSnapshotIndex(value) {
   return Number.isFinite(Number(value)) ? Number(value) : 0;
 }
@@ -280,6 +290,14 @@ async function saveCache(scope, rows) {
   await storage.set(cacheKey(_userId, scope), Array.isArray(rows) ? rows : []);
 }
 
+async function loadCacheForRelationship(userId, coupleId, scope) {
+  return storage.get(cacheKey(userId, scope, coupleId), []);
+}
+
+async function saveCacheForRelationship(userId, coupleId, scope, rows) {
+  await storage.set(cacheKey(userId, scope, coupleId), Array.isArray(rows) ? rows : []);
+}
+
 function isPendingCacheRow(row) {
   return (
     row?.sync_status === 'pending'
@@ -365,6 +383,73 @@ async function removeQueuedCalendarMutations(id) {
   if (next.length !== (queue || []).length) {
     await setOfflineQueue(next);
   }
+}
+
+async function adoptSoloPendingDataIntoCouple(userId, coupleId) {
+  if (!userId || !coupleId) return;
+
+  const soloQueueKey = offlineQueueKey(userId, null);
+  const coupleQueueKey = offlineQueueKey(userId, coupleId);
+  const soloQueue = await storage.get(soloQueueKey, []);
+  const soloItems = Array.isArray(soloQueue) ? soloQueue : [];
+  const movableQueueEntries = soloItems
+    .map((item, index) => ({ item, index }))
+    .filter(({ item }) => {
+      const itemUserId = hasOwn(item, 'userId') ? item.userId : userId;
+      const itemCoupleId = hasOwn(item, 'coupleId') ? item.coupleId : null;
+      return itemUserId === userId && !itemCoupleId;
+    });
+  const movableQueueIndexes = new Set(movableQueueEntries.map(({ index }) => index));
+  const adoptedQueueItems = movableQueueEntries.map(({ item }) => normalizeQueueItem({
+    ...item,
+    userId,
+    coupleId,
+    status: item?.status === 'in_flight' ? 'pending' : (item?.status || 'pending'),
+    inFlightAt: null,
+    updatedAt: now(),
+  }));
+
+  if (adoptedQueueItems.length > 0) {
+    const existingCoupleQueue = await storage.get(coupleQueueKey, []);
+    const existingIds = new Set((Array.isArray(existingCoupleQueue) ? existingCoupleQueue : [])
+      .map((item) => item?.mutationId)
+      .filter(Boolean));
+    const nextCoupleQueue = [
+      ...(Array.isArray(existingCoupleQueue) ? existingCoupleQueue : []),
+      ...adoptedQueueItems.filter((item) => !existingIds.has(item?.mutationId)),
+    ];
+    const remainingSoloQueue = soloItems.filter((_, index) => !movableQueueIndexes.has(index));
+
+    await storage.set(coupleQueueKey, nextCoupleQueue);
+    await storage.set(soloQueueKey, remainingSoloQueue);
+  }
+
+  await Promise.all(Object.values(CACHE_SCOPES).map(async (scope) => {
+    const soloRows = await loadCacheForRelationship(userId, null, scope);
+    const sourceRows = Array.isArray(soloRows) ? soloRows : [];
+    const movableRows = sourceRows.filter((row) =>
+      isPendingCacheRow(row)
+      && !getRowCoupleId(row)
+      && (!getRowUserId(row) || getRowUserId(row) === userId)
+    );
+
+    if (movableRows.length === 0) return;
+
+    const adoptedRows = movableRows.map((row) => ({
+      ...row,
+      couple_id: coupleId,
+    }));
+    const existingRows = await loadCacheForRelationship(userId, coupleId, scope);
+    const adoptedIds = new Set(adoptedRows.map((row) => row?.id).filter(Boolean));
+    const nextCoupleRows = [
+      ...adoptedRows,
+      ...(Array.isArray(existingRows) ? existingRows : []).filter((row) => !adoptedIds.has(row?.id)),
+    ];
+    const nextSoloRows = sourceRows.filter((row) => !adoptedIds.has(row?.id));
+
+    await saveCacheForRelationship(userId, coupleId, scope, nextCoupleRows);
+    await saveCacheForRelationship(userId, null, scope, nextSoloRows);
+  }));
 }
 
 async function runCloudOperation({ perform, onSuccess, onOffline }) {
@@ -559,9 +644,7 @@ async function cdQuery(dataType, { limit = 100, offset = 0, filter } = {}) {
 
     if (error) {
       if (isOfflineCapableError(error)) {
-        if (__DEV__) {
-          if (__DEV__) console.warn(`[SupabaseDataLayer] cdQuery(${dataType}) using cache fallback:`, error?.message);
-        }
+        if (__DEV__) console.warn(`[SupabaseDataLayer] cdQuery(${dataType}) using cache fallback:`, error?.message);
 
         return CACHE_FALLBACK;
       }
@@ -600,6 +683,7 @@ function isCacheFallback(value) {
 
 const IMAGE_BUCKET = 'couple-media';
 const VIDEO_BUCKET = 'attachments';
+const VIDEO_EXTENSION_RE = /\.(mp4|mov|m4v|webm)(?:\?|#|$)/i;
 
 function isVideoMedia({ mimeType, localUri } = {}) {
   if (mimeType?.startsWith('video/')) return true;
@@ -631,6 +715,13 @@ function isStorageMimePolicyError(error) {
     || message.includes('not supported')
     || message.includes('not allowed')
   );
+}
+
+function getMediaBucketForPath(storagePath) {
+  const path = String(storagePath || '');
+  if (VIDEO_EXTENSION_RE.test(path)) return VIDEO_BUCKET;
+  if (path.startsWith('couples/')) return IMAGE_BUCKET;
+  return IMAGE_BUCKET;
 }
 
 /**
@@ -1175,12 +1266,24 @@ const SupabaseDataLayer = {
   async init({ userId, coupleId, isPremium = false }) {
     _userId = userId;
     _coupleId = coupleId || null;
+    if (_userId && _coupleId) {
+      await adoptSoloPendingDataIntoCouple(_userId, _coupleId);
+    }
     await this.flushOfflineQueue();
   },
 
   async reconfigure({ userId, coupleId, isPremium }) {
+    const previousUserId = _userId;
+    const previousCoupleId = _coupleId;
     if (userId !== undefined) _userId = userId;
     if (coupleId !== undefined) _coupleId = coupleId || null;
+    if (
+      _userId
+      && _coupleId
+      && (_userId !== previousUserId || _coupleId !== previousCoupleId)
+    ) {
+      await adoptSoloPendingDataIntoCouple(_userId, _coupleId);
+    }
     await this.flushOfflineQueue();
   },
 
@@ -1558,7 +1661,19 @@ const SupabaseDataLayer = {
     const id = existing?.id || cachedExisting?.id || makeId('ans');
 
     return runCloudOperation({
-      perform: async () => (existing ? cdUpdate(existing.id, value) : cdInsert('prompt_answer', id, value, { isPrivate: true })),
+      perform: async () => {
+        if (existing) return cdUpdate(existing.id, value);
+
+        try {
+          return await cdInsert('prompt_answer', id, value, { isPrivate: true });
+        } catch (error) {
+          if (!isUniqueViolation(error)) throw error;
+
+          const current = await this._findPromptAnswer(promptId, dk, _userId);
+          if (!current || isCacheFallback(current)) throw error;
+          return cdUpdate(current.id, value);
+        }
+      },
       onSuccess: async (remoteRow) => {
         const [partnerRow, partnerStatus] = await Promise.all([
           this._findPartnerPromptAnswer(promptId, dk),
@@ -2558,9 +2673,7 @@ const SupabaseDataLayer = {
       .limit(limit);
 
     if (error) {
-      if (__DEV__) {
-        if (__DEV__) console.warn('[SupabaseDataLayer] getCalendarEvents using cache fallback:', error?.message);
-      }
+      if (__DEV__) console.warn('[SupabaseDataLayer] getCalendarEvents using cache fallback:', error?.message);
 
       const cached = await loadCache(CACHE_SCOPES.calendar);
       return cached
@@ -2863,10 +2976,7 @@ const SupabaseDataLayer = {
   },
 
   async getAttachmentUrl(storagePath) {
-    const bucket = storagePath?.endsWith('.mov') || storagePath?.endsWith('.mp4')
-      ? VIDEO_BUCKET
-      : IMAGE_BUCKET;
-
+    const bucket = getMediaBucketForPath(storagePath);
     return getSignedMediaUrl(bucket, storagePath);
   },
 
@@ -2875,9 +2985,7 @@ const SupabaseDataLayer = {
 
     if (!sb || !storagePath) return;
 
-    const bucket = storagePath?.endsWith('.mov') || storagePath?.endsWith('.mp4')
-      ? VIDEO_BUCKET
-      : IMAGE_BUCKET;
+    const bucket = getMediaBucketForPath(storagePath);
 
     await sb.storage.from(bucket).remove([storagePath]).catch(() => {});
   },

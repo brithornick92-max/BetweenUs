@@ -439,6 +439,7 @@ export default function DateNightScreen({ navigation, route }) {
   const coupleId = state?.coupleId || userProfile?.coupleId || userProfile?.couple_id || null;
   const coupleCreatedAt = state?.coupleCreatedAt
     || state?.userProfile?.coupleCreatedAt
+    || state?.userProfile?.couple_created_at
     || userProfile?.coupleCreatedAt
     || userProfile?.couple_created_at
     || null;
@@ -701,16 +702,38 @@ export default function DateNightScreen({ navigation, route }) {
         : prev.some(item => item.id === date.id) ? prev : [...prev, date]
     ));
 
-    const persist = Promise.all([
-      userId
-        ? (wasSaved
-          ? removeDateFromShortlist(userId, date.id, coupleId)
-          : addDateToShortlist(userId, date.id, coupleId))
-        : Promise.resolve(),
-      wasSaved
-        ? removeDateSavedKeepsake(date.id)
-        : saveDateSavedKeepsake(date),
-    ]);
+    const persist = (async () => {
+      if (wasSaved) {
+        let shortlistRemoved = false;
+        try {
+          if (userId) {
+            await removeDateFromShortlist(userId, date.id, coupleId);
+            shortlistRemoved = true;
+          }
+          await removeDateSavedKeepsake(date.id);
+        } catch (error) {
+          if (shortlistRemoved && userId) {
+            await addDateToShortlist(userId, date.id, coupleId).catch(() => {});
+          }
+          throw error;
+        }
+        return;
+      }
+
+      let shortlistAdded = false;
+      try {
+        if (userId) {
+          await addDateToShortlist(userId, date.id, coupleId);
+          shortlistAdded = true;
+        }
+        await saveDateSavedKeepsake(date);
+      } catch (error) {
+        if (shortlistAdded && userId) {
+          await removeDateFromShortlist(userId, date.id, coupleId).catch(() => {});
+        }
+        throw error;
+      }
+    })();
 
     persist
       .then(() => getDateMatchState(userId).then(setDateMatches).catch(() => {}))
@@ -838,18 +861,34 @@ export default function DateNightScreen({ navigation, route }) {
     ));
 
     try {
-      if (userId) {
-        if (wasSaved) {
-          await removeDateFromShortlist(userId, date.id, coupleId);
-        } else {
-          await addDateToShortlist(userId, date.id, coupleId);
-        }
-      }
-
       if (wasSaved) {
-        await removeDateSavedKeepsake(date.id);
+        let shortlistRemoved = false;
+        try {
+          if (userId) {
+            await removeDateFromShortlist(userId, date.id, coupleId);
+            shortlistRemoved = true;
+          }
+          await removeDateSavedKeepsake(date.id);
+        } catch (error) {
+          if (shortlistRemoved && userId) {
+            await addDateToShortlist(userId, date.id, coupleId).catch(() => {});
+          }
+          throw error;
+        }
       } else {
-        await saveDateSavedKeepsake(date);
+        let shortlistAdded = false;
+        try {
+          if (userId) {
+            await addDateToShortlist(userId, date.id, coupleId);
+            shortlistAdded = true;
+          }
+          await saveDateSavedKeepsake(date);
+        } catch (error) {
+          if (shortlistAdded && userId) {
+            await removeDateFromShortlist(userId, date.id, coupleId).catch(() => {});
+          }
+          throw error;
+        }
       }
 
       setDateMatches(await getDateMatchState(userId));

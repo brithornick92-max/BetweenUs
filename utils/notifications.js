@@ -5,6 +5,7 @@
 import { Platform } from "react-native";
 import { settingsStorage } from "./storage";
 import { REMINDER_CATEGORY_COLORS } from "../config/constants";
+import DeepLinkHandler from "../services/DeepLinkHandler";
 
 let Notifications = null;
 
@@ -110,9 +111,8 @@ export async function scheduleEventNotification({
       sound: "default",
       color: REMINDER_CATEGORY_COLORS.date,
       data: {
-        route: "calendar",
         type: "calendar_event_reminder",
-        ...(data || {}),
+        ...DeepLinkHandler.buildNotificationData("calendar", data || {}),
       },
     },
     trigger: dateTrigger(new Date(ts)),
@@ -153,11 +153,7 @@ export async function scheduleActionableNotification({
       title,
       body,
       sound: "default",
-      data: {
-        route,
-        ...routeParams,
-        url: `betweenus://${route}${routeParams.id ? '/' + routeParams.id : ''}`,
-      },
+      data: DeepLinkHandler.buildNotificationData(route, routeParams),
     },
     trigger: dateTrigger(new Date(ts)),
   });

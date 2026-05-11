@@ -9,16 +9,20 @@ import { getSupabaseOrThrow } from '../config/supabase';
 import PushNotificationService from './PushNotificationService';
 import DeepLinkHandler from './DeepLinkHandler';
 
+const normalizeNotificationName = (value) => {
+  const name = String(value || '').replace(/\s+/g, ' ').trim();
+  return name ? name.slice(0, 40) : 'Your partner';
+};
+
 const PartnerNotifications = {
   /**
    * Partner answered today's prompt.
    */
   async promptAnswered(senderName, promptId, dateKey = null) {
-    const name = senderName || 'Your partner';
+    const name = normalizeNotificationName(senderName);
     const routeParams = promptId ? { id: promptId } : {};
     if (dateKey) {
       routeParams.dateKey = dateKey;
-      routeParams.date_key = dateKey;
     }
 
     await this._send({
@@ -35,13 +39,12 @@ const PartnerNotifications = {
    * Partner sent a vibe signal.
    */
   async vibeSent(senderName, vibeLabel) {
-    const name = senderName || 'Your partner';
+    const name = normalizeNotificationName(senderName);
     await this._send({
       title: `${name} left a small moment for you`,
       body: 'Open it whenever you want to feel close.',
       data: {
         type: 'vibe_sent',
-        ...(vibeLabel ? { vibeLabel } : {}),
         ...DeepLinkHandler.buildNotificationData('vibe'),
       },
     });
@@ -51,7 +54,7 @@ const PartnerNotifications = {
    * Partner added a date to the calendar.
    */
   async datePlanned(senderName, dateTitle) {
-    const name = senderName || 'Your partner';
+    const name = normalizeNotificationName(senderName);
     await this._send({
       title: `${name} picked a date idea`,
       body: 'Something for the two of you is waiting.',
@@ -66,7 +69,7 @@ const PartnerNotifications = {
    * Partner shared a journal entry.
    */
   async journalShared(senderName) {
-    const name = senderName || 'Your partner';
+    const name = normalizeNotificationName(senderName);
     await this._send({
       title: `${name} left a private note`,
       body: 'A thought from your partner is waiting.',
@@ -81,15 +84,13 @@ const PartnerNotifications = {
    * Partner saved a shared memory (moment, anniversary, first, etc.).
    */
   async memorySaved(senderName, memoryType) {
-    const name = senderName || 'Your partner';
-    const typeLabel = memoryType && memoryType !== 'moment' ? memoryType : 'moment';
+    const name = normalizeNotificationName(senderName);
 
     await this._send({
-      title: `${name} saved a ${typeLabel === 'moment' ? 'moment' : typeLabel}`,
-      body: 'A new piece of your story was added to your Keepsake archive.',
+      title: `${name} saved a moment`,
+      body: 'A new piece of your story was added to Keepsake.',
       data: {
         type: 'memory_saved',
-        memoryType: typeLabel,
         ...DeepLinkHandler.buildNotificationData('our-story'),
       },
     });
@@ -99,7 +100,7 @@ const PartnerNotifications = {
    * Partner added something to the shared calendar.
    */
   async calendarEventCreated(senderName, eventTitle) {
-    const name = senderName || 'Your partner';
+    const name = normalizeNotificationName(senderName);
     await this._send({
       title: `${name} added something to your calendar`,
       body: 'Open Calendar to see what changed.',
@@ -114,7 +115,7 @@ const PartnerNotifications = {
    * Partner answered the daily quiz.
    */
   async quizAnswered(senderName) {
-    const name = senderName || 'Your partner';
+    const name = normalizeNotificationName(senderName);
     await this._send({
       title: `${name} answered the Daily Quiz`,
       body: 'Add yours to reveal both answers.',
@@ -145,7 +146,7 @@ const PartnerNotifications = {
    * Partner sent a "Thinking of You" photo.
    */
   async thinkingOfYouPhoto(senderName) {
-    const name = senderName || 'Your partner';
+    const name = normalizeNotificationName(senderName);
     await this._send({
       title: `${name} left you a photo`,
       body: 'A private photo is waiting.',

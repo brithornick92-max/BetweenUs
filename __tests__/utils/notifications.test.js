@@ -73,10 +73,34 @@ describe('scheduleEventNotification', () => {
         data: {
           route: 'calendar',
           type: 'calendar_event_reminder',
+          url: 'betweenus://calendar',
         },
       },
       trigger: { date: expect.any(Date) },
     });
+  });
+
+  it('drops extra event reminder data from the scheduled payload', async () => {
+    const id = await scheduleEventNotification({
+      title: 'Between Us',
+      body: 'You have a shared plan coming up.',
+      when: Date.now() + 60000,
+      data: {
+        eventId: 'calendar-1',
+        title: 'Private dinner title',
+        notes: 'private notes',
+      },
+    });
+
+    expect(id).toBe('notif-id-123');
+    const payload = mockSchedule.mock.calls[0][0].content.data;
+    expect(payload).toEqual({
+      route: 'calendar',
+      type: 'calendar_event_reminder',
+      url: 'betweenus://calendar',
+    });
+    expect(payload).not.toHaveProperty('title');
+    expect(payload).not.toHaveProperty('notes');
   });
 
   it('does not schedule if OS notification permission is not granted', async () => {
@@ -152,6 +176,29 @@ describe('scheduleActionableNotification', () => {
         }),
       }),
     }));
+  });
+
+  it('sanitizes routed notification params before scheduling', async () => {
+    const id = await scheduleActionableNotification({
+      title: 'Open',
+      body: 'Route test',
+      route: 'prompt',
+      routeParams: {
+        id: 'prompt-1',
+        date_key: '2026-05-05',
+        answer: 'private',
+      },
+      when: Date.now() + 60000,
+    });
+
+    expect(id).toBe('notif-id-123');
+    const payload = mockSchedule.mock.calls[0][0].content.data;
+    expect(payload).toEqual({
+      route: 'prompt',
+      id: 'prompt-1',
+      dateKey: '2026-05-05',
+      url: 'betweenus://prompt/prompt-1?dateKey=2026-05-05',
+    });
   });
 });
 

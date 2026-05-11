@@ -620,4 +620,13 @@ describe('WeeklyContentSetService', () => {
       getUserWeekNumber(new Date(2026, 4, 5, 23, 45), new Date(2026, 4, 11, 23, 59))
     ).toBe(0);
   });
+
+  it('uses the explicit date component from server timestamp strings', () => {
+    expect(
+      getUserWeekNumber('2026-05-05T23:45:00.000Z', '2026-05-12T00:01:00.000Z')
+    ).toBe(1);
+    expect(
+      getUserWeekNumber('2026-05-05T23:45:00.000Z', '2026-05-11T23:59:00.000Z')
+    ).toBe(0);
+  });
 });

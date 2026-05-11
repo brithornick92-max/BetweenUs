@@ -70,6 +70,25 @@ describe('freeWeeklyDeckAccess', () => {
     expect(deck).toHaveLength(40);
   });
 
+  it('uses the couple anchor for partnered free deck access checks', async () => {
+    const prompts = Array.from({ length: 50 }, (_, index) => makePrompt(`prompt-${index + 1}`));
+    const options = {
+      contentType: CONTENT_TYPES.PROMPTS,
+      userId: 'user-1',
+      coupleId: 'couple-1',
+      coupleCreatedAt: '2026-04-01T12:00:00.000Z',
+      userProfile: { created_at: '2026-04-30T12:00:00.000Z' },
+      userSettings: { maxHeat: 5 },
+      date: new Date('2026-04-30T12:00:00.000Z'),
+    };
+
+    const deck = await getStableFreeWeeklyDeck(prompts, options);
+    const deckId = deck[deck.length - 1].id;
+
+    expect(deck).toHaveLength(40);
+    expect(await isItemInStableFreeWeeklyDeck(deckId, prompts, options)).toBe(true);
+  });
+
   it('uses a cumulative 20-card-to-growing-library shape for free dates', async () => {
     const dates = Array.from({ length: 50 }, (_, index) => makeDate(`date-${index + 1}`));
 

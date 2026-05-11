@@ -4,11 +4,17 @@ import { CONTENT_CATALOG_VERSION, WEEKLY_CONTENT_SCHEDULER_VERSION } from './con
 
 const ALLOCATION_VERSION = 2;
 const MAX_CACHED_ALLOCATIONS = 80;
+const DATE_STAMP_PATTERN = /^(\d{4})-(\d{2})-(\d{2})/;
 
 const getItemId = (item) =>
   item?.id ?? item?.promptId ?? item?.dateId ?? item?.positionId ?? item?.title ?? item?.text ?? null;
 
 const normalizeDateStamp = (value) => {
+  if (typeof value === 'string') {
+    const match = value.trim().match(DATE_STAMP_PATTERN);
+    if (match) return `${match[1]}-${match[2]}-${match[3]}`;
+  }
+
   const date = value ? new Date(value) : null;
   if (!date || Number.isNaN(date.getTime())) return 'unknown';
   return date.toISOString().slice(0, 10);

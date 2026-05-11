@@ -288,3 +288,34 @@ describe('DeepLinkHandler.handleNotificationResponse', () => {
     expect(navigate).not.toHaveBeenCalled();
   });
 });
+
+describe('DeepLinkHandler.buildNotificationData', () => {
+  it('keeps only safe routing fields in generated notification payloads', () => {
+    const data = DeepLinkHandler.buildNotificationData('prompt', {
+      id: 'h2_042',
+      date_key: '2026-05-05',
+      answer: 'private answer',
+      title: 'private title',
+      routeParams: { ignored: true },
+    });
+
+    expect(data).toEqual({
+      route: 'prompt',
+      id: 'h2_042',
+      dateKey: '2026-05-05',
+      url: 'betweenus://prompt/h2_042?dateKey=2026-05-05',
+    });
+  });
+
+  it('drops malformed ids and date keys from generated notification payloads', () => {
+    const data = DeepLinkHandler.buildNotificationData('prompt', {
+      id: 'bad/id',
+      dateKey: '05/05/2026',
+    });
+
+    expect(data).toEqual({
+      route: 'prompt',
+      url: 'betweenus://prompt',
+    });
+  });
+});
