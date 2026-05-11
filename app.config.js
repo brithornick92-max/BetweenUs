@@ -27,6 +27,7 @@ const selectedVariantName = Object.prototype.hasOwnProperty.call(variants, reque
   ? requestedVariant
   : 'production';
 const selectedVariant = variants[selectedVariantName];
+const updateRuntimeVersionOverride = process.env.EAS_UPDATE_RUNTIME_VERSION;
 
 module.exports = ({ config }) => {
   const mergedConfig = {
@@ -50,5 +51,6 @@ module.exports = ({ config }) => {
       ...mergedConfig.extra,
       appVariant: selectedVariantName,
     },
+    runtimeVersion: updateRuntimeVersionOverride || mergedConfig.runtimeVersion,
   };
 };
