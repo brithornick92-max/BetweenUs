@@ -44,6 +44,23 @@ describe('CoupleStateService', () => {
     })).resolves.toBe('profile-couple-id');
   });
 
+  it('can disable stored couple id fallback for shared assignment reads', async () => {
+    const { getActiveCoupleId, getSharedDailyPromptSelection } = require('../../services/couple/CoupleStateService');
+    const deps = createDeps({ coupleId: 'stale-couple-id' });
+
+    await expect(getActiveCoupleId({
+      allowStoredFallback: false,
+      dependencies: deps,
+    })).resolves.toBeNull();
+
+    await expect(getSharedDailyPromptSelection('2026-04-20', {
+      allowStoredFallback: false,
+      dependencies: deps,
+    })).resolves.toBeNull();
+
+    expect(deps.storageRouter.getCoupleData).not.toHaveBeenCalled();
+  });
+
   it('reads and writes shared daily prompt selections through one service boundary', async () => {
     const {
       getSharedDailyPromptSelection,

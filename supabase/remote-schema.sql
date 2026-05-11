@@ -2046,6 +2046,19 @@ ALTER TABLE ONLY "public"."calendar_events" REPLICA IDENTITY FULL;
 ALTER TABLE "public"."calendar_events" OWNER TO "postgres";
 
 
+CREATE TABLE IF NOT EXISTS "public"."date_shortlist" (
+    "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
+    "user_id" "uuid" NOT NULL,
+    "couple_id" "uuid",
+    "date_id" "text" NOT NULL,
+    "created_at" timestamp with time zone DEFAULT "now"() NOT NULL,
+    "removed_at" timestamp with time zone
+);
+
+
+ALTER TABLE "public"."date_shortlist" OWNER TO "postgres";
+
+
 CREATE TABLE IF NOT EXISTS "public"."couple_data" (
     "id" "uuid" DEFAULT "gen_random_uuid"() NOT NULL,
     "couple_id" "uuid" NOT NULL,
@@ -2408,6 +2421,18 @@ ALTER TABLE ONLY "public"."calendar_events"
     ADD CONSTRAINT "calendar_events_pkey" PRIMARY KEY ("id");
 
 
+ALTER TABLE ONLY "public"."date_shortlist"
+    ADD CONSTRAINT "date_shortlist_couple_date_unique" UNIQUE ("couple_id", "date_id");
+
+
+ALTER TABLE ONLY "public"."date_shortlist"
+    ADD CONSTRAINT "date_shortlist_pkey" PRIMARY KEY ("id");
+
+
+ALTER TABLE ONLY "public"."date_shortlist"
+    ADD CONSTRAINT "date_shortlist_user_date_unique" UNIQUE ("user_id", "date_id");
+
+
 
 ALTER TABLE ONLY "public"."couple_data"
     ADD CONSTRAINT "couple_data_couple_id_key_unique" UNIQUE ("couple_id", "key");
@@ -2576,6 +2601,12 @@ CREATE INDEX "idx_calendar_events_date" ON "public"."calendar_events" USING "btr
 CREATE INDEX "idx_calendar_events_type" ON "public"."calendar_events" USING "btree" ("event_type");
 
 
+CREATE INDEX "date_shortlist_couple_active_idx" ON "public"."date_shortlist" USING "btree" ("couple_id", "created_at" DESC) WHERE (("removed_at" IS NULL) AND ("couple_id" IS NOT NULL));
+
+
+CREATE INDEX "date_shortlist_user_active_idx" ON "public"."date_shortlist" USING "btree" ("user_id", "created_at" DESC) WHERE ("removed_at" IS NULL);
+
+
 
 CREATE INDEX "idx_couple_data_couple_id" ON "public"."couple_data" USING "btree" ("couple_id");
 
@@ -2634,7 +2665,6 @@ CREATE INDEX "idx_couples_created_by" ON "public"."couples" USING "btree" ("crea
 
 
 CREATE INDEX "idx_couples_premium" ON "public"."couples" USING "btree" ("is_premium") WHERE ("is_premium" = true);
-
 
 
 CREATE INDEX "idx_entitlements_premium" ON "public"."user_entitlements" USING "btree" ("is_premium");
@@ -2845,6 +2875,14 @@ ALTER TABLE ONLY "public"."calendar_events"
 
 ALTER TABLE ONLY "public"."calendar_events"
     ADD CONSTRAINT "calendar_events_created_by_fkey" FOREIGN KEY ("created_by") REFERENCES "auth"."users"("id");
+
+
+ALTER TABLE ONLY "public"."date_shortlist"
+    ADD CONSTRAINT "date_shortlist_couple_id_fkey" FOREIGN KEY ("couple_id") REFERENCES "public"."couples"("id") ON DELETE CASCADE;
+
+
+ALTER TABLE ONLY "public"."date_shortlist"
+    ADD CONSTRAINT "date_shortlist_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "auth"."users"("id") ON DELETE CASCADE;
 
 
 
@@ -3068,6 +3106,23 @@ CREATE POLICY "Couple members can create calendar events" ON "public"."calendar_
   WHERE (("m"."couple_id" = "calendar_events"."couple_id") AND ("m"."user_id" = "auth"."uid"()))))));
 
 
+CREATE POLICY "Users can read their own date shortlist" ON "public"."date_shortlist" FOR SELECT TO "authenticated" USING ((("auth"."uid"() = "user_id") OR (("couple_id" IS NOT NULL) AND (EXISTS ( SELECT 1
+   FROM "public"."couple_members" "m"
+  WHERE (("m"."couple_id" = "date_shortlist"."couple_id") AND ("m"."user_id" = "auth"."uid"())))))));
+
+
+CREATE POLICY "Users can insert their own date shortlist" ON "public"."date_shortlist" FOR INSERT TO "authenticated" WITH CHECK ((("auth"."uid"() = "user_id") AND (("couple_id" IS NULL) OR (EXISTS ( SELECT 1
+   FROM "public"."couple_members" "m"
+  WHERE (("m"."couple_id" = "date_shortlist"."couple_id") AND ("m"."user_id" = "auth"."uid"())))))));
+
+
+CREATE POLICY "Users can update their own date shortlist" ON "public"."date_shortlist" FOR UPDATE TO "authenticated" USING ((("auth"."uid"() = "user_id") OR (("couple_id" IS NOT NULL) AND (EXISTS ( SELECT 1
+   FROM "public"."couple_members" "m"
+  WHERE (("m"."couple_id" = "date_shortlist"."couple_id") AND ("m"."user_id" = "auth"."uid"()))))))) WITH CHECK ((("auth"."uid"() = "user_id") OR (("couple_id" IS NOT NULL) AND (EXISTS ( SELECT 1
+   FROM "public"."couple_members" "m"
+  WHERE (("m"."couple_id" = "date_shortlist"."couple_id") AND ("m"."user_id" = "auth"."uid"())))))));
+
+
 
 CREATE POLICY "Users can create couples" ON "public"."couples" FOR INSERT WITH CHECK (("auth"."uid"() = "created_by"));
 
@@ -3156,6 +3211,9 @@ ALTER TABLE "public"."couple_members" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."couples" ENABLE ROW LEVEL SECURITY;
+
+
+ALTER TABLE "public"."date_shortlist" ENABLE ROW LEVEL SECURITY;
 
 
 ALTER TABLE "public"."moments" ENABLE ROW LEVEL SECURITY;
@@ -3546,6 +3604,11 @@ GRANT ALL ON TABLE "public"."couple_members" TO "service_role";
 GRANT ALL ON TABLE "public"."couples" TO "anon";
 GRANT ALL ON TABLE "public"."couples" TO "authenticated";
 GRANT ALL ON TABLE "public"."couples" TO "service_role";
+
+
+GRANT ALL ON TABLE "public"."date_shortlist" TO "anon";
+GRANT ALL ON TABLE "public"."date_shortlist" TO "authenticated";
+GRANT ALL ON TABLE "public"."date_shortlist" TO "service_role";
 
 
 

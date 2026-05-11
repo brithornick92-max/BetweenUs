@@ -23,6 +23,18 @@ function callWithTimeout(factory, timeoutMs) {
   });
 }
 
+function getCoupleCreatedAt(remoteCouple) {
+  return (
+    remoteCouple?.couples?.created_at
+    || remoteCouple?.couples?.createdAt
+    || remoteCouple?.couple?.created_at
+    || remoteCouple?.couple?.createdAt
+    || remoteCouple?.created_at
+    || remoteCouple?.createdAt
+    || null
+  );
+}
+
 export async function clearLocalCoupleState({
   coupleId,
   userId,
@@ -81,9 +93,18 @@ export async function unlinkCouple({ coupleId, userId, onProfileCleared, depende
 }
 
 export async function getRemoteCoupleId({ dependencies = {}, timeoutMs = 10000 } = {}) {
+  const snapshot = await getRemoteCoupleSnapshot({ dependencies, timeoutMs });
+  return snapshot.coupleId;
+}
+
+export async function getRemoteCoupleSnapshot({ dependencies = {}, timeoutMs = 10000 } = {}) {
   const { coupleService } = getDependencies(dependencies);
   const remoteCouple = await callWithTimeout(() => coupleService.getMyCouple(), timeoutMs);
-  return remoteCouple?.couple_id || null;
+  return {
+    coupleId: remoteCouple?.couple_id || null,
+    coupleCreatedAt: getCoupleCreatedAt(remoteCouple),
+    remoteCouple,
+  };
 }
 
 export async function getVerifiedCoupleState({
@@ -102,12 +123,15 @@ export async function getVerifiedCoupleState({
 
   let resolvedCoupleId = localCoupleId || null;
   let remoteCoupleId = null;
+  let remoteCoupleCreatedAt = null;
   let remoteChecked = false;
   let remoteError = false;
 
   if (requireRemoteCheck) {
     try {
-      remoteCoupleId = await getRemoteCoupleId({ dependencies });
+      const remoteSnapshot = await getRemoteCoupleSnapshot({ dependencies });
+      remoteCoupleId = remoteSnapshot.coupleId;
+      remoteCoupleCreatedAt = remoteSnapshot.coupleCreatedAt;
       remoteChecked = true;
     } catch (_) {
       remoteChecked = false;
@@ -118,7 +142,10 @@ export async function getVerifiedCoupleState({
       if (remoteCoupleId && remoteCoupleId !== resolvedCoupleId) {
         resolvedCoupleId = remoteCoupleId;
         await storageApi.set(STORAGE_KEYS.COUPLE_ID, remoteCoupleId);
-        await updateProfile?.({ coupleId: remoteCoupleId });
+        await updateProfile?.({
+          coupleId: remoteCoupleId,
+          ...(remoteCoupleCreatedAt ? { coupleCreatedAt: remoteCoupleCreatedAt } : {}),
+        });
       } else if (!remoteCoupleId && resolvedCoupleId && confirmMiss) {
         let confirmedMissing = false;
         try {
@@ -144,6 +171,7 @@ export async function getVerifiedCoupleState({
 
   return {
     coupleId: resolvedCoupleId,
+    coupleCreatedAt: resolvedCoupleId ? remoteCoupleCreatedAt : null,
     remoteCoupleId,
     remoteChecked,
     remoteError,
@@ -155,5 +183,6 @@ export default {
   clearLocalCoupleState,
   unlinkCouple,
   getRemoteCoupleId,
+  getRemoteCoupleSnapshot,
   getVerifiedCoupleState,
 };

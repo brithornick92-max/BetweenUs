@@ -437,6 +437,11 @@ export default function DateNightScreen({ navigation, route }) {
   const { state } = useAppContext();
   const userId = userProfile?.id || userProfile?.user_id || userProfile?.uid || userProfile?.sub || user?.uid || user?.id || null;
   const coupleId = state?.coupleId || userProfile?.coupleId || userProfile?.couple_id || null;
+  const coupleCreatedAt = state?.coupleCreatedAt
+    || state?.userProfile?.coupleCreatedAt
+    || userProfile?.coupleCreatedAt
+    || userProfile?.couple_created_at
+    || null;
   const partnerName = useMemo(
     () => getPartnerDisplayName(userProfile, state?.userProfile, 'your partner'),
     [state?.userProfile, userProfile]
@@ -545,12 +550,13 @@ export default function DateNightScreen({ navigation, route }) {
 
         setAllDates(activeBoundaryEligible);
 
-        // Build this user's stable weekly allocation. Boundary changes filter this
+        // Build this scope's stable weekly allocation. Boundary changes filter this
         // allocation, but they do not backfill extra cards until the next week.
         const weeklySet = await buildStableWeeklySet(activeBoundaryEligible, {
           contentType: CONTENT_TYPES.DATES,
           userId: userId || 'anonymous',
           coupleId,
+          coupleCreatedAt,
           isPremium,
           userSettings: profile || userProfile || {},
           userCreatedAt: contentAnchorDate,
@@ -591,7 +597,7 @@ export default function DateNightScreen({ navigation, route }) {
     };
     loadCleanupRef.current = cleanup;
     return cleanup;
-  }, [contentAnchorDate, coupleId, isPremium, userId, userProfile]);
+  }, [contentAnchorDate, coupleCreatedAt, coupleId, isPremium, userId, userProfile]);
 
   useFocusEffect(
     useCallback(() => {

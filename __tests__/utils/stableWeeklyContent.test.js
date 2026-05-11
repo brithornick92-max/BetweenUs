@@ -78,28 +78,34 @@ describe('stableWeeklyContent', () => {
     expect(followingWeek.allocationMeta.fromCache).toBe(false);
   });
 
-  it('uses the couple as the weekly allocation owner when partnered', async () => {
+  it('uses the couple as the weekly allocation owner and anchor when partnered', async () => {
     const pool = Array.from({ length: 30 }, (_, index) => makePrompt(`prompt-${index + 1}`, 1));
     const baseOptions = {
       contentType: CONTENT_TYPES.PROMPTS,
       coupleId: 'couple-1',
+      coupleCreatedAt: '2026-04-20T12:00:00.000Z',
       isPremium: false,
       userSettings: { maxHeat: 5 },
-      userCreatedAt: '2026-04-30T12:00:00.000Z',
-      date: new Date('2026-05-03T12:00:00.000Z'),
+      date: new Date('2026-05-10T12:00:00.000Z'),
     };
 
     const firstPartnerSet = await buildStableWeeklySet(pool, {
       ...baseOptions,
       userId: 'user-1',
+      userCreatedAt: '2026-04-30T12:00:00.000Z',
     });
+
+    mockStore = {};
+
     const secondPartnerSet = await buildStableWeeklySet(pool, {
       ...baseOptions,
       userId: 'user-2',
+      userCreatedAt: '2026-05-08T12:00:00.000Z',
     });
 
-    expect(secondPartnerSet.allocationMeta.fromCache).toBe(true);
+    expect(secondPartnerSet.allocationMeta.fromCache).toBe(false);
     expect(secondPartnerSet.allocationMeta.key).toBe(firstPartnerSet.allocationMeta.key);
+    expect(secondPartnerSet.weekNumber).toBe(firstPartnerSet.weekNumber);
     expect(secondPartnerSet.items.map((item) => item.id).sort()).toEqual(
       firstPartnerSet.items.map((item) => item.id).sort()
     );

@@ -109,6 +109,11 @@ export default function IntimacyPositionsScreen() {
   const { userProfile } = useAuth();
   const { state } = useAppContext();
   const coupleId = state?.coupleId || userProfile?.coupleId || userProfile?.couple_id || null;
+  const coupleCreatedAt = state?.coupleCreatedAt
+    || state?.userProfile?.coupleCreatedAt
+    || userProfile?.coupleCreatedAt
+    || userProfile?.couple_created_at
+    || null;
   const navigation = useNavigation();
   const route = useRoute();
   const { width } = useWindowDimensions();
@@ -220,6 +225,7 @@ export default function IntimacyPositionsScreen() {
       contentType: CONTENT_TYPES.POSITIONS,
       userId: userProfile?.id || userProfile?.user_id || userProfile?.uid || userProfile?.sub || 'anonymous',
       coupleId,
+      coupleCreatedAt,
       isPremium: isPremiumEffective,
       userSettings,
       userCreatedAt: contentAnchorDate,
@@ -227,7 +233,7 @@ export default function IntimacyPositionsScreen() {
     });
 
     setWeeklyPositionSet(weeklySet);
-  }, [allowSexPositionContent, contentAnchorDate, coupleId, isPremiumEffective, positionCatalog, userProfile]);
+  }, [allowSexPositionContent, contentAnchorDate, coupleCreatedAt, coupleId, isPremiumEffective, positionCatalog, userProfile]);
 
   const refreshPositionAccess = useCallback(async () => {
     setPositionsLoading(true);

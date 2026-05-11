@@ -5,6 +5,32 @@ function getSupabaseClient() {
   return supabase;
 }
 
+function isDateShortlistCoupleDuplicateError(error) {
+  if (!error || error.code !== '23505') return false;
+
+  const details = [
+    error.message,
+    error.details,
+    error.hint,
+    error.constraint,
+  ].filter(Boolean).join(' ');
+
+  return /date_shortlist_couple_date_unique|date_shortlist.*couple_id.*date_id/i.test(details);
+}
+
+async function restoreCoupleShortlistRow(client, coupleId, dateId) {
+  const { data, error } = await client
+    .from('date_shortlist')
+    .update({ removed_at: null })
+    .eq('couple_id', coupleId)
+    .eq('date_id', dateId)
+    .select('date_id, created_at')
+    .maybeSingle();
+
+  if (error) throw error;
+  return data || null;
+}
+
 export async function getDateShortlist(userId, coupleId = null) {
   if (!userId && !coupleId) return [];
 
@@ -31,16 +57,8 @@ export async function addDateToShortlist(userId, dateId, coupleId = null) {
   const supabase = getSupabaseClient();
 
   if (coupleId) {
-    const restoreCoupleRow = await supabase
-      .from('date_shortlist')
-      .update({ removed_at: null })
-      .eq('couple_id', coupleId)
-      .eq('date_id', dateId)
-      .select('date_id, created_at')
-      .maybeSingle();
-
-    if (restoreCoupleRow.error) throw restoreCoupleRow.error;
-    if (restoreCoupleRow.data) return restoreCoupleRow.data;
+    const restoredCoupleRow = await restoreCoupleShortlistRow(supabase, coupleId, dateId);
+    if (restoredCoupleRow) return restoredCoupleRow;
 
     const promoteLegacyRow = await supabase
       .from('date_shortlist')
@@ -61,13 +79,22 @@ export async function addDateToShortlist(userId, dateId, coupleId = null) {
     removed_at: null,
   };
 
-  const { data, error } = await supabase
-    .from('date_shortlist')
-    .upsert(row, { onConflict: 'user_id,date_id' })
+  const writeQuery = coupleId
+    ? supabase.from('date_shortlist').insert(row)
+    : supabase.from('date_shortlist').upsert(row, { onConflict: 'user_id,date_id' });
+
+  const { data, error } = await writeQuery
     .select('date_id, created_at')
     .single();
 
-  if (error) throw error;
+  if (error) {
+    if (coupleId && isDateShortlistCoupleDuplicateError(error)) {
+      const restoredCoupleRow = await restoreCoupleShortlistRow(supabase, coupleId, dateId);
+      if (restoredCoupleRow) return restoredCoupleRow;
+    }
+
+    throw error;
+  }
 
   return data;
 }

@@ -11,14 +11,19 @@ describe('CouplePresenceService', () => {
 
   function createDeps({
     remoteCoupleId = 'couple-1',
+    remoteCoupleCreatedAt = null,
     secondRemoteCoupleId,
     unlinkError = null,
   } = {}) {
+    const makeRemoteCouple = (coupleId) => coupleId ? {
+      couple_id: coupleId,
+      ...(remoteCoupleCreatedAt ? { couples: { created_at: remoteCoupleCreatedAt } } : {}),
+    } : null;
     const getMyCouple = jest.fn()
-      .mockResolvedValueOnce(remoteCoupleId ? { couple_id: remoteCoupleId } : null);
+      .mockResolvedValueOnce(makeRemoteCouple(remoteCoupleId));
 
     if (secondRemoteCoupleId !== undefined) {
-      getMyCouple.mockResolvedValueOnce(secondRemoteCoupleId ? { couple_id: secondRemoteCoupleId } : null);
+      getMyCouple.mockResolvedValueOnce(makeRemoteCouple(secondRemoteCoupleId));
     }
 
     return {
@@ -55,6 +60,32 @@ describe('CouplePresenceService', () => {
       status: 'paired',
     }));
     expect(deps.storageApi.set).toHaveBeenCalledWith('@betweenus:cache:coupleId', 'remote-couple-1');
+  });
+
+  it('returns the remote couple creation timestamp for couple-scoped content anchors', async () => {
+    const { getVerifiedCoupleState } = require('../../services/couple/CouplePresenceService');
+    const deps = createDeps({
+      remoteCoupleId: 'remote-couple-1',
+      remoteCoupleCreatedAt: '2026-04-20T12:00:00.000Z',
+    });
+    const updateProfile = jest.fn();
+
+    const result = await getVerifiedCoupleState({
+      currentCoupleId: 'local-couple-1',
+      userId: 'user-1',
+      updateProfile,
+      requireRemoteCheck: true,
+      dependencies: deps,
+    });
+
+    expect(result).toEqual(expect.objectContaining({
+      coupleId: 'remote-couple-1',
+      coupleCreatedAt: '2026-04-20T12:00:00.000Z',
+    }));
+    expect(updateProfile).toHaveBeenCalledWith({
+      coupleId: 'remote-couple-1',
+      coupleCreatedAt: '2026-04-20T12:00:00.000Z',
+    });
   });
 
   it('only clears local pair state after a confirmed remote miss', async () => {

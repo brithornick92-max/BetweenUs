@@ -22,18 +22,25 @@ export function getSharedDailyQuizKey(dateKey) {
   return `${SHARED_DAILY_QUIZ_KEY_PREFIX}_${dateKey}`;
 }
 
-export async function getActiveCoupleId({ fallbackCoupleId = null, dependencies = {} } = {}) {
+export async function getActiveCoupleId({
+  fallbackCoupleId = null,
+  allowStoredFallback = true,
+  dependencies = {},
+} = {}) {
   const { storageApi } = getDependencies(dependencies);
-  return fallbackCoupleId || (await storageApi.get(STORAGE_KEYS.COUPLE_ID, null)) || null;
+  if (fallbackCoupleId) return fallbackCoupleId;
+  if (!allowStoredFallback) return null;
+  return (await storageApi.get(STORAGE_KEYS.COUPLE_ID, null)) || null;
 }
 
 export async function getSharedDailyPromptSelection(dateKey, {
   fallbackCoupleId = null,
+  allowStoredFallback = true,
   ensureSession,
   dependencies = {},
 } = {}) {
   const { storageRouter } = getDependencies(dependencies);
-  const coupleId = await getActiveCoupleId({ fallbackCoupleId, dependencies });
+  const coupleId = await getActiveCoupleId({ fallbackCoupleId, allowStoredFallback, dependencies });
   if (!coupleId) return null;
 
   if (ensureSession) {
@@ -45,6 +52,7 @@ export async function getSharedDailyPromptSelection(dateKey, {
 
 export async function saveSharedDailyPromptSelection(dateKey, promptId, userId, {
   fallbackCoupleId = null,
+  allowStoredFallback = true,
   ensureSession,
   assignment = null,
   dependencies = {},
@@ -52,7 +60,7 @@ export async function saveSharedDailyPromptSelection(dateKey, promptId, userId, 
   if (!dateKey || !promptId || !userId) return false;
 
   const { storageRouter } = getDependencies(dependencies);
-  const coupleId = await getActiveCoupleId({ fallbackCoupleId, dependencies });
+  const coupleId = await getActiveCoupleId({ fallbackCoupleId, allowStoredFallback, dependencies });
   if (!coupleId) return false;
 
   if (ensureSession) {
@@ -76,11 +84,12 @@ export async function saveSharedDailyPromptSelection(dateKey, promptId, userId, 
 
 export async function getSharedDailyQuizQuestionSelection(dateKey, {
   fallbackCoupleId = null,
+  allowStoredFallback = true,
   ensureSession,
   dependencies = {},
 } = {}) {
   const { storageRouter } = getDependencies(dependencies);
-  const coupleId = await getActiveCoupleId({ fallbackCoupleId, dependencies });
+  const coupleId = await getActiveCoupleId({ fallbackCoupleId, allowStoredFallback, dependencies });
   if (!coupleId) return null;
 
   if (ensureSession) {
@@ -92,13 +101,14 @@ export async function getSharedDailyQuizQuestionSelection(dateKey, {
 
 export async function saveSharedDailyQuizQuestionSelection(dateKey, questionId, userId, {
   fallbackCoupleId = null,
+  allowStoredFallback = true,
   ensureSession,
   dependencies = {},
 } = {}) {
   if (!dateKey || !questionId || !userId) return false;
 
   const { storageRouter } = getDependencies(dependencies);
-  const coupleId = await getActiveCoupleId({ fallbackCoupleId, dependencies });
+  const coupleId = await getActiveCoupleId({ fallbackCoupleId, allowStoredFallback, dependencies });
   if (!coupleId) return false;
 
   if (ensureSession) {
@@ -118,13 +128,14 @@ export async function saveSharedDailyQuizQuestionSelection(dateKey, questionId, 
 
 export async function syncSharedAnniversary(startDate, userId, {
   fallbackCoupleId = null,
+  allowStoredFallback = true,
   ensureSession,
   dependencies = {},
 } = {}) {
   if (!startDate || !userId) return false;
 
   const { storageRouter } = getDependencies(dependencies);
-  const coupleId = await getActiveCoupleId({ fallbackCoupleId, dependencies });
+  const coupleId = await getActiveCoupleId({ fallbackCoupleId, allowStoredFallback, dependencies });
   if (!coupleId) return false;
 
   if (ensureSession) {
@@ -143,11 +154,12 @@ export async function syncSharedAnniversary(startDate, userId, {
 
 export async function getSharedAnniversary({
   fallbackCoupleId = null,
+  allowStoredFallback = true,
   ensureSession,
   dependencies = {},
 } = {}) {
   const { storageRouter } = getDependencies(dependencies);
-  const coupleId = await getActiveCoupleId({ fallbackCoupleId, dependencies });
+  const coupleId = await getActiveCoupleId({ fallbackCoupleId, allowStoredFallback, dependencies });
   if (!coupleId) return null;
 
   if (ensureSession) {

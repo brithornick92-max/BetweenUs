@@ -233,6 +233,11 @@ export default function PromptsScreen({ navigation }) {
   const { user, userProfile } = useAuth();
   const { state } = useAppContext();
   const coupleId = state?.coupleId || userProfile?.coupleId || userProfile?.couple_id || null;
+  const coupleCreatedAt = state?.coupleCreatedAt
+    || state?.userProfile?.coupleCreatedAt
+    || userProfile?.coupleCreatedAt
+    || userProfile?.couple_created_at
+    || null;
 
   const [weeklyPromptSet, setWeeklyPromptSet] = useState(null);
   const [selectedTone, setSelectedTone] = useState('warm');
@@ -339,12 +344,13 @@ export default function PromptsScreen({ navigation }) {
         return restoredPromptIds.has(promptId) || !recentlyCompletedPromptIds.has(prompt?.id);
       });
 
-      // Build this user's stable weekly allocation. Boundary changes filter this
+      // Build this scope's stable weekly allocation. Boundary changes filter this
       // allocation, but they do not backfill extra cards until the next week.
       const weeklySet = await buildStableWeeklySet(activeBoundaryEligible, {
         contentType: CONTENT_TYPES.PROMPTS,
         userId: user?.uid || user?.id || 'anonymous',
         coupleId,
+        coupleCreatedAt,
         isPremium,
         userSettings: contentProfile || userProfile || {},
         userCreatedAt: contentAnchorDate,
@@ -361,7 +367,7 @@ export default function PromptsScreen({ navigation }) {
     } finally {
       setLoading(false);
     }
-  }, [activePromptUserId, contentAnchorDate, contentProfile, coupleId, isPremium, user?.id, user?.uid, userProfile, rawBoundaries]);
+  }, [activePromptUserId, contentAnchorDate, contentProfile, coupleCreatedAt, coupleId, isPremium, user?.id, user?.uid, userProfile, rawBoundaries]);
 
   useEffect(() => {
     loadPrompts();

@@ -19,6 +19,20 @@ const normalizePart = (value) =>
     .replace(/[^a-zA-Z0-9_-]+/g, '_')
     .slice(0, 80);
 
+const getAllocationOwnerId = ({ coupleId = null, userId = 'anonymous' } = {}) =>
+  coupleId ? `couple:${coupleId}` : userId || 'anonymous';
+
+const resolveAllocationAnchorDate = ({
+  coupleId = null,
+  coupleCreatedAt = null,
+  coupleAnchorDate = null,
+  userCreatedAt = null,
+} = {}) => (
+  coupleId
+    ? (coupleCreatedAt || coupleAnchorDate || null)
+    : (userCreatedAt || null)
+);
+
 const getTargetCount = (weeklySet) => {
   if (weeklySet?.isPremium) {
     return weeklySet.premiumUnlockedLimit ?? weeklySet.items?.length ?? 0;
@@ -37,7 +51,7 @@ export function getWeeklyContentAllocationKey({
   contentVersion = CONTENT_CATALOG_VERSION,
   schedulerVersion = WEEKLY_CONTENT_SCHEDULER_VERSION,
 } = {}) {
-  const allocationOwnerId = coupleId ? `couple:${coupleId}` : userId || 'anonymous';
+  const allocationOwnerId = getAllocationOwnerId({ coupleId, userId });
 
   return [
     normalizePart(contentType),
@@ -78,11 +92,22 @@ const compactAllocationStore = (store, activeKey) => {
 
 export async function buildStableWeeklySet(items, options = {}) {
   const sourceItems = Array.isArray(items) ? items : [];
-  const candidateSet = buildWeeklySet(sourceItems, options);
-  const targetCount = getTargetCount(candidateSet);
   const userId = options.userId || 'anonymous';
   const coupleId = options.coupleId || null;
-  const allocationOwnerId = coupleId ? `couple:${coupleId}` : userId;
+  const allocationOwnerId = getAllocationOwnerId({ coupleId, userId });
+  const allocationAnchorDate = resolveAllocationAnchorDate({
+    coupleId,
+    coupleCreatedAt: options.coupleCreatedAt,
+    coupleAnchorDate: options.coupleAnchorDate,
+    userCreatedAt: options.userCreatedAt,
+  });
+  const allocationOptions = {
+    ...options,
+    userId: allocationOwnerId,
+    userCreatedAt: allocationAnchorDate,
+  };
+  const candidateSet = buildWeeklySet(sourceItems, allocationOptions);
+  const targetCount = getTargetCount(candidateSet);
   const contentVersion = options.contentVersion || CONTENT_CATALOG_VERSION;
   const schedulerVersion = options.schedulerVersion || WEEKLY_CONTENT_SCHEDULER_VERSION;
   const allocationKey = getWeeklyContentAllocationKey({
@@ -90,7 +115,7 @@ export async function buildStableWeeklySet(items, options = {}) {
     userId,
     coupleId,
     isPremium: candidateSet.isPremium,
-    userCreatedAt: options.userCreatedAt,
+    userCreatedAt: allocationAnchorDate,
     weekNumber: candidateSet.weekNumber,
     contentVersion,
     schedulerVersion,
@@ -111,7 +136,7 @@ export async function buildStableWeeklySet(items, options = {}) {
     const stableItems = cachedEntry.itemIds
       .map((itemId) => currentItemsById.get(String(itemId)))
       .filter(Boolean);
-    const stableSet = buildWeeklySet(stableItems, options);
+    const stableSet = buildWeeklySet(stableItems, allocationOptions);
 
     return {
       ...stableSet,
@@ -140,7 +165,7 @@ export async function buildStableWeeklySet(items, options = {}) {
       userId,
       coupleId,
       allocationOwnerId,
-      anchorDate: normalizeDateStamp(options.userCreatedAt),
+      anchorDate: normalizeDateStamp(allocationAnchorDate),
       weekNumber: candidateSet.weekNumber,
       targetCount,
       itemIds: nextItemIds,

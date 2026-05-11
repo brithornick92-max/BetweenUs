@@ -181,10 +181,11 @@ export const ContentProvider = ({ children }) => {
 
   const syncSharedAnniversary = useCallback(async (startDate) => {
     return syncSharedAnniversaryRecord(startDate, user?.uid, {
-      fallbackCoupleId: userProfile?.coupleId || null,
+      fallbackCoupleId: userProfile?.coupleId || userProfile?.couple_id || null,
+      allowStoredFallback: false,
       ensureSession: ensureSupabaseSession,
     });
-  }, [ensureSupabaseSession, user?.uid, userProfile?.coupleId]);
+  }, [ensureSupabaseSession, user?.uid, userProfile?.coupleId, userProfile?.couple_id]);
 
   const applyRelationshipStartDate = useCallback(async (startDate) => {
     const normalizedDate = normalizeRelationshipStartDate(startDate);
@@ -318,7 +319,8 @@ export const ContentProvider = ({ children }) => {
         throw new Error('User id unavailable');
       }
       const coupleId = await getActiveCoupleId({
-        fallbackCoupleId: userProfile?.coupleId || null,
+        fallbackCoupleId: userProfile?.coupleId || userProfile?.couple_id || null,
+        allowStoredFallback: false,
       });
       const scope = getDailyPromptScope(activeUserId, coupleId);
       fallbackScope = scope;
@@ -340,6 +342,7 @@ export const ContentProvider = ({ children }) => {
       if (coupleId) {
         const sharedPromptSelection = await getSharedDailyPromptSelection(today, {
           fallbackCoupleId: coupleId,
+          allowStoredFallback: false,
           ensureSession: ensureSupabaseSession,
         });
         const sharedPromptId = getSharedPromptId(sharedPromptSelection);
@@ -347,6 +350,14 @@ export const ContentProvider = ({ children }) => {
         let sharedPromptSource = sharedPromptId ? 'supabase' : null;
         let sharedPromptPoolSize = Number(sharedPromptSelection?.value?.poolSize ?? sharedPromptSelection?.poolSize ?? NaN);
         if (!Number.isFinite(sharedPromptPoolSize)) sharedPromptPoolSize = null;
+        let sharedPromptSelectionPoolSize = Number(
+          sharedPromptSelection?.value?.selectionPoolSize
+          ?? sharedPromptSelection?.selectionPoolSize
+          ?? NaN
+        );
+        if (!Number.isFinite(sharedPromptSelectionPoolSize)) {
+          sharedPromptSelectionPoolSize = sharedPromptPoolSize;
+        }
 
         if (!sharedPrompt?.text && cachedPrompt?.text) {
           sharedPrompt = cachedPrompt;
@@ -358,10 +369,13 @@ export const ContentProvider = ({ children }) => {
           const heatFilters = getDailyPromptHeatFilters(profile || options?.profileOverride || userProfile || {}, isPremium);
           fallbackHeatFilters = heatFilters;
           const canonicalPool = getCanonicalDailyPromptPool(heatFilters);
+          const filteredCanonicalPool = await filterTodayPromptsForProfile(canonicalPool, profile);
           sharedPromptPoolSize = canonicalPool.length;
-          sharedPrompt = canonicalPool.length
-            ? selectTodayBetweenUsPrompt(canonicalPool, today, scope) || canonicalPool[0]
-            : FALLBACK_PROMPT;
+          sharedPromptSelectionPoolSize = filteredCanonicalPool.length;
+          if (filteredCanonicalPool.length === 0) {
+            throw new Error('No prompts available for your preferences');
+          }
+          sharedPrompt = selectTodayBetweenUsPrompt(filteredCanonicalPool, today, scope) || filteredCanonicalPool[0];
           sharedPromptSource = 'deterministic';
         }
 
@@ -373,11 +387,12 @@ export const ContentProvider = ({ children }) => {
             source: sharedPromptSource,
             heatFilters: fallbackHeatFilters || getDailyPromptHeatFilters(),
             poolSize: sharedPromptPoolSize,
-            selectionPoolSize: sharedPromptPoolSize,
+            selectionPoolSize: sharedPromptSelectionPoolSize ?? sharedPromptPoolSize,
             isPremium,
           });
           const saved = await saveSharedDailyPromptSelection(today, sharedPrompt.id, activeUserId, {
             fallbackCoupleId: coupleId,
+            allowStoredFallback: false,
             ensureSession: ensureSupabaseSession,
             assignment,
           }).catch((error) => {
@@ -388,6 +403,7 @@ export const ContentProvider = ({ children }) => {
           if (saved) {
             const confirmedSelection = await getSharedDailyPromptSelection(today, {
               fallbackCoupleId: coupleId,
+              allowStoredFallback: false,
               ensureSession: ensureSupabaseSession,
             }).catch(() => null);
             const confirmedPromptId = getSharedPromptId(confirmedSelection);
@@ -415,7 +431,7 @@ export const ContentProvider = ({ children }) => {
             source: sharedPromptSource || 'supabase',
             heatFilters: fallbackHeatFilters || getDailyPromptHeatFilters(),
             poolSize: sharedPromptPoolSize,
-            selectionPoolSize: sharedPromptPoolSize,
+            selectionPoolSize: sharedPromptSelectionPoolSize ?? sharedPromptPoolSize,
             isPremium,
           }));
 
@@ -528,6 +544,7 @@ export const ContentProvider = ({ children }) => {
       if (coupleId) {
         await saveSharedDailyPromptSelection(today, selectedPrompt.id, activeUserId, {
           fallbackCoupleId: coupleId,
+          allowStoredFallback: false,
           ensureSession: ensureSupabaseSession,
           assignment,
         }).catch((error) => {
@@ -692,12 +709,14 @@ export const ContentProvider = ({ children }) => {
       if (!user?.uid) return;
 
       const coupleId = await getActiveCoupleId({
-        fallbackCoupleId: userProfile?.coupleId || null,
+        fallbackCoupleId: userProfile?.coupleId || userProfile?.couple_id || null,
+        allowStoredFallback: false,
       });
       if (!coupleId) return;
 
       const shared = await getSharedAnniversary({
         fallbackCoupleId: coupleId,
+        allowStoredFallback: false,
         ensureSession: ensureSupabaseSession,
       });
 
@@ -723,7 +742,7 @@ export const ContentProvider = ({ children }) => {
     return () => {
       active = false;
     };
-  }, [applyRelationshipStartDate, ensureSupabaseSession, syncSharedAnniversary, user?.uid, userProfile?.coupleId, userProfile?.relationshipStartDate]);
+  }, [applyRelationshipStartDate, ensureSupabaseSession, syncSharedAnniversary, user?.uid, userProfile?.coupleId, userProfile?.couple_id, userProfile?.relationshipStartDate]);
 
   useEffect(() => {
     let active = true;
@@ -833,7 +852,7 @@ export const ContentProvider = ({ children }) => {
       if (!user || !promptId || !response) return;
       await savePromptResponse(user.uid, promptId, response, {
         isPrivate,
-        fallbackCoupleId: userProfile?.coupleId || null,
+        fallbackCoupleId: userProfile?.coupleId || userProfile?.couple_id || null,
       });
 
       // Keep the allocator cache in sync
@@ -850,14 +869,14 @@ export const ContentProvider = ({ children }) => {
       if (__DEV__) console.error('Error saving response:', error);
       throw error;
     }
-  }, [isPremium, loadUsageStatus, user, userProfile?.coupleId]);
+  }, [isPremium, loadUsageStatus, user, userProfile?.coupleId, userProfile?.couple_id]);
 
   // Load user's responses
   const loadUserResponses = useCallback(async () => {
     try {
       if (!user) return;
       const responses = await loadPromptResponses(user.uid, {
-        fallbackCoupleId: userProfile?.coupleId || null,
+        fallbackCoupleId: userProfile?.coupleId || userProfile?.couple_id || null,
       });
 
       setUserResponses(responses);
@@ -866,7 +885,7 @@ export const ContentProvider = ({ children }) => {
       if (__DEV__) console.error('Error loading user responses:', error);
       return [];
     }
-  }, [user, userProfile?.coupleId]);
+  }, [user, userProfile?.coupleId, userProfile?.couple_id]);
 
   // Track date usage
   const trackDateUsage = useCallback(async (dateId) => {

@@ -13,6 +13,7 @@ const initialState = {
   userId: null,
   onboardingCompleted: false,
   coupleId: null,
+  coupleCreatedAt: null,
   isLinked: false,
   isLocked: false,
   isPremium: false,
@@ -58,6 +59,13 @@ async function persistPartnerActivity(ts) {
   if (!saved) {
     if (__DEV__) console.warn('[AppContext] Failed to persist partner activity timestamp');
   }
+}
+
+function normalizeRemoteTimestamp(value) {
+  if (!value) return null;
+  const date = value instanceof Date ? value : new Date(value);
+  if (Number.isNaN(date.getTime())) return null;
+  return date.toISOString();
 }
 
 function reducer(state, action) {
@@ -113,6 +121,7 @@ function reducer(state, action) {
       return { 
         ...state, 
         coupleId: null,
+        coupleCreatedAt: null,
         isLinked: false,
         partnerVibe: null,
         lastPartnerActivity: null,
@@ -121,6 +130,8 @@ function reducer(state, action) {
       return {
         ...state,
         coupleId: action.payload.coupleId,
+        coupleCreatedAt: action.payload.coupleCreatedAt
+          || (state.coupleId === action.payload.coupleId ? state.coupleCreatedAt : null),
         isLinked: true,
       };
     case ACTIONS.SET_APP_LOCK:
@@ -161,6 +172,7 @@ export function AppProvider({ children }) {
       onboardingCompleted,
       userProfile,
       coupleId,
+      coupleCreatedAt,
       appLockEnabled,
       appLockMode,
       appLockAutoLockTime,
@@ -175,6 +187,7 @@ export function AppProvider({ children }) {
           onboardingCompleted: !!onboardingCompleted,
           userProfile,
           coupleId: coupleId || null,
+          coupleCreatedAt: coupleId ? normalizeRemoteTimestamp(coupleCreatedAt) : null,
           isLinked: !!coupleId,
           appLockEnabled: !!appLockEnabled,
           appLockMode: normalizeAppLockMode(appLockMode),
@@ -213,6 +226,9 @@ export function AppProvider({ children }) {
 
       let hydratedUserProfile = userProfile && typeof userProfile === 'object' ? { ...userProfile } : {};
       const cachedCoupleId = coupleId || null;
+      const cachedCoupleCreatedAt = normalizeRemoteTimestamp(
+        hydratedUserProfile?.coupleCreatedAt || hydratedUserProfile?.couple_created_at
+      );
       const resolvedCoupleId = cachedCoupleId;
 
       syncState({
@@ -220,6 +236,7 @@ export function AppProvider({ children }) {
         onboardingCompleted,
         userProfile: hydratedUserProfile,
         coupleId: resolvedCoupleId,
+        coupleCreatedAt: cachedCoupleCreatedAt,
         appLockEnabled,
         appLockMode: privacySettings?.appLockMode || (privacySettings?.biometricsEnabled ? APP_LOCK_MODES.BIOMETRIC : APP_LOCK_MODES.DEVICE),
         appLockAutoLockTime: privacySettings?.autoLockTime ?? 5,
@@ -285,7 +302,25 @@ export function AppProvider({ children }) {
               requireRemoteCheck: true,
             });
             if (verifiedCoupleState.coupleId) {
-              dispatch({ type: ACTIONS.JOIN_COUPLE, payload: { coupleId: verifiedCoupleState.coupleId } });
+              const verifiedCoupleCreatedAt = normalizeRemoteTimestamp(verifiedCoupleState.coupleCreatedAt);
+              dispatch({
+                type: ACTIONS.JOIN_COUPLE,
+                payload: {
+                  coupleId: verifiedCoupleState.coupleId,
+                  coupleCreatedAt: verifiedCoupleCreatedAt,
+                },
+              });
+              if (verifiedCoupleCreatedAt && hydratedUserProfile?.coupleCreatedAt !== verifiedCoupleCreatedAt) {
+                hydratedUserProfile = {
+                  ...hydratedUserProfile,
+                  coupleCreatedAt: verifiedCoupleCreatedAt,
+                };
+                await storage.set(STORAGE_KEYS.USER_PROFILE, hydratedUserProfile);
+                dispatch({
+                  type: ACTIONS.UPDATE_PROFILE,
+                  payload: { coupleCreatedAt: verifiedCoupleCreatedAt },
+                });
+              }
               const partnerProfile = await CoupleService.getPartnerProfile().catch(() => null);
               if (partnerProfile) {
                 dispatch({ type: ACTIONS.UPDATE_PROFILE, payload: { partnerProfile } });
@@ -509,9 +544,15 @@ export function AppProvider({ children }) {
       return (now - s.lastPartnerActivity) < twentyFourHours;
     },
     
-    joinCouple: async (coupleId) => {
+    joinCouple: async (coupleId, options = {}) => {
       if (!coupleId) return;
-      dispatch({ type: ACTIONS.JOIN_COUPLE, payload: { coupleId } });
+      dispatch({
+        type: ACTIONS.JOIN_COUPLE,
+        payload: {
+          coupleId,
+          coupleCreatedAt: normalizeRemoteTimestamp(options?.coupleCreatedAt),
+        },
+      });
     },
 
     leaveCouple: async ({ onProfileCleared } = {}) => {

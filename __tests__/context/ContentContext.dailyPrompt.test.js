@@ -200,8 +200,12 @@ async function mountProvider() {
   return tree;
 }
 
-function expectedPromptIdForScope(dateKey, scope) {
-  const promptPool = [mockPromptCatalog.allowed, mockPromptCatalog.blocked]
+function expectedPromptIdForScope(
+  dateKey,
+  scope,
+  pool = [mockPromptCatalog.allowed, mockPromptCatalog.blocked]
+) {
+  const promptPool = pool
     .sort((a, b) => String(a.id).localeCompare(String(b.id)));
   return getNoRepeatRotationItem(promptPool, dateKey, {
     seed: `${scope}:today-between-us`,
@@ -209,7 +213,7 @@ function expectedPromptIdForScope(dateKey, scope) {
 }
 
 function expectedCouplePromptId(dateKey, coupleId) {
-  return expectedPromptIdForScope(dateKey, `couple:${coupleId}`);
+  return expectedPromptIdForScope(dateKey, `couple:${coupleId}`, [mockPromptCatalog.allowed]);
 }
 
 describe('ContentContext daily prompt stability', () => {
@@ -476,6 +480,49 @@ describe('ContentContext daily prompt stability', () => {
         schedulerVersion: expect.any(String),
       })
     );
+
+    tree.unmount();
+  });
+
+  it('does not persist a fallback couple prompt when boundaries leave no eligible daily prompt', async () => {
+    const coupleStateService = require('../../services/couple/CoupleStateService');
+    const contentCoupleService = require('../../services/content/ContentCoupleService');
+
+    coupleStateService.getActiveCoupleId.mockResolvedValue('couple-1');
+    contentCoupleService.getSharedDailyPromptSelection.mockResolvedValue(null);
+    mockCurrentProfile = {
+      ...mockCurrentProfile,
+      boundaries: {
+        ...mockCurrentProfile.boundaries,
+        hiddenCategories: ['kinky', 'romance'],
+      },
+    };
+    mockStorageGet.mockImplementation(async (key) => {
+      if (key === DAILY_PROMPT_CACHE_KEY) return null;
+      if (key === 'contentDeckRestores') {
+        return {
+          prompts: [],
+          dates: [],
+          positions: [],
+        };
+      }
+      return null;
+    });
+
+    const tree = await mountProvider();
+
+    let prompt;
+    await renderer.act(async () => {
+      prompt = await capturedContext.loadTodayPrompt();
+    });
+
+    expect(prompt).toBeNull();
+    expect(contentCoupleService.saveSharedDailyPromptSelection).not.toHaveBeenCalled();
+    expect(mockStorageSet).not.toHaveBeenCalledWith(
+      DAILY_PROMPT_CACHE_KEY,
+      expect.anything()
+    );
+    expect(mockUpdateWidgetPrompt).toHaveBeenCalledWith('');
 
     tree.unmount();
   });
