@@ -133,6 +133,13 @@ function buildCanonicalLocalProfile(localProfile = {}, remoteProfile = null) {
 
   return {
     ...safeLocal,
+    ...(remoteProfile.id ? { id: remoteProfile.id, uid: remoteProfile.id } : {}),
+    ...(remoteProfile.created_at
+      ? {
+          created_at: remoteProfile.created_at,
+          createdAt: remoteProfile.created_at,
+        }
+      : {}),
     ...(remoteProfile.email ? { email: remoteProfile.email } : {}),
     ...(remoteProfile.display_name
       ? {
@@ -215,6 +222,7 @@ class StorageRouter {
     const authUser = session?.user;
     if (!authUser?.id) return null;
     const email = authUser.email || '';
+    const createdAt = authUser.created_at || authUser.createdAt || null;
     return {
       uid: authUser.id,
       id: authUser.id,
@@ -225,6 +233,7 @@ class StorageRouter {
         email.split('@')[0] ||
         'Between Us',
       emailVerified: !!(authUser.email_confirmed_at || authUser.confirmed_at),
+      ...(createdAt ? { created_at: createdAt, createdAt, creationTime: createdAt } : {}),
     };
   }
 
@@ -375,12 +384,14 @@ class StorageRouter {
     const uid = params?.uid;
     if (!uid) throw new Error('Remote user id is required');
     const email = params?.email || '';
+    const createdAt = params?.created_at || params?.createdAt || params?.creationTime || null;
     const user = {
       uid,
       id: uid,
       email,
       displayName: params?.displayName || email.split('@')[0] || 'Between Us',
       emailVerified: params?.emailVerified ?? true,
+      ...(createdAt ? { created_at: createdAt, createdAt, creationTime: createdAt } : {}),
     };
     this.currentUser = user;
     this.sessionPresent = true;

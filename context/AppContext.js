@@ -3,11 +3,13 @@ import React, { createContext, useContext, useReducer, useEffect, useMemo, useRe
 import * as Crypto from 'expo-crypto';
 import { storage, STORAGE_KEYS, vibeStorage, settingsStorage, userStorage } from '../utils/storage';
 import { useEntitlements } from './EntitlementsContext';
+import { useAuth } from './AuthContext';
 import { updateWidgetPartnerName } from '../services/widgetData';
 import { NicknameEngine } from '../services/PolishEngine';
 import { getVerifiedCoupleState, unlinkCouple } from '../services/couple/CouplePresenceService';
 import CoupleService from '../services/supabase/CoupleService';
 import { APP_LOCK_MODES, normalizeAppLockMode } from '../utils/appLockAuth';
+import { getProfileCoupleCreatedAt, getProfileCoupleId } from '../utils/coupleProfile';
 
 const initialState = {
   userId: null,
@@ -154,6 +156,7 @@ function reducer(state, action) {
 const AppContext = createContext(null);
 
 export function AppProvider({ children }) {
+  const { userProfile: authUserProfile } = useAuth();
   const { isPremiumEffective: isPremium, isPremiumCouple: isCouplePremium } = useEntitlements();
   const [state, dispatch] = useReducer(reducer, initialState);
   const stateRef = useRef(state);
@@ -424,6 +427,31 @@ export function AppProvider({ children }) {
   useEffect(() => {
     dispatch({ type: ACTIONS.REFRESH_PREMIUM, payload: { isPremium, isCouplePremium } });
   }, [isCouplePremium, isPremium]);
+
+  useEffect(() => {
+    const authCoupleId = getProfileCoupleId(authUserProfile);
+    if (!authCoupleId) return;
+
+    const authCoupleCreatedAt = normalizeRemoteTimestamp(getProfileCoupleCreatedAt(authUserProfile));
+    const current = stateRef.current;
+    if (
+      current.coupleId === authCoupleId
+      && (current.coupleCreatedAt || null) === (authCoupleCreatedAt || null)
+    ) {
+      return;
+    }
+
+    storage.set(STORAGE_KEYS.COUPLE_ID, authCoupleId).catch((e) => {
+      if (__DEV__) console.warn('[AppContext] Failed to persist auth couple ID:', e?.message);
+    });
+    dispatch({
+      type: ACTIONS.JOIN_COUPLE,
+      payload: {
+        coupleId: authCoupleId,
+        coupleCreatedAt: authCoupleCreatedAt,
+      },
+    });
+  }, [authUserProfile]);
 
   const actions = useMemo(() => ({
     unlock: () => dispatch({ type: ACTIONS.UNLOCK }),

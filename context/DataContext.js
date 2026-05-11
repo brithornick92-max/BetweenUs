@@ -34,6 +34,7 @@ import { supabase } from '../config/supabase';
 import { useAuth } from './AuthContext';
 import { useEntitlements } from './EntitlementsContext';
 import { useAppContext as useApp } from './AppContext';
+import { resolveActiveCoupleId } from '../utils/coupleProfile';
 
 const DataContext = createContext(null);
 
@@ -54,12 +55,12 @@ const resolveActiveSupabaseUserId = async (fallbackId) => {
 };
 
 export function DataProvider({ children }) {
-  const { user } = useAuth();
+  const { user, userProfile } = useAuth();
   const { isPremiumEffective: isPremium } = useEntitlements();
   const { state: appState } = useApp();
 
   const userId = user?.id || user?.uid || appState?.userId;
-  const coupleId = appState?.coupleId;
+  const coupleId = resolveActiveCoupleId({ appState, userProfile });
   const [syncStatus, setSyncStatus] = useState({
     syncing: false,
     lastSynced: null,

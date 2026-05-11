@@ -8,6 +8,14 @@ describe('contentSchedule', () => {
     })).toBe('2026-05-05T18:42:00.000Z');
   });
 
+  it('uses the auth user creation time when profile cache is missing it', () => {
+    expect(resolveWeeklyContentAnchorDate({
+      isPremium: false,
+      user: { createdAt: '2026-05-06T18:42:00.000Z' },
+      userProfile: {},
+    })).toBe('2026-05-06T18:42:00.000Z');
+  });
+
   it('uses premium start for premium users when available', () => {
     expect(resolveWeeklyContentAnchorDate({
       isPremium: true,

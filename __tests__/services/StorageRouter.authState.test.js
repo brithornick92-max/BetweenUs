@@ -77,6 +77,7 @@ describe('StorageRouter auth state bootstrap', () => {
       user: {
         id: 'user-1',
         email: 'alex@example.com',
+        created_at: '2026-05-05T18:42:00.000Z',
         user_metadata: { display_name: 'Alex' },
       },
     };
@@ -94,6 +95,7 @@ describe('StorageRouter auth state bootstrap', () => {
       uid: 'user-1',
       email: 'alex@example.com',
       displayName: 'Alex',
+      createdAt: '2026-05-05T18:42:00.000Z',
     }));
   });
 

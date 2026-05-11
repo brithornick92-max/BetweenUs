@@ -324,7 +324,8 @@ export const AuthProvider = ({ children }) => {
                     uid: cloudUserId,
                     email: supabaseSession.user.email || localUser.email,
                     displayName: profile?.displayName || localUser.displayName,
-                    emailVerified: !!(supabaseSession.user?.email_confirmed_at || supabaseSession.user?.confirmed_at)
+                    emailVerified: !!(supabaseSession.user?.email_confirmed_at || supabaseSession.user?.confirmed_at),
+                    createdAt: supabaseSession.user?.created_at || localUser.createdAt || localUser.created_at || null,
                   });
                   
                   localUser = migratedUserResult.user;
@@ -437,11 +438,12 @@ export const AuthProvider = ({ children }) => {
       'Between Us';
 
     await StorageRouter.setSupabaseSession(session);
-      const restoredUser = await StorageRouter.hydrateRemoteAccount({
+    const restoredUser = await StorageRouter.hydrateRemoteAccount({
       uid: remoteUser?.id,
       email: remoteEmail,
       displayName: remoteDisplayName,
       emailVerified: !!(remoteUser?.email_confirmed_at || remoteUser?.confirmed_at),
+      createdAt: remoteUser?.created_at || null,
     });
 
     const syncStatus = await cloudSyncStorage.getSyncStatus();
@@ -504,13 +506,15 @@ export const AuthProvider = ({ children }) => {
         uid: canonicalUid,
         email,
         displayName,
-        emailVerified: !!(supabaseSession.user?.email_confirmed_at || supabaseSession.user?.confirmed_at)
+        emailVerified: !!(supabaseSession.user?.email_confirmed_at || supabaseSession.user?.confirmed_at),
+        createdAt: supabaseSession.user?.created_at || null,
       });
 
       const createdProfile = await StorageRouter.updateUserDocument(canonicalUid, {
         email,
         displayName,
         display_name: displayName,
+        created_at: supabaseSession.user?.created_at || new Date().toISOString(),
         onboardingCompleted: false,
         preferences: {
           onboardingCompleted: false,
