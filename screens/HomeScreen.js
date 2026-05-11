@@ -69,6 +69,12 @@ import { getSparkAccessGate } from '../utils/sparkAccessGate';
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 const PROMPTED_PARTNER_SHARE_KEY = '@betweenus:cache:promptedPartnerShare';
+const QUICK_ACTION_CARD_GAP = 12;
+const QUICK_ACTION_CARD_HEIGHT = 96;
+
+function getQuickActionCardWidth(horizontalPadding) {
+  return Math.floor((SCREEN_W - (horizontalPadding * 2) - QUICK_ACTION_CARD_GAP) / 2);
+}
 
 const loadAllBundledPrompts = () => {
   const bundled = require('../content/prompts.json');
@@ -166,6 +172,10 @@ export default function HomeScreen({ navigation }) {
   const [answeredCount, setAnsweredCount] = useState(0);
   const canWritePrompt = true;
   const disclosure = useProgressiveDisclosure(answeredCount);
+  const quickActionCardSize = useMemo(() => ({
+    width: getQuickActionCardWidth(homeLayout.spacing.padding),
+    height: QUICK_ACTION_CARD_HEIGHT,
+  }), [homeLayout.spacing.padding]);
   const preferredName = getMyDisplayName(userProfile, state?.userProfile, user?.displayName || null);
   const partnerLabel = getPartnerDisplayName(userProfile, state?.userProfile, 'your partner');
   const coupleId = state?.coupleId || userProfile?.coupleId || userProfile?.couple_id || null;
@@ -1206,7 +1216,7 @@ export default function HomeScreen({ navigation }) {
                     onPress={() => handleAction(action.key)}
                     accessibilityRole="button"
                     accessibilityLabel={action.label}
-                    style={styles.actionCard}
+                    style={[styles.actionCard, quickActionCardSize]}
                   >
                     {locked && (
                       <View style={styles.lockBadge}>
@@ -1221,7 +1231,14 @@ export default function HomeScreen({ navigation }) {
                     )}
 
                     <Icon name={action.icon} size={28} color={actionColor} />
-                    <Text style={styles.actionLabel}>{action.label}</Text>
+                    <Text
+                      style={styles.actionLabel}
+                      numberOfLines={1}
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.82}
+                    >
+                      {action.label}
+                    </Text>
                   </TouchableOpacity>
                 );
               })}
@@ -1548,14 +1565,12 @@ const createStyles = (t, isDark) => StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    gap: 12,
+    gap: QUICK_ACTION_CARD_GAP,
   },
   actionCard: {
-    width: '48%',
     flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: SPACING.lg,
     paddingHorizontal: SPACING.sm,
     borderRadius: 20,
     borderWidth: 1,
@@ -1578,6 +1593,8 @@ const createStyles = (t, isDark) => StyleSheet.create({
     fontWeight: '700',
     letterSpacing: -0.2,
     color: isDark ? '#FFFFFF' : t.text,
+    lineHeight: 17,
+    textAlign: 'center',
   },
   lockBadge: {
     position: 'absolute',
