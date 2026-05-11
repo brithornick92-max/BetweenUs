@@ -2990,7 +2990,7 @@ const SupabaseDataLayer = {
     await sb.storage.from(bucket).remove([storagePath]).catch(() => {});
   },
 
-  // ─── Sync stubs (no-ops — everything is cloud-first) ─────────────────────
+  // ─── Offline Queue Sync ──────────────────────────────────────────────────
 
   async flushOfflineQueue() {
     if (_isFlushingQueue || !_userId || !supabase) {

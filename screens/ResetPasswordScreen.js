@@ -185,6 +185,7 @@ export default function ResetPasswordScreen({ navigation, route }) {
                       autoComplete="email"
                       returnKeyType="done"
                       onSubmitEditing={handleSendCode}
+                      accessibilityLabel="Account email address"
                     />
                   </View>
 
@@ -220,6 +221,7 @@ export default function ResetPasswordScreen({ navigation, route }) {
                       textContentType="oneTimeCode"
                       autoComplete="one-time-code"
                       returnKeyType="next"
+                      accessibilityLabel="Recovery code"
                     />
                   </View>
 
@@ -235,6 +237,7 @@ export default function ResetPasswordScreen({ navigation, route }) {
                       textContentType="newPassword"
                       autoComplete="password-new"
                       returnKeyType="next"
+                      accessibilityLabel="New password"
                     />
                     <TouchableOpacity
                       onPress={() => setShowPassword((value) => !value)}
@@ -258,6 +261,7 @@ export default function ResetPasswordScreen({ navigation, route }) {
                       autoComplete="password-new"
                       returnKeyType="done"
                       onSubmitEditing={handleVerifyCode}
+                      accessibilityLabel="Confirm new password"
                     />
                     <TouchableOpacity
                       onPress={() => setShowConfirmPassword((value) => !value)}

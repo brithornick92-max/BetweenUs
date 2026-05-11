@@ -11,7 +11,9 @@ export const FALLBACK_PRICES = {
   yearly: 'shown at checkout',
 };
 
-// Premium features configuration
+// Legacy paywall display metadata.
+// Active content paywalls live in featureFlags.js; account, export, and sync controls
+// must remain core app access unless they are explicitly added to the active paywall list.
 export const PREMIUM_FEATURES = {
   MEMORY_EXPORT: {
     id: 'memory_export',
@@ -39,6 +41,13 @@ export const PREMIUM_FEATURES = {
     icon: 'cloud-outline',
   },
 };
+
+const CORE_ACCESS_FEATURE_IDS = new Set([
+  PREMIUM_FEATURES.MEMORY_EXPORT.id,
+  PREMIUM_FEATURES.BIOMETRIC_VAULT.id,
+  PREMIUM_FEATURES.CLOUD_SYNC.id,
+  'app_lock',
+]);
 
 // Fallback display prices — actual prices come from RevenueCat at runtime.
 // Keep these in sync with App Store Connect / Google Play Console pricing.
@@ -93,6 +102,10 @@ export class PremiumGatekeeper {
   }
 
   async validateFeatureAccess(featureId, isPremium, showPaywallOnDenied = true) {
+    if (CORE_ACCESS_FEATURE_IDS.has(featureId)) {
+      return true;
+    }
+
     const feature = Object.values(PREMIUM_FEATURES).find(f => f.id === featureId);
     if (!feature) return true; // Free feature (unknown feature ID)
 

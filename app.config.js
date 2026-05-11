@@ -1,6 +1,6 @@
 const { expo: baseConfig } = require('./app.json');
 
-const APP_VARIANT = process.env.APP_VARIANT || 'production';
+const requestedVariant = process.env.APP_VARIANT || 'production';
 
 const variants = {
   production: {
@@ -23,7 +23,10 @@ const variants = {
   },
 };
 
-const selectedVariant = variants[APP_VARIANT] || variants.production;
+const selectedVariantName = Object.prototype.hasOwnProperty.call(variants, requestedVariant)
+  ? requestedVariant
+  : 'production';
+const selectedVariant = variants[selectedVariantName];
 
 module.exports = ({ config }) => {
   const mergedConfig = {
@@ -45,7 +48,7 @@ module.exports = ({ config }) => {
     },
     extra: {
       ...mergedConfig.extra,
-      appVariant: APP_VARIANT,
+      appVariant: selectedVariantName,
     },
   };
 };

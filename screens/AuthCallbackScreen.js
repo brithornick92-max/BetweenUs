@@ -178,6 +178,9 @@ export default function AuthCallbackScreen({ navigation, route }) {
                 style={[styles.primaryButton, { backgroundColor: t.primary }]} 
                 onPress={handleRetry} 
                 activeOpacity={0.9}
+                accessibilityRole="button"
+                accessibilityLabel="Retry sign-in link"
+                accessibilityState={{ busy: checking }}
               >
                 <Text style={styles.primaryButtonText}>Retry Link</Text>
                 <Icon name="refresh-outline" size={16} color="#FFFFFF" />

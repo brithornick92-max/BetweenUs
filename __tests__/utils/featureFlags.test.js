@@ -14,6 +14,7 @@ import {
   getFeaturesByCategory,
   getAllPremiumFeatures,
   getPaywallFeatures,
+  isPremiumGatedFeature,
   getAccessibleHeatLevels,
   getTimedUnlockLimits,
 } from '../../utils/featureFlags';
@@ -170,6 +171,21 @@ describe('PAYWALL_FEATURE_IDS', () => {
 
   it('has no duplicates', () => {
     expect(new Set(PAYWALL_FEATURE_IDS).size).toBe(PAYWALL_FEATURE_IDS.length);
+  });
+
+  it('keeps account, safety, sync, calendar, partner, and export controls out of active paywalls', () => {
+    expect(isPremiumGatedFeature(PremiumFeature.PDF_EXPORT)).toBe(false);
+    expect(isPremiumGatedFeature(PremiumFeature.VAULT_AND_BIOMETRIC)).toBe(false);
+    expect(isPremiumGatedFeature(PremiumFeature.CLOUD_SYNC)).toBe(false);
+    expect(isPremiumGatedFeature(PremiumFeature.CALENDAR)).toBe(false);
+    expect(isPremiumGatedFeature(PremiumFeature.PARTNER_LINKING)).toBe(false);
+    expect(isPremiumGatedFeature(PremiumFeature.PROMPT_RESPONSES)).toBe(false);
+  });
+
+  it('reports every curated paywall feature as premium-gated', () => {
+    PAYWALL_FEATURE_IDS.forEach(id => {
+      expect(isPremiumGatedFeature(id)).toBe(true);
+    });
   });
 });
 

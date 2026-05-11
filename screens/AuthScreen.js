@@ -488,8 +488,8 @@ export default function AuthScreen() {
                     value={confirmPassword}
                     onChangeText={setConfirmPassword}
                     secureTextEntry={!showConfirmPassword}
-                    textContentType="oneTimeCode"
-                    autoComplete="off"
+                    textContentType="newPassword"
+                    autoComplete="password-new"
                     returnKeyType="done"
                     onSubmitEditing={handleAuth}
                   />

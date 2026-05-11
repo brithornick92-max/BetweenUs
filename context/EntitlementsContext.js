@@ -44,6 +44,7 @@ import {
   GuardBehavior,
   getLimitsForTier,
   getAccessibleHeatLevels,
+  isPremiumGatedFeature,
   normalizePremiumFeatureId,
 } from '../utils/featureFlags';
 import WinBackNudges from '../services/WinBackNudges';
@@ -385,7 +386,7 @@ export const EntitlementsProvider = ({ children }) => {
   const features = useMemo(() => {
     const flags = {};
     for (const key of Object.values(PremiumFeature)) {
-      flags[key] = isPremiumEffective;
+      flags[key] = isPremiumGatedFeature(key) ? isPremiumEffective : true;
     }
     return flags;
   }, [isPremiumEffective]);
@@ -461,6 +462,11 @@ export const EntitlementsProvider = ({ children }) => {
       return false;
     }
 
+    if (normalizedFeatureId !== null && !isPremiumGatedFeature(normalizedFeatureId)) {
+      if (__DEV__) console.warn('[Entitlements] Ignoring paywall for core feature:', normalizedFeatureId);
+      return false;
+    }
+
     AnalyticsService.trackPaywall(normalizedFeatureId, 'shown');
     paywallFeatureRef.current = normalizedFeatureId;
     setPaywallState({ visible: true, feature: normalizedFeatureId });
@@ -488,6 +494,11 @@ export const EntitlementsProvider = ({ children }) => {
         return false;
       }
 
+      if (normalizedFeatureId !== null && !isPremiumGatedFeature(normalizedFeatureId)) {
+        AnalyticsService.trackPremiumFeature(normalizedFeatureId, true);
+        return true;
+      }
+
       if (isPremiumEffective) {
         AnalyticsService.trackPremiumFeature(normalizedFeatureId, true);
         return true;
@@ -505,7 +516,11 @@ export const EntitlementsProvider = ({ children }) => {
    * Silent check: does the user have access to a feature? No paywall shown.
    */
   const hasFeature = useCallback(
-    (featureId) => normalizePremiumFeatureId(featureId) !== undefined && isPremiumEffective,
+    (featureId) => {
+      const normalizedFeatureId = normalizePremiumFeatureId(featureId);
+      return normalizedFeatureId !== undefined
+        && (normalizedFeatureId === null || !isPremiumGatedFeature(normalizedFeatureId) || isPremiumEffective);
+    },
     [isPremiumEffective]
   );
 

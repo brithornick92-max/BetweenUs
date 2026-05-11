@@ -295,6 +295,15 @@ export function getPaywallFeatures() {
 }
 
 /**
+ * Helper: true only for live features that should actually block free users.
+ * Privacy, safety, account, sync, calendar, partner-linking, and export controls
+ * remain part of the core app unless they are explicitly added to this curated list.
+ */
+export function isPremiumGatedFeature(featureId) {
+  return PAYWALL_FEATURE_IDS.includes(featureId);
+}
+
+/**
  * Helper: normalize legacy or mixed-case feature ids to canonical PremiumFeature values.
  * Returns null for generic upgrade flows and unknown values for invalid ids.
  */
