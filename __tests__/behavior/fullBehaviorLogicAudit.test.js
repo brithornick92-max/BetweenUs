@@ -37,6 +37,7 @@ const {
 const DeepLinkHandler = require('../../services/DeepLinkHandler').default;
 
 const uniqueCount = (items) => new Set(items).size;
+const TODAY_BETWEEN_US_ANNUAL_PROMPT_COUNT = 365;
 
 const normalizeText = (value) =>
   String(value || '')
@@ -157,7 +158,8 @@ describe('full behavior logic audit regressions', () => {
 
     it('reports that the Today Between Us pool can satisfy the six-month no-repeat window', () => {
       expect(getNoRepeatWindowStatus(todayPromptsCatalog.items).canGuarantee).toBe(true);
-      expect(getNoRepeatWindowStatus(todayPromptsCatalog.items).uniqueCount).toBe(MINIMUM_QUESTION_REPEAT_DAYS);
+      expect(getNoRepeatWindowStatus(todayPromptsCatalog.items).uniqueCount).toBe(TODAY_BETWEEN_US_ANNUAL_PROMPT_COUNT);
+      expect(getNoRepeatWindowStatus(todayPromptsCatalog.items).uniqueCount).toBeGreaterThanOrEqual(MINIMUM_QUESTION_REPEAT_DAYS);
     });
 
     it('reports when duplicate or undersized pools cannot guarantee the requested window', () => {
@@ -194,9 +196,9 @@ describe('full behavior logic audit regressions', () => {
       expect(selectTodayBetweenUsPrompt([{ id: 'bad', heat: 1, text: '' }], '2026-05-10')).toBeNull();
     });
 
-    it('returns the same prompt for the same scope and date', () => {
+    it('returns the same prompt for every scope on the same date', () => {
       const first = selectTodayBetweenUsPrompt(todayPromptsCatalog.items, '2026-05-10', 'couple:one');
-      const second = selectTodayBetweenUsPrompt(todayPromptsCatalog.items, '2026-05-10', 'couple:one');
+      const second = selectTodayBetweenUsPrompt(todayPromptsCatalog.items, '2026-05-10', 'couple:two');
 
       expect(second.id).toBe(first.id);
     });
@@ -425,7 +427,8 @@ describe('full behavior logic audit regressions', () => {
       const ids = todayPromptsCatalog.items.map((item) => item.id);
 
       expect(todayPromptsCatalog.meta.totalPrompts).toBe(todayPromptsCatalog.items.length);
-      expect(todayPromptsCatalog.items.length).toBe(MINIMUM_QUESTION_REPEAT_DAYS);
+      expect(todayPromptsCatalog.items.length).toBe(TODAY_BETWEEN_US_ANNUAL_PROMPT_COUNT);
+      expect(todayPromptsCatalog.items.length).toBeGreaterThanOrEqual(MINIMUM_QUESTION_REPEAT_DAYS);
       expect(uniqueCount(ids)).toBe(todayPromptsCatalog.items.length);
     });
 

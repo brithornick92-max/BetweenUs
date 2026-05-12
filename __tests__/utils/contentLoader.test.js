@@ -136,7 +136,7 @@ describe('Today Between Us prompts', () => {
   it('keeps the daily library separate from browse prompts', () => {
     const todayPrompts = getTodayBetweenUsPrompts();
 
-    expect(todayPrompts).toHaveLength(183);
+    expect(todayPrompts).toHaveLength(365);
     expect(todayPrompts.every((prompt) => prompt.dailyOnly === true)).toBe(true);
     expect(todayPrompts.every((prompt) => prompt.sourceLibrary === 'today-between-us')).toBe(true);
     expect(todayPrompts.every((prompt) => prompt.heat >= 1 && prompt.heat <= 3)).toBe(true);
@@ -243,7 +243,7 @@ describe('getContentStats', () => {
     expect(typeof stats.totalTodayBetweenUsPrompts).toBe('number');
     expect(typeof stats.totalDates).toBe('number');
     expect(stats.totalPrompts).toBeGreaterThan(0);
-    expect(stats.totalTodayBetweenUsPrompts).toBe(183);
+    expect(stats.totalTodayBetweenUsPrompts).toBe(365);
     expect(stats.totalDates).toBeGreaterThan(0);
   });
 });

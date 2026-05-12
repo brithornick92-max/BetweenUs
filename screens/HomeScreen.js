@@ -66,6 +66,7 @@ import { isItemInStableFreeWeeklyDeck } from '../utils/freeWeeklyDeckAccess';
 import { getDailyContentDateKey } from '../utils/dailyContentDate';
 import { resolveVisibleDailyPromptState } from '../utils/dailyPromptState';
 import { getSparkAccessGate } from '../utils/sparkAccessGate';
+import { TODAY_BETWEEN_US_GLOBAL_SCOPE } from '../utils/todayBetweenUsRotation';
 
 const { width: SCREEN_W, height: SCREEN_H } = Dimensions.get('window');
 const PROMPTED_PARTNER_SHARE_KEY = '@betweenus:cache:promptedPartnerShare';
@@ -144,10 +145,20 @@ export default function HomeScreen({ navigation }) {
 
   const styles = useMemo(() => createStyles(t, isDark), [t, isDark]);
 
+  const activePromptUserId = user?.id || user?.uid || state?.userId || null;
+  const coupleId = state?.coupleId || userProfile?.coupleId || userProfile?.couple_id || null;
+  const coupleCreatedAt = state?.coupleCreatedAt
+    || state?.userProfile?.coupleCreatedAt
+    || state?.userProfile?.couple_created_at
+    || userProfile?.coupleCreatedAt
+    || userProfile?.couple_created_at
+    || null;
+  const isLinked = !!coupleId;
+  const expectedDailyPromptScope = TODAY_BETWEEN_US_GLOBAL_SCOPE;
   const currentDailyKey = getDailyContentDateKey();
   const dailyPromptState = useMemo(
-    () => resolveVisibleDailyPromptState(todayPrompt, currentDailyKey),
-    [todayPrompt, currentDailyKey]
+    () => resolveVisibleDailyPromptState(todayPrompt, currentDailyKey, expectedDailyPromptScope),
+    [todayPrompt, currentDailyKey, expectedDailyPromptScope]
   );
   const prompt = useMemo(() => normalizePrompt(dailyPromptState.prompt), [dailyPromptState.prompt]);
   const todayKey = dailyPromptState.dateKey;
@@ -178,15 +189,6 @@ export default function HomeScreen({ navigation }) {
   }), [homeLayout.spacing.padding]);
   const preferredName = getMyDisplayName(userProfile, state?.userProfile, user?.displayName || null);
   const partnerLabel = getPartnerDisplayName(userProfile, state?.userProfile, 'your partner');
-  const coupleId = state?.coupleId || userProfile?.coupleId || userProfile?.couple_id || null;
-  const coupleCreatedAt = state?.coupleCreatedAt
-    || state?.userProfile?.coupleCreatedAt
-    || state?.userProfile?.couple_created_at
-    || userProfile?.coupleCreatedAt
-    || userProfile?.couple_created_at
-    || null;
-  const isLinked = !!coupleId;
-  const activePromptUserId = user?.id || user?.uid || state?.userId || null;
 
   // Entrance animations
   const headerAnim = useRef(new Animated.Value(0)).current;

@@ -34,6 +34,37 @@ describe('dailyPromptState', () => {
     });
   });
 
+  it('hides a current daily prompt when its scope no longer matches', () => {
+    const state = resolveVisibleDailyPromptState({
+      id: 'today-1',
+      text: 'Solo question',
+      dateKey: '2026-05-06',
+      _dailyPromptScope: 'user:user-1',
+    }, '2026-05-06', 'couple:couple-1');
+
+    expect(state).toEqual({
+      prompt: null,
+      dateKey: '2026-05-06',
+      promptReady: false,
+      isStale: true,
+    });
+  });
+
+  it('hides a current daily prompt with missing scope when an expected scope is provided', () => {
+    const state = resolveVisibleDailyPromptState({
+      id: 'today-1',
+      text: 'Old question',
+      dateKey: '2026-05-06',
+    }, '2026-05-06', 'global:today-between-us');
+
+    expect(state).toEqual({
+      prompt: null,
+      dateKey: '2026-05-06',
+      promptReady: false,
+      isStale: true,
+    });
+  });
+
   it('preserves explicit date keys for Today Between Us answer routes', () => {
     expect(resolvePromptAnswerDateKey({
       id: 'daily-1',

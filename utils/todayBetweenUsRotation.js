@@ -1,7 +1,8 @@
-import { MINIMUM_QUESTION_REPEAT_DAYS, getNoRepeatRotationItem } from './noRepeatContentRotation';
+import { getNoRepeatRotationItem } from './noRepeatContentRotation';
 
 export const TODAY_BETWEEN_US_HEAT_LEVELS = [1, 2, 3];
-export const TODAY_BETWEEN_US_ROTATION_CYCLE_DAYS = MINIMUM_QUESTION_REPEAT_DAYS;
+export const TODAY_BETWEEN_US_ROTATION_CYCLE_DAYS = 365;
+export const TODAY_BETWEEN_US_GLOBAL_SCOPE = 'global:today-between-us';
 
 export function getTodayBetweenUsRotationPool(prompts = []) {
   const buckets = new Map(TODAY_BETWEEN_US_HEAT_LEVELS.map((heat) => [heat, []]));
@@ -32,12 +33,12 @@ export function getTodayBetweenUsRotationPool(prompts = []) {
   return ordered;
 }
 
-export function selectTodayBetweenUsPrompt(promptPool, dateKey, scope = 'default') {
+export function selectTodayBetweenUsPrompt(promptPool, dateKey) {
   const rotationPool = getTodayBetweenUsRotationPool(promptPool)
     .filter((prompt) => prompt?.id && typeof prompt.text === 'string' && prompt.text.trim());
 
   return getNoRepeatRotationItem(rotationPool, dateKey, {
-    seed: `${scope || 'default'}:today-between-us`,
+    seed: TODAY_BETWEEN_US_GLOBAL_SCOPE,
     stableCycleSize: TODAY_BETWEEN_US_ROTATION_CYCLE_DAYS,
   });
 }

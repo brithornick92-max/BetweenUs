@@ -16,16 +16,22 @@ function normalizeDateKey(value) {
 
 export function resolveVisibleDailyPromptState(
   todayPrompt,
-  currentDateKey = getDailyContentDateKey()
+  currentDateKey = getDailyContentDateKey(),
+  expectedScope = null
 ) {
   const promptDateKey = todayPrompt?.dateKey || null;
-  const isCurrent = !!todayPrompt && promptDateKey === currentDateKey;
+  const promptScope = todayPrompt?._dailyPromptScope || null;
+  const normalizedExpectedScope = typeof expectedScope === 'string' && expectedScope.trim()
+    ? expectedScope.trim()
+    : null;
+  const scopeMatches = !normalizedExpectedScope || promptScope === normalizedExpectedScope;
+  const isCurrent = !!todayPrompt && promptDateKey === currentDateKey && scopeMatches;
 
   return {
     prompt: isCurrent ? todayPrompt : null,
     dateKey: isCurrent ? promptDateKey : currentDateKey,
     promptReady: isCurrent && hasPromptText(todayPrompt),
-    isStale: !!todayPrompt && !isCurrent,
+    isStale: !!todayPrompt && (!isCurrent || !scopeMatches),
   };
 }
 

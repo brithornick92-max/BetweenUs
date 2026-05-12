@@ -1,7 +1,11 @@
 const React = require('react');
 const renderer = require('react-test-renderer');
 const { getDailyContentDateKey } = require('../../utils/dailyContentDate');
-const { getNoRepeatRotationItem } = require('../../utils/noRepeatContentRotation');
+const {
+  TODAY_BETWEEN_US_GLOBAL_SCOPE,
+  selectTodayBetweenUsPrompt,
+} = require('../../utils/todayBetweenUsRotation');
+const { TODAY_BETWEEN_US_SCHEDULER_VERSION } = require('../../utils/contentVersions');
 
 const TODAY_KEY = getDailyContentDateKey();
 const DAILY_PROMPT_CACHE_KEY = '@betweenus:cache:dailyPromptSelection';
@@ -161,6 +165,8 @@ jest.mock('../../utils/stableWeeklyContent', () => ({
 
 jest.mock('../../utils/storage', () => ({
   STORAGE_KEYS: {
+    COUPLE_ID: '@betweenus:cache:coupleId',
+    USER_PROFILE: '@betweenus:cache:userProfile',
     CONTENT_DECK_RESTORES: 'contentDeckRestores',
     WEEKLY_CONTENT_ALLOCATIONS: 'weeklyContentAllocations',
   },
@@ -200,20 +206,13 @@ async function mountProvider() {
   return tree;
 }
 
-function expectedPromptIdForScope(
+function expectedGlobalPromptId(
   dateKey,
-  scope,
   pool = [mockPromptCatalog.allowed, mockPromptCatalog.blocked]
 ) {
   const promptPool = pool
     .sort((a, b) => String(a.id).localeCompare(String(b.id)));
-  return getNoRepeatRotationItem(promptPool, dateKey, {
-    seed: `${scope}:today-between-us`,
-  }).id;
-}
-
-function expectedCouplePromptId(dateKey, coupleId) {
-  return expectedPromptIdForScope(dateKey, `couple:${coupleId}`, [mockPromptCatalog.allowed]);
+  return selectTodayBetweenUsPrompt(promptPool, dateKey).id;
 }
 
 describe('ContentContext daily prompt stability', () => {
@@ -253,8 +252,9 @@ describe('ContentContext daily prompt stability', () => {
       if (key === DAILY_PROMPT_CACHE_KEY) {
         return {
           dateKey: TODAY_KEY,
-          scope: 'user:user-1',
+          scope: TODAY_BETWEEN_US_GLOBAL_SCOPE,
           promptId: 'blocked',
+          schedulerVersion: TODAY_BETWEEN_US_SCHEDULER_VERSION,
         };
       }
       if (key === 'contentDeckRestores') {
@@ -323,11 +323,10 @@ describe('ContentContext daily prompt stability', () => {
     remountedTree.unmount();
   });
 
-  it('uses the shared couple prompt before a stale linked local cache', async () => {
-    const coupleStateService = require('../../services/couple/CoupleStateService');
+  it('ignores old scoped daily caches and uses the global prompt for the date', async () => {
     const contentCoupleService = require('../../services/content/ContentCoupleService');
+    const expectedPromptId = expectedGlobalPromptId(TODAY_KEY);
 
-    coupleStateService.getActiveCoupleId.mockResolvedValue('couple-1');
     contentCoupleService.getSharedDailyPromptSelection.mockResolvedValue({
       value: { promptId: 'allowed' },
     });
@@ -336,6 +335,58 @@ describe('ContentContext daily prompt stability', () => {
         return {
           dateKey: TODAY_KEY,
           scope: 'couple:couple-1',
+          promptId: 'blocked',
+          schedulerVersion: 'today-between-us-v2',
+        };
+      }
+      if (key === 'contentDeckRestores') {
+        return {
+          prompts: [],
+          dates: [],
+          positions: [],
+        };
+      }
+      return null;
+    });
+
+    const tree = await mountProvider();
+
+    let prompt;
+    await renderer.act(async () => {
+      prompt = await capturedContext.loadTodayPrompt();
+    });
+
+    expect(prompt.id).toBe(expectedPromptId);
+    expect(prompt._dailyPromptScope).toBe(TODAY_BETWEEN_US_GLOBAL_SCOPE);
+    expect(contentCoupleService.getSharedDailyPromptSelection).not.toHaveBeenCalled();
+    expect(mockStorageSet).toHaveBeenCalledWith(
+      DAILY_PROMPT_CACHE_KEY,
+      expect.objectContaining({
+        dateKey: TODAY_KEY,
+        scope: TODAY_BETWEEN_US_GLOBAL_SCOPE,
+        promptId: expectedPromptId,
+        contentCatalogVersion: expect.any(String),
+        schedulerVersion: TODAY_BETWEEN_US_SCHEDULER_VERSION,
+      })
+    );
+
+    tree.unmount();
+  });
+
+  it('uses the same global daily prompt even when cached couple membership exists', async () => {
+    const coupleStateService = require('../../services/couple/CoupleStateService');
+    const contentCoupleService = require('../../services/content/ContentCoupleService');
+    const expectedPromptId = expectedGlobalPromptId(TODAY_KEY);
+
+    coupleStateService.getActiveCoupleId.mockImplementation(async ({ allowStoredFallback } = {}) => (
+      allowStoredFallback ? 'couple-1' : null
+    ));
+    contentCoupleService.getSharedDailyPromptSelection.mockResolvedValue(null);
+    mockStorageGet.mockImplementation(async (key) => {
+      if (key === DAILY_PROMPT_CACHE_KEY) {
+        return {
+          dateKey: TODAY_KEY,
+          scope: 'user:user-1',
           promptId: 'blocked',
         };
       }
@@ -356,26 +407,22 @@ describe('ContentContext daily prompt stability', () => {
       prompt = await capturedContext.loadTodayPrompt();
     });
 
-    expect(prompt.id).toBe('allowed');
-    expect(contentCoupleService.getSharedDailyPromptSelection).toHaveBeenCalledWith(
-      TODAY_KEY,
-      expect.objectContaining({ fallbackCoupleId: 'couple-1' })
-    );
+    expect(prompt.id).toBe(expectedPromptId);
+    expect(prompt._dailyPromptScope).toBe(TODAY_BETWEEN_US_GLOBAL_SCOPE);
+    expect(contentCoupleService.saveSharedDailyPromptSelection).not.toHaveBeenCalled();
     expect(mockStorageSet).toHaveBeenCalledWith(
       DAILY_PROMPT_CACHE_KEY,
       expect.objectContaining({
         dateKey: TODAY_KEY,
-        scope: 'couple:couple-1',
-        promptId: 'allowed',
-        contentCatalogVersion: expect.any(String),
-        schedulerVersion: expect.any(String),
+        scope: TODAY_BETWEEN_US_GLOBAL_SCOPE,
+        promptId: expectedPromptId,
       })
     );
 
     tree.unmount();
   });
 
-  it('uses same-day couple cache as the display backup when shared cloud selection is unavailable', async () => {
+  it('uses a current global cache without recomputing the daily prompt', async () => {
     const coupleStateService = require('../../services/couple/CoupleStateService');
     const contentCoupleService = require('../../services/content/ContentCoupleService');
 
@@ -385,8 +432,9 @@ describe('ContentContext daily prompt stability', () => {
       if (key === DAILY_PROMPT_CACHE_KEY) {
         return {
           dateKey: TODAY_KEY,
-          scope: 'couple:couple-1',
+          scope: TODAY_BETWEEN_US_GLOBAL_SCOPE,
           promptId: 'allowed',
+          schedulerVersion: TODAY_BETWEEN_US_SCHEDULER_VERSION,
         };
       }
       if (key === 'contentDeckRestores') {
@@ -407,30 +455,17 @@ describe('ContentContext daily prompt stability', () => {
     });
 
     expect(prompt.id).toBe('allowed');
-    expect(contentCoupleService.saveSharedDailyPromptSelection).toHaveBeenCalledWith(
-      TODAY_KEY,
-      'allowed',
-      'user-1',
-      expect.objectContaining({ fallbackCoupleId: 'couple-1' })
-    );
-    expect(mockStorageSet).toHaveBeenCalledWith(
-      DAILY_PROMPT_CACHE_KEY,
-      expect.objectContaining({
-        dateKey: TODAY_KEY,
-        scope: 'couple:couple-1',
-        promptId: 'allowed',
-        contentCatalogVersion: expect.any(String),
-        schedulerVersion: expect.any(String),
-      })
-    );
+    expect(contentCoupleService.getSharedDailyPromptSelection).not.toHaveBeenCalled();
+    expect(contentCoupleService.saveSharedDailyPromptSelection).not.toHaveBeenCalled();
+    expect(mockStorageSet).not.toHaveBeenCalledWith(DAILY_PROMPT_CACHE_KEY, expect.anything());
 
     tree.unmount();
   });
 
-  it('uses one deterministic couple prompt when no shared or cached selection exists', async () => {
+  it('uses one deterministic global prompt when no current cache exists', async () => {
     const coupleStateService = require('../../services/couple/CoupleStateService');
     const contentCoupleService = require('../../services/content/ContentCoupleService');
-    const expectedPromptId = expectedCouplePromptId(TODAY_KEY, 'couple-1');
+    const expectedPromptId = expectedGlobalPromptId(TODAY_KEY);
 
     coupleStateService.getActiveCoupleId.mockResolvedValue('couple-1');
     contentCoupleService.getSharedDailyPromptSelection.mockResolvedValue(null);
@@ -464,29 +499,26 @@ describe('ContentContext daily prompt stability', () => {
 
     expect(prompt.id).toBe(expectedPromptId);
     expect(prompt.id).not.toBe('stale');
-    expect(contentCoupleService.saveSharedDailyPromptSelection).toHaveBeenCalledWith(
-      TODAY_KEY,
-      expectedPromptId,
-      'user-1',
-      expect.objectContaining({ fallbackCoupleId: 'couple-1' })
-    );
+    expect(prompt._dailyPromptScope).toBe(TODAY_BETWEEN_US_GLOBAL_SCOPE);
+    expect(contentCoupleService.saveSharedDailyPromptSelection).not.toHaveBeenCalled();
     expect(mockStorageSet).toHaveBeenCalledWith(
       DAILY_PROMPT_CACHE_KEY,
       expect.objectContaining({
         dateKey: TODAY_KEY,
-        scope: 'couple:couple-1',
+        scope: TODAY_BETWEEN_US_GLOBAL_SCOPE,
         promptId: expectedPromptId,
         contentCatalogVersion: expect.any(String),
-        schedulerVersion: expect.any(String),
+        schedulerVersion: TODAY_BETWEEN_US_SCHEDULER_VERSION,
       })
     );
 
     tree.unmount();
   });
 
-  it('does not persist a fallback couple prompt when boundaries leave no eligible daily prompt', async () => {
+  it('keeps Today Between Us global even when profile boundaries would hide a category', async () => {
     const coupleStateService = require('../../services/couple/CoupleStateService');
     const contentCoupleService = require('../../services/content/ContentCoupleService');
+    const expectedPromptId = expectedGlobalPromptId(TODAY_KEY);
 
     coupleStateService.getActiveCoupleId.mockResolvedValue('couple-1');
     contentCoupleService.getSharedDailyPromptSelection.mockResolvedValue(null);
@@ -516,21 +548,21 @@ describe('ContentContext daily prompt stability', () => {
       prompt = await capturedContext.loadTodayPrompt();
     });
 
-    expect(prompt).toBeNull();
+    expect(prompt.id).toBe(expectedPromptId);
+    expect(prompt._dailyPromptScope).toBe(TODAY_BETWEEN_US_GLOBAL_SCOPE);
     expect(contentCoupleService.saveSharedDailyPromptSelection).not.toHaveBeenCalled();
-    expect(mockStorageSet).not.toHaveBeenCalledWith(
+    expect(mockStorageSet).toHaveBeenCalledWith(
       DAILY_PROMPT_CACHE_KEY,
-      expect.anything()
+      expect.objectContaining({ promptId: expectedPromptId })
     );
-    expect(mockUpdateWidgetPrompt).toHaveBeenCalledWith('');
 
     tree.unmount();
   });
 
-  it('does not display a new couple prompt when the assignment cannot be saved and no cache exists', async () => {
+  it('does not depend on shared prompt saves before displaying the global prompt', async () => {
     const coupleStateService = require('../../services/couple/CoupleStateService');
     const contentCoupleService = require('../../services/content/ContentCoupleService');
-    const expectedPromptId = expectedCouplePromptId(TODAY_KEY, 'couple-1');
+    const expectedPromptId = expectedGlobalPromptId(TODAY_KEY);
 
     coupleStateService.getActiveCoupleId.mockResolvedValue('couple-1');
     contentCoupleService.getSharedDailyPromptSelection.mockResolvedValue(null);
@@ -556,33 +588,23 @@ describe('ContentContext daily prompt stability', () => {
       prompt = await capturedContext.loadTodayPrompt();
     });
 
-    expect(prompt).toBeNull();
-    expect(contentCoupleService.saveSharedDailyPromptSelection).toHaveBeenCalledWith(
-      TODAY_KEY,
-      expectedPromptId,
-      'user-1',
-      expect.objectContaining({ fallbackCoupleId: 'couple-1' })
-    );
-    expect(mockStorageSet).not.toHaveBeenCalledWith(
-      DAILY_PROMPT_CACHE_KEY,
-      expect.anything()
-    );
-    expect(mockSetDailyPromptId).toHaveBeenCalledWith(null);
-    expect(mockUpdateWidgetPrompt).toHaveBeenCalledWith('');
+    expect(prompt.id).toBe(expectedPromptId);
+    expect(contentCoupleService.getSharedDailyPromptSelection).not.toHaveBeenCalled();
+    expect(contentCoupleService.saveSharedDailyPromptSelection).not.toHaveBeenCalled();
+    expect(mockSetDailyPromptId).toHaveBeenCalledWith(expectedPromptId);
 
     tree.unmount();
   });
 
-  it('re-reads the shared couple prompt after saving so the first cloud writer wins', async () => {
+  it('ignores shared cloud writer races because the daily prompt is date-only', async () => {
     const coupleStateService = require('../../services/couple/CoupleStateService');
     const contentCoupleService = require('../../services/content/ContentCoupleService');
-    const localPromptId = expectedCouplePromptId(TODAY_KEY, 'couple-1');
-    const winningPromptId = localPromptId === 'allowed' ? 'blocked' : 'allowed';
+    const expectedPromptId = expectedGlobalPromptId(TODAY_KEY);
 
     coupleStateService.getActiveCoupleId.mockResolvedValue('couple-1');
     contentCoupleService.getSharedDailyPromptSelection
       .mockResolvedValueOnce(null)
-      .mockResolvedValueOnce({ value: { promptId: winningPromptId } });
+      .mockResolvedValueOnce({ value: { promptId: 'blocked' } });
     contentCoupleService.saveSharedDailyPromptSelection.mockResolvedValue(true);
     mockStorageGet.mockImplementation(async (key) => {
       if (key === DAILY_PROMPT_CACHE_KEY) {
@@ -605,22 +627,17 @@ describe('ContentContext daily prompt stability', () => {
       prompt = await capturedContext.loadTodayPrompt();
     });
 
-    expect(prompt.id).toBe(winningPromptId);
-    expect(contentCoupleService.saveSharedDailyPromptSelection).toHaveBeenCalledWith(
-      TODAY_KEY,
-      localPromptId,
-      'user-1',
-      expect.objectContaining({ fallbackCoupleId: 'couple-1' })
-    );
-    expect(contentCoupleService.getSharedDailyPromptSelection).toHaveBeenCalledTimes(2);
+    expect(prompt.id).toBe(expectedPromptId);
+    expect(contentCoupleService.getSharedDailyPromptSelection).not.toHaveBeenCalled();
+    expect(contentCoupleService.saveSharedDailyPromptSelection).not.toHaveBeenCalled();
     expect(mockStorageSet).toHaveBeenCalledWith(
       DAILY_PROMPT_CACHE_KEY,
       expect.objectContaining({
         dateKey: TODAY_KEY,
-        scope: 'couple:couple-1',
-        promptId: winningPromptId,
+        scope: TODAY_BETWEEN_US_GLOBAL_SCOPE,
+        promptId: expectedPromptId,
         contentCatalogVersion: expect.any(String),
-        schedulerVersion: expect.any(String),
+        schedulerVersion: TODAY_BETWEEN_US_SCHEDULER_VERSION,
       })
     );
 
@@ -628,13 +645,7 @@ describe('ContentContext daily prompt stability', () => {
   });
 
   it('uses deterministic emergency daily fallback instead of the static fallback after scope resolves', async () => {
-    const PremiumGatekeeper = require('../../services/PremiumGatekeeper').default;
-    const expectedPromptId = expectedPromptIdForScope(TODAY_KEY, 'user:user-1');
-
-    PremiumGatekeeper.canAccessPrompt.mockResolvedValueOnce({
-      canAccess: false,
-      message: 'Unable to verify access. Please try again.',
-    });
+    const expectedPromptId = expectedGlobalPromptId(TODAY_KEY);
     mockStorageGet.mockImplementation(async (key) => {
       if (key === DAILY_PROMPT_CACHE_KEY) return null;
       if (key === 'contentDeckRestores') {

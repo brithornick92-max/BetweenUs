@@ -21,18 +21,30 @@ describe('Today Between Us rotation', () => {
     expect(rotationPool.every((prompt) => prompt.dailyOnly === true)).toBe(true);
   });
 
-  it('does not repeat within the six-month minimum window', () => {
+  it('does not repeat within the annual Today Between Us cycle', () => {
     const seenIds = new Set();
 
-    for (let offset = 0; offset < MINIMUM_QUESTION_REPEAT_DAYS; offset += 1) {
+    for (let offset = 0; offset < TODAY_BETWEEN_US_ROTATION_CYCLE_DAYS; offset += 1) {
       const prompt = selectTodayBetweenUsPrompt(items, dateKeyForOffset(offset), 'couple:one');
       seenIds.add(prompt.id);
     }
 
-    expect(seenIds.size).toBe(MINIMUM_QUESTION_REPEAT_DAYS);
+    expect(seenIds.size).toBe(TODAY_BETWEEN_US_ROTATION_CYCLE_DAYS);
+    expect(seenIds.size).toBeGreaterThanOrEqual(MINIMUM_QUESTION_REPEAT_DAYS);
   });
 
-  it('keeps the active six-month cycle stable when future OTA prompts are appended', () => {
+  it('returns the same prompt for every scope on the same date', () => {
+    const dateKey = '2026-05-12';
+
+    expect(selectTodayBetweenUsPrompt(items, dateKey, 'couple:one').id).toBe(
+      selectTodayBetweenUsPrompt(items, dateKey, 'couple:two').id
+    );
+    expect(selectTodayBetweenUsPrompt(items, dateKey, 'user:solo').id).toBe(
+      selectTodayBetweenUsPrompt(items, dateKey).id
+    );
+  });
+
+  it('keeps the active annual cycle stable when future OTA prompts are appended', () => {
     const extraItems = [
       { id: 'tbu_l1_999', text: 'What tiny future ritual would make tomorrow feel softer?', heat: 1, dailyOnly: true },
       { id: 'tbu_l2_999', text: 'What flirty signal should we use when we want more closeness?', heat: 2, dailyOnly: true },
@@ -40,9 +52,10 @@ describe('Today Between Us rotation', () => {
     ];
     const expandedItems = [...items, ...extraItems];
 
-    expect(TODAY_BETWEEN_US_ROTATION_CYCLE_DAYS).toBe(MINIMUM_QUESTION_REPEAT_DAYS);
+    expect(TODAY_BETWEEN_US_ROTATION_CYCLE_DAYS).toBe(365);
+    expect(TODAY_BETWEEN_US_ROTATION_CYCLE_DAYS).toBeGreaterThanOrEqual(MINIMUM_QUESTION_REPEAT_DAYS);
 
-    for (let offset = 0; offset < MINIMUM_QUESTION_REPEAT_DAYS; offset += 1) {
+    for (let offset = 0; offset < TODAY_BETWEEN_US_ROTATION_CYCLE_DAYS; offset += 1) {
       const dateKey = dateKeyForOffset(offset);
       const original = selectTodayBetweenUsPrompt(items, dateKey, 'couple:stable');
       const expanded = selectTodayBetweenUsPrompt(expandedItems, dateKey, 'couple:stable');

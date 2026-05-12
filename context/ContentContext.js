@@ -20,19 +20,19 @@ import {
   syncSharedAnniversary as syncSharedAnniversaryRecord,
 } from '../services/couple/CoupleStateService';
 import {
-  getSharedDailyPromptSelection,
   loadPromptResponses,
   savePromptResponse,
-  saveSharedDailyPromptSelection,
 } from '../services/content/ContentCoupleService';
-import { DataLayer } from '../services/localfirst';
 import { FALLBACK_PROMPT, getPromptById, getTodayBetweenUsPrompts } from '../utils/contentLoader';
-import { getRecentlyCompletedPromptIds } from '../utils/promptHistory';
 import {
   getDailyContentDateKey,
   getMsUntilNextDailyContentRollover,
 } from '../utils/dailyContentDate';
-import { TODAY_BETWEEN_US_HEAT_LEVELS, selectTodayBetweenUsPrompt } from '../utils/todayBetweenUsRotation';
+import {
+  TODAY_BETWEEN_US_GLOBAL_SCOPE,
+  TODAY_BETWEEN_US_HEAT_LEVELS,
+  selectTodayBetweenUsPrompt,
+} from '../utils/todayBetweenUsRotation';
 import { CONTENT_CATALOG_VERSION, TODAY_BETWEEN_US_SCHEDULER_VERSION } from '../utils/contentVersions';
 import { storage } from '../utils/storage';
 import { dateOnlyToLocalDate, isFutureLocalDate, normalizeDateOnlyKey } from '../utils/dateOnly';
@@ -41,24 +41,22 @@ const ContentContext = createContext({});
 const DAILY_PROMPT_CACHE_KEY = '@betweenus:cache:dailyPromptSelection';
 const DAILY_PROMPT_ASSIGNMENT_VERSION = 1;
 
-function getDailyPromptScope(userId, coupleId) {
-  return coupleId ? `couple:${coupleId}` : `user:${userId}`;
-}
-
-function getSharedPromptId(selection) {
-  return selection?.value?.promptId || selection?.promptId || null;
+function getDailyPromptAssignmentValue(selection) {
+  return selection?.value && typeof selection.value === 'object' ? selection.value : selection;
 }
 
 function getCachedDailyPrompt(selection, dateKey, scope) {
+  const assignment = getDailyPromptAssignmentValue(selection);
   if (
-    selection?.dateKey !== dateKey
-    || selection?.scope !== scope
-    || !selection?.promptId
+    assignment?.dateKey !== dateKey
+    || assignment?.scope !== scope
+    || assignment?.schedulerVersion !== TODAY_BETWEEN_US_SCHEDULER_VERSION
+    || !assignment?.promptId
   ) {
     return null;
   }
 
-  const prompt = getPromptById(selection.promptId);
+  const prompt = getPromptById(assignment.promptId);
   return prompt?.text ? prompt : null;
 }
 
@@ -80,12 +78,12 @@ function getCanonicalDailyPromptPool(heatFilters = {}) {
     .sort((a, b) => String(a.id).localeCompare(String(b.id)));
 }
 
-function selectCanonicalCoupleDailyPrompt(dateKey, scope, heatFilters = {}) {
+function selectCanonicalDailyPrompt(dateKey, heatFilters = {}) {
   const promptPool = getCanonicalDailyPromptPool(heatFilters);
 
   if (!promptPool.length) return FALLBACK_PROMPT;
 
-  return selectTodayBetweenUsPrompt(promptPool, dateKey, scope) || promptPool[0];
+  return selectTodayBetweenUsPrompt(promptPool, dateKey) || promptPool[0];
 }
 
 function buildDailyPromptAssignment({
@@ -106,8 +104,8 @@ function buildDailyPromptAssignment({
     dateKey,
     scope,
     source: source || 'unknown',
-    algorithm: 'today-between-us-no-repeat-v1',
-    seed: scope ? `${scope}:today-between-us` : 'default:today-between-us',
+    algorithm: 'today-between-us-global-no-repeat-v3',
+    seed: TODAY_BETWEEN_US_GLOBAL_SCOPE,
     contentCatalogVersion: CONTENT_CATALOG_VERSION,
     schedulerVersion: TODAY_BETWEEN_US_SCHEDULER_VERSION,
     heatLevels: heatFilters.heatLevels || TODAY_BETWEEN_US_HEAT_LEVELS,
@@ -121,10 +119,10 @@ function buildDailyPromptAssignment({
   };
 }
 
-function getEmergencyDailyPrompt(dateKey, scope, heatFilters = {}) {
+function getEmergencyDailyPrompt(dateKey, _scope, heatFilters = {}) {
   try {
-    if (dateKey && scope) {
-      const prompt = selectCanonicalCoupleDailyPrompt(dateKey, scope, heatFilters);
+    if (dateKey) {
+      const prompt = selectCanonicalDailyPrompt(dateKey, heatFilters);
       if (prompt?.text) return prompt;
     }
   } catch (_) {
@@ -219,39 +217,6 @@ export const ContentProvider = ({ children }) => {
     }
   }, [userProfile]);
 
-  const filterTodayPromptsForProfile = useCallback(async (promptPool, profile = {}) => {
-    const normalizedPool = Array.isArray(promptPool) ? promptPool.filter(Boolean) : [];
-    if (!normalizedPool.length) return [];
-
-    const boundaries = profile?.boundaries || {};
-    const hiddenCategories = new Set([
-      ...(Array.isArray(profile?.hiddenCategories) ? profile.hiddenCategories : []),
-      ...(Array.isArray(boundaries?.hiddenCategories) ? boundaries.hiddenCategories : []),
-    ]);
-    const pausedIds = new Set([
-      ...(Array.isArray(profile?.pausedEntries) ? profile.pausedEntries : []),
-      ...(Array.isArray(profile?.pausedPrompts) ? profile.pausedPrompts : []),
-      ...(Array.isArray(boundaries?.pausedEntries) ? boundaries.pausedEntries : []),
-      ...(Array.isArray(boundaries?.pausedPrompts) ? boundaries.pausedPrompts : []),
-    ].filter(Boolean).map(String));
-
-    const boundaryFiltered = normalizedPool.filter((prompt) => {
-      if (!prompt) return false;
-      if (prompt?.category && hiddenCategories.has(prompt.category)) return false;
-      if (prompt?.id && pausedIds.has(String(prompt.id))) return false;
-      return true;
-    });
-
-    const checks = await Promise.all(
-      boundaryFiltered.map(async (prompt) => ({
-        prompt,
-        ok: await SoftBoundaries.shouldShowPrompt(prompt),
-      }))
-    );
-
-    return checks.filter((entry) => entry.ok).map((entry) => entry.prompt);
-  }, []);
-
   // Calculate relationship duration in days
   const getRelationshipDuration = useCallback(() => {
     if (!userProfile?.relationshipStartDate) return 0;
@@ -294,11 +259,11 @@ export const ContentProvider = ({ children }) => {
     }
   }, [getRelationshipDuration]);
 
-  // Load today's prompt — one fixed prompt per scope/day.
+  // Load today's prompt — one fixed global prompt per app day.
   // Caller-specific heat selection must not regenerate a second "today" prompt.
   // We keep the legacy parameter for compatibility with existing callers, but
-  // the selection itself is based on the persisted content profile only.
-  const loadTodayPrompt = useCallback(async (_heatLevel = null, options = {}) => {
+  // Today Between Us itself is the same morning-safe level 1-3 prompt for everyone.
+  const loadTodayPrompt = useCallback(async (_heatLevel = null, _options = {}) => {
       if (loadingPromptRef.current) return todayPrompt;
 
       let fallbackDateKey = null;
@@ -318,140 +283,22 @@ export const ContentProvider = ({ children }) => {
       if (!activeUserId) {
         throw new Error('User id unavailable');
       }
-      const coupleId = await getActiveCoupleId({
-        fallbackCoupleId: userProfile?.coupleId || userProfile?.couple_id || null,
-        allowStoredFallback: false,
-      });
-      const scope = getDailyPromptScope(activeUserId, coupleId);
+      const scope = TODAY_BETWEEN_US_GLOBAL_SCOPE;
       fallbackScope = scope;
 
-      if (!coupleId && (
+      if (
         todayPrompt?.dateKey === today
         && todayPrompt?._dailyPromptScope === scope
         && todayPrompt?.id
         && typeof todayPrompt?.text === 'string'
         && todayPrompt.text.trim()
-      )) {
+      ) {
         PromptAllocator.setDailyPromptId(todayPrompt.id);
         return todayPrompt;
       }
 
       const cachedPromptSelection = await storage.get(DAILY_PROMPT_CACHE_KEY, null);
       const cachedPrompt = getCachedDailyPrompt(cachedPromptSelection, today, scope);
-
-      if (coupleId) {
-        const sharedPromptSelection = await getSharedDailyPromptSelection(today, {
-          fallbackCoupleId: coupleId,
-          allowStoredFallback: false,
-          ensureSession: ensureSupabaseSession,
-        });
-        const sharedPromptId = getSharedPromptId(sharedPromptSelection);
-        let sharedPrompt = sharedPromptId ? getPromptById(sharedPromptId) : null;
-        let sharedPromptSource = sharedPromptId ? 'supabase' : null;
-        let sharedPromptPoolSize = Number(sharedPromptSelection?.value?.poolSize ?? sharedPromptSelection?.poolSize ?? NaN);
-        if (!Number.isFinite(sharedPromptPoolSize)) sharedPromptPoolSize = null;
-        let sharedPromptSelectionPoolSize = Number(
-          sharedPromptSelection?.value?.selectionPoolSize
-          ?? sharedPromptSelection?.selectionPoolSize
-          ?? NaN
-        );
-        if (!Number.isFinite(sharedPromptSelectionPoolSize)) {
-          sharedPromptSelectionPoolSize = sharedPromptPoolSize;
-        }
-
-        if (!sharedPrompt?.text && cachedPrompt?.text) {
-          sharedPrompt = cachedPrompt;
-          sharedPromptSource = 'daily_cache';
-        }
-
-        if (!sharedPrompt?.text) {
-          const profile = await loadContentProfile(options?.profileOverride || userProfile || {});
-          const heatFilters = getDailyPromptHeatFilters(profile || options?.profileOverride || userProfile || {}, isPremium);
-          fallbackHeatFilters = heatFilters;
-          const canonicalPool = getCanonicalDailyPromptPool(heatFilters);
-          const filteredCanonicalPool = await filterTodayPromptsForProfile(canonicalPool, profile);
-          sharedPromptPoolSize = canonicalPool.length;
-          sharedPromptSelectionPoolSize = filteredCanonicalPool.length;
-          if (filteredCanonicalPool.length === 0) {
-            throw new Error('No prompts available for your preferences');
-          }
-          sharedPrompt = selectTodayBetweenUsPrompt(filteredCanonicalPool, today, scope) || filteredCanonicalPool[0];
-          sharedPromptSource = 'deterministic';
-        }
-
-        if (!sharedPromptId && sharedPrompt?.id) {
-          const assignment = buildDailyPromptAssignment({
-            dateKey: today,
-            scope,
-            promptId: sharedPrompt.id,
-            source: sharedPromptSource,
-            heatFilters: fallbackHeatFilters || getDailyPromptHeatFilters(),
-            poolSize: sharedPromptPoolSize,
-            selectionPoolSize: sharedPromptSelectionPoolSize ?? sharedPromptPoolSize,
-            isPremium,
-          });
-          const saved = await saveSharedDailyPromptSelection(today, sharedPrompt.id, activeUserId, {
-            fallbackCoupleId: coupleId,
-            allowStoredFallback: false,
-            ensureSession: ensureSupabaseSession,
-            assignment,
-          }).catch((error) => {
-            if (__DEV__) console.warn('[ContentContext] Shared daily prompt sync failed:', error?.message);
-            return false;
-          });
-
-          if (saved) {
-            const confirmedSelection = await getSharedDailyPromptSelection(today, {
-              fallbackCoupleId: coupleId,
-              allowStoredFallback: false,
-              ensureSession: ensureSupabaseSession,
-            }).catch(() => null);
-            const confirmedPromptId = getSharedPromptId(confirmedSelection);
-            const confirmedPrompt = confirmedPromptId ? getPromptById(confirmedPromptId) : null;
-
-            if (confirmedPrompt?.text) {
-              sharedPrompt = confirmedPrompt;
-              sharedPromptSource = 'supabase_confirmed';
-            }
-          }
-
-          if (!saved && !cachedPrompt?.text) {
-            setTodayPrompt(null);
-            PromptAllocator.setDailyPromptId(null);
-            updateWidgetPrompt('').catch(() => {});
-            return null;
-          }
-        }
-
-        if (sharedPrompt?.text) {
-          await storage.set(DAILY_PROMPT_CACHE_KEY, buildDailyPromptAssignment({
-            dateKey: today,
-            scope,
-            promptId: sharedPrompt.id,
-            source: sharedPromptSource || 'supabase',
-            heatFilters: fallbackHeatFilters || getDailyPromptHeatFilters(),
-            poolSize: sharedPromptPoolSize,
-            selectionPoolSize: sharedPromptSelectionPoolSize ?? sharedPromptPoolSize,
-            isPremium,
-          }));
-
-          if (
-            todayPrompt?.dateKey === today
-            && todayPrompt?._dailyPromptScope === scope
-            && todayPrompt?.id === sharedPrompt.id
-          ) {
-            PromptAllocator.setDailyPromptId(sharedPrompt.id);
-            return todayPrompt;
-          }
-
-          const personalizedSharedPrompt = await personalizePrompt({ ...sharedPrompt, dateKey: today });
-          const resolvedSharedPrompt = { ...personalizedSharedPrompt, _dailyPromptScope: scope };
-          setTodayPrompt(resolvedSharedPrompt);
-          PromptAllocator.setDailyPromptId(sharedPrompt.id);
-          updateWidgetPrompt(resolvedSharedPrompt.text || sharedPrompt.text).catch(() => {});
-          return resolvedSharedPrompt;
-        }
-      }
 
       if (
         cachedPrompt?.text
@@ -463,25 +310,13 @@ export const ContentProvider = ({ children }) => {
         return resolvedCachedPrompt;
       }
 
-      // Load (or refresh) the content profile
-      const profile = await loadContentProfile(options?.profileOverride || userProfile || {});
-
-      // Determine the daily pool from the persisted profile only so the day's
-      // moment stays fixed regardless of which screen opens it first.
-      const dailyHeatFilters = getDailyPromptHeatFilters(
-        profile || options?.profileOverride || userProfile || {},
-        isPremium
-      );
+      // Today Between Us is a global morning-safe rotation, not personalized
+      // by user/couple scope. That keeps partners and offline devices aligned.
+      const dailyHeatFilters = getDailyPromptHeatFilters();
       fallbackHeatFilters = dailyHeatFilters;
 
       if (dailyHeatFilters.heatLevels.length === 0) {
         throw new Error('No prompts available for your preferences');
-      }
-
-      // Check if user can access this heat level
-      const accessCheck = await PremiumGatekeeper.canAccessPrompt(activeUserId, dailyHeatFilters.maxHeatLevel, isPremium);
-      if (!accessCheck.canAccess) {
-        throw new Error(accessCheck.message);
       }
 
       let promptsData = getTodayBetweenUsPrompts(dailyHeatFilters);
@@ -490,34 +325,16 @@ export const ContentProvider = ({ children }) => {
         throw new Error('No prompts available for your preferences');
       }
 
-      promptsData = await filterTodayPromptsForProfile(promptsData, profile);
-
-      if (promptsData.length === 0) {
-        throw new Error('No prompts available for your preferences');
-      }
-
-      const promptAnswers = typeof DataLayer.getPromptAnswers === 'function'
-        ? await DataLayer.getPromptAnswers({ limit: 1000 }).catch(() => [])
-        : [];
-      const recentlyCompletedPromptIds = getRecentlyCompletedPromptIds(promptAnswers);
-      const excludedPromptIds = promptsData
-        .filter((prompt) => recentlyCompletedPromptIds.has(prompt?.id))
-        .map((prompt) => prompt.id);
-      const uncompletedPrompts = promptsData.filter(
-        (prompt) => !recentlyCompletedPromptIds.has(prompt?.id)
-      );
-      const selectionPool = uncompletedPrompts.length > 0 ? uncompletedPrompts : promptsData;
-
       let selectedPrompt;
-      const deterministicPool = [...selectionPool]
+      const deterministicPool = [...promptsData]
         .filter((prompt) => prompt?.id && typeof prompt.text === 'string' && prompt.text.trim())
         .sort((a, b) => String(a.id).localeCompare(String(b.id)));
 
       if (deterministicPool.length > 0) {
-        selectedPrompt = selectTodayBetweenUsPrompt(deterministicPool, today, scope);
+        selectedPrompt = selectTodayBetweenUsPrompt(deterministicPool, today);
       }
 
-      // Guard against prompt missing .text — still respect boundaries
+      // Guard against prompt missing .text so the daily card always has copy.
       if (!selectedPrompt || typeof selectedPrompt.text !== 'string' || !selectedPrompt.text.trim()) {
         const fallback = promptsData
           .find((p) => p && typeof p.text === 'string' && p.text.trim());
@@ -531,26 +348,15 @@ export const ContentProvider = ({ children }) => {
         dateKey: today,
         scope,
         promptId: selectedPrompt.id,
-        source: 'deterministic',
+        source: 'deterministic_global',
         heatFilters: dailyHeatFilters,
         poolSize: promptsData.length,
         selectionPoolSize: deterministicPool.length,
-        excludedPromptIds,
+        excludedPromptIds: [],
         isPremium,
       });
 
       await storage.set(DAILY_PROMPT_CACHE_KEY, assignment);
-
-      if (coupleId) {
-        await saveSharedDailyPromptSelection(today, selectedPrompt.id, activeUserId, {
-          fallbackCoupleId: coupleId,
-          allowStoredFallback: false,
-          ensureSession: ensureSupabaseSession,
-          assignment,
-        }).catch((error) => {
-          if (__DEV__) console.warn('[ContentContext] Shared daily prompt sync failed:', error?.message);
-        });
-      }
 
       const personalizedPrompt = await personalizePrompt({ ...selectedPrompt, dateKey: today });
       const resolvedPrompt = { ...personalizedPrompt, _dailyPromptScope: scope };
@@ -595,14 +401,10 @@ export const ContentProvider = ({ children }) => {
         loadingPromptRef.current = false;
       }
   }, [
-    ensureSupabaseSession,
-    filterTodayPromptsForProfile,
     isPremium,
-    loadContentProfile,
     personalizePrompt,
     todayPrompt,
     user,
-    userProfile,
   ]);
 
   useEffect(() => {

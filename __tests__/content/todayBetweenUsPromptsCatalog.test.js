@@ -3,6 +3,7 @@ const todayPromptsCatalog = require('../../content/today-between-us-prompts.json
 describe('Today Between Us prompt catalog', () => {
   const items = todayPromptsCatalog.items || [];
   const minimumSixMonthPoolSize = 183;
+  const annualPromptCount = 365;
 
   it('matches the declared total', () => {
     expect(items).toHaveLength(todayPromptsCatalog.meta.totalPrompts);
@@ -28,10 +29,11 @@ describe('Today Between Us prompt catalog', () => {
     });
   });
 
-  it('has enough morning-safe questions for a six-month no-repeat rotation', () => {
-    expect(items).toHaveLength(minimumSixMonthPoolSize);
+  it('has enough morning-safe questions for an annual no-repeat rotation', () => {
+    expect(items).toHaveLength(annualPromptCount);
     expect(items.every((item) => item.heat >= 1 && item.heat <= 3)).toBe(true);
-    expect(items.map((item) => item.id).filter(Boolean)).toHaveLength(minimumSixMonthPoolSize);
+    expect(items.map((item) => item.id).filter(Boolean)).toHaveLength(annualPromptCount);
+    expect(items.length).toBeGreaterThanOrEqual(minimumSixMonthPoolSize);
   });
 
   it('keeps Today Between Us wording nonsexual for morning prompts', () => {
@@ -45,6 +47,6 @@ describe('Today Between Us prompt catalog', () => {
       return acc;
     }, {});
 
-    expect(counts).toEqual({ 1: 61, 2: 61, 3: 61 });
+    expect(counts).toEqual({ 1: 122, 2: 122, 3: 121 });
   });
 });
