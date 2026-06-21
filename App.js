@@ -42,6 +42,7 @@ import StorageRouter from "./services/storage/StorageRouter";
 import { supabase } from "./config/supabase";
 import { cloudSyncStorage, storage, STORAGE_KEYS } from "./utils/storage";
 import ExpoUpdateService from "./services/ExpoUpdateService";
+import { useLogAppUsage } from "./services/appUsage";
 
 // Keep splash visible until fonts + init complete
 SplashScreen.preventAutoHideAsync();
@@ -285,6 +286,10 @@ function AppContent() {
   const [isLocked, setIsLocked] = useState(false);
   const [navReady, setNavReady] = useState(false);
   const [appStateVisible, setAppStateVisible] = useState(AppState.currentState);
+
+  // Record one usage row per local day this account opens the app (and on each
+  // foreground return). No-ops while signed out.
+  useLogAppUsage();
   const backgroundTimeRef = useRef(null);
   const lockGracePeriodMs = Math.max(0, Number(state.appLockAutoLockTime ?? 5)) * 60 * 1000;
   const hideAppPreview = !!state.hidePreview && appStateVisible !== "active";
